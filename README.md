@@ -12,7 +12,7 @@ op basis van maandelijkse ticketingdata.
 
 ## 🏗️ Projectstructuur
 
-```
+```text
 CSAT-Compass/
 ├── src/csat/
 │   ├── config/        # Instellingen per pijler
@@ -52,12 +52,12 @@ python scripts/run_analysis.py
 
 ## 🧩 Pijlers
 
-| Pijler | Beschrijving |
-|--------|-------------|
-| PHARMA | Ziekenhuisapotheek applicaties |
-| CARE | Verpleegkundige zorgtoepassingen |
+| Pijler     | Beschrijving                     |
+| ---------- | -------------------------------- |
+| PHARMA     | Ziekenhuisapotheek applicaties   |
+| CARE       | Verpleegkundige zorgtoepassingen |
 | CARE ADMIN | Administratieve zorgtoepassingen |
-| ERP4HC | ERP voor de gezondheidssector |
+| ERP4HC     | ERP voor de gezondheidssector    |
 
 ## 🤝 Bijdragen
 

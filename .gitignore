@@ -19,6 +19,7 @@ env/
 data/
 output/
 logs/
+archive/
 
 # Mypy / Ruff / Pytest cache
 .mypy_cache/

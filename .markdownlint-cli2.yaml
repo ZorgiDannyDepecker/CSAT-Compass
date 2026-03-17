@@ -1,0 +1,4 @@
+ignores:
+  - ".venv/**"
+  - "archive/**"
+  - "WIP/**"
