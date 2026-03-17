@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# Virtuele omgeving
+.venv/
+venv/
+env/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Data & output (niet in Git)
+data/
+output/
+logs/
+
+# Mypy / Ruff / Pytest cache
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+htmlcov/
+.coverage
+
+# Windows
+desktop.ini
+Thumbs.db
