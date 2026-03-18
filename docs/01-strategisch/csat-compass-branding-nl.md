@@ -1,4 +1,4 @@
-# CSAT-Compass - Branding & Naamgeving
+# CSAT-Compass 🧭 - Branding & Naamgeving
 
 **Versie:** 1.0  
 **Laatst bijgewerkt:** 17/03/2026  
@@ -17,7 +17,7 @@
 
 **CSAT-Compass** — *Customer Satisfaction Compass*
 
-> 🇳🇱 *"De klanttevredenheidswijzer die richting geeft aan elke ZORGI-pijler."*
+> *"De klanttevredenheidswijzer die richting geeft aan elke ZORGI-pijler."*
 
 ---
 
@@ -30,27 +30,27 @@ zoeken naar houvast in klantfeedback.
 ### 2.1 De 4 windrichtingen = de 4 ZORGI-pijlers
 
 ```text
-                    ⬆️ NOORD
+                    ↑ NOORD
                     PHARMA
               Ziekenhuisapotheek
 
-    ⬅️ WEST                        OOST ➡️
+    ← WEST                        OOST →
     CARE ADMIN                     CARE
     Administratie                  Verpleging
 
-                    ⬇️ ZUID
+                    ↓ ZUID
                     ERP4HC
               Enterprise systemen
 ```
 
 | Windrichting | Pijler     | Domein                           |
 |--------------|------------|----------------------------------|
-| ⬆️ Noord     | PHARMA     | Ziekenhuisapotheek               |
-| ➡️ Oost      | CARE       | Verpleegkundige zorgtoepassingen |
-| ⬅️ West      | CARE ADMIN | Administratieve zorgtoepassingen |
-| ⬇️ Zuid      | ERP4HC     | Enterprise systemen gezondheidszorg |
+| ↑   Noord    | PHARMA     | Ziekenhuisapotheek               |
+| → Oost       | CARE       | Verpleegkundige zorgtoepassingen |
+| ← West       | CARE ADMIN | Administratieve zorgtoepassingen |
+| ↓   Zuid     | ERP4HC     | Enterprise systemen gezondheidszorg |
 
-> 🇳🇱 *"Jouw tevredenheidscompas wijst in alle 4 de richtingen."*
+> *"Jouw tevredenheidscompas wijst in alle 4 de richtingen."*
 
 ---
 
@@ -111,8 +111,8 @@ documentatie, rapporten en communicatie.
 
 | Taal         | Tagline                                       |
 |--------------|-----------------------------------------------|
-| 🇳🇱 Nederlands | *"Richting geven aan klanttevredenheid"*    |
-| 🇫🇷 Frans      | *"Donner une direction à la satisfaction client"* |
+| Nederlands | *"Richting geven aan klanttevredenheid"*    |
+| Frans      | *"Donner une direction à la satisfaction client"* |
 
 ### 6.3 Gebruik in documentatie
 
@@ -125,6 +125,7 @@ documentatie, rapporten en communicatie.
 
 ## Versiehistorie
 
-| Versie | Datum      | Wijzigingen     | Auteur         |
-|--------|------------|-----------------|----------------|
-| 1.0    | 17/03/2026 | Initiële versie | Danny Depecker |
+| Versie | Datum      | Wijzigingen        | Auteur         |
+|--------|------------|--------------------|----------------|
+| 1.0    | 17/03/2026 | Initiële versie    | Danny Depecker |
+| 1.1    | 18/03/2026 | Manuele bijsturing | Danny Depecker |

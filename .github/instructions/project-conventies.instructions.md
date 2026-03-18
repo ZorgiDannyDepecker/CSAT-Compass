@@ -127,20 +127,48 @@ AI-tools zijn volwaardige auteurs binnen ZORGI PHARMA-projecten.
 
 ### 5.1 Emoji Gebruik
 
-Gebruik emoji als **visuele ankers** voor snelle oriëntatie in documenten:
+Gebruik emoji als **visuele ankers** voor snelle oriëntatie in documenten.
 
-| Emoji | Betekenis             | Gebruik                      |
-| ----- | --------------------- | ---------------------------- |
-| ⚠️    | Risico / Waarschuwing | Kritieke aandachtspunten     |
-| ✅     | Voltooid / Correct    | Bevestiging, good practices  |
-| ❌     | Fout / Incorrect      | Fouten, don'ts               |
-| 🚀     | Release / Go-live     | Mijlpalen, deployments       |
-| 💡     | Idee / Tip            | Suggesties, hints            |
-| 🎯     | Focus / Doel          | Prioriteiten, doelstellingen |
-| 🔍     | Analyse / Onderzoek   | Bevindingen, inspecties      |
-| 🔄     | In progress           | Work in progress secties     |
-| ⏳     | Gepland               | Nog te implementeren         |
-| 📋     | Checklist / Overzicht | Lijsten, samenvattingen      |
+> ⚠️ **Gebruik altijd de codepoints uit onderstaande tabel.** Visueel identieke emoji
+> kunnen uit verschillende Unicode-blokken komen en anders renderen in PDF.
+> Voorbeeld: ➡️ (U+27A1 Dingbats) vs ➡️ (U+2B95 Arrows) — zelfde uiterlijk,
+> ander font-blok, inconsistent gewicht in PDF. Gebruik altijd U+2B95.
+
+#### 5.1a Statusemoji
+
+| Emoji | Unicode | Betekenis             | Gebruik                      |
+| ----- | ------- | --------------------- | ---------------------------- |
+| ⚠️    | U+26A0  | Risico / Waarschuwing | Kritieke aandachtspunten     |
+| ✅     | U+2705  | Voltooid / Correct    | Bevestiging, good practices  |
+| ❌     | U+274C  | Fout / Incorrect      | Fouten, don'ts               |
+| 🚀     | U+1F680 | Release / Go-live     | Mijlpalen, deployments       |
+| 💡     | U+1F4A1 | Idee / Tip            | Suggesties, hints            |
+| 🎯     | U+1F3AF | Focus / Doel          | Prioriteiten, doelstellingen |
+| 🔍     | U+1F50D | Analyse / Onderzoek   | Bevindingen, inspecties      |
+| 🔄     | U+1F504 | In progress           | Work in progress secties     |
+| ⏳     | U+23F3  | Gepland               | Nog te implementeren         |
+| 📋     | U+1F4CB | Checklist / Overzicht | Lijsten, samenvattingen      |
+
+#### 5.1b Projectemoji CSAT-Compass
+
+| Emoji | Unicode   | Betekenis              | Gebruik                          |
+| ----- | --------- | ---------------------- | -------------------------------- |
+| 🧭    | U+1F9ED   | Kompas — project anker | H1 titels, rapporten, branding   |
+
+#### 5.1c Richtingspijlen (pijler-kompasmetafoor)
+
+Gebruik uitsluitend pijlen uit het **Arrows-blok** (U+2190–U+21FF) —
+alle 4 renderen consistent in PDF met identiek font en gewicht:
+
+| Emoji | Unicode | Richting | Pijler     |
+| ----- | ------- | -------- | ---------- |
+| ↑     | U+2191  | Noord    | PHARMA     |
+| →     | U+2192  | Oost     | CARE       |
+| ↓     | U+2193  | Zuid     | ERP4HC     |
+| ←     | U+2190  | West     | CARE ADMIN |
+
+> ❌ **Niet gebruiken:** ⬆️ U+2B06 / ⬇️ U+2B07 / ⬅️ U+2B05 / ➡️ U+27A1 of U+2B95
+> — komen uit verschillende Unicode-blokken en renderen inconsistent in PDF.
 
 ### 5.2 Headers
 

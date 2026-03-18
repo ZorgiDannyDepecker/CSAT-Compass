@@ -299,7 +299,7 @@ GitHub Copilot executes the command **immediately** — geen bevestigingsvraag, 
 When the user types `/pdf` as the entire message, immediately run this command in the terminal:
 
 ```powershell
-python "C:\Users\danndepe\Documents\AI\CSAT-Compass\src\md_to_pdf.py" --batch "C:\Users\danndepe\Documents\Convertiemap\IN" "C:\Users\danndepe\Documents\Convertiemap\OUT" -p -d
+python "C:\Users\danndepe\Documents\AI\Q&A-Lab\code\md_to_pdf.py" --batch "C:\Users\danndepe\Documents\Convertiemap\IN" "C:\Users\danndepe\Documents\Convertiemap\OUT" -p -d
 ```
 
 - Execute autonomously, no confirmation needed

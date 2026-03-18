@@ -1,4 +1,4 @@
-# CSAT-Compass - Image de Marque & Dénomination
+# CSAT-Compass 🧭 - Image de Marque & Dénomination
 
 **Versie:** 1.0  
 **Laatst bijgewerkt:** 17/03/2026  
@@ -17,7 +17,7 @@
 
 **CSAT-Compass** — *Customer Satisfaction Compass*
 
-> 🇫🇷 *"La boussole de satisfaction client qui oriente chaque pilier ZORGI."*
+> *"La boussole de satisfaction client qui oriente chaque pilier ZORGI."*
 
 ---
 
@@ -30,25 +30,25 @@ qui cherchent des repères dans les retours clients.
 ### 2.1 Les 4 points cardinaux = les 4 piliers ZORGI
 
 ```text
-                    ⬆️ NORD
+                    ↑ NORD
                     PHARMA
               Pharmacie hospitalière
 
-    ⬅️ OUEST                       EST ➡️
+    ← OUEST                       EST →
     CARE ADMIN                     CARE
     Administration                 Soins infirmiers
 
-                    ⬇️ SUD
+                    ↓ SUD
                     ERP4HC
               Systèmes d'entreprise
 ```
 
 | Point cardinal | Pilier     | Domaine                                    |
 |----------------|------------|--------------------------------------------|
-| ⬆️ Nord        | PHARMA     | Pharmacie hospitalière                     |
-| ➡️ Est         | CARE       | Applications de soins infirmiers           |
-| ⬅️ Ouest       | CARE ADMIN | Applications administratives de soins     |
-| ⬇️ Sud         | ERP4HC     | Systèmes d'entreprise pour la santé        |
+| ↑   Nord       | PHARMA     | Pharmacie hospitalière                     |
+| → Est          | CARE       | Applications de soins infirmiers           |
+| ← Ouest        | CARE ADMIN | Applications administratives de soins     |
+| ↓   Sud        | ERP4HC     | Systèmes d'entreprise pour la santé        |
 
 > 🇫🇷 *"Votre boussole de satisfaction pointe dans les 4 directions."*
 
@@ -112,8 +112,8 @@ toute la documentation, les rapports et les communications.
 
 | Langue         | Tagline                                           |
 |----------------|---------------------------------------------------|
-| 🇳🇱 Néerlandais | *"Richting geven aan klanttevredenheid"*         |
-| 🇫🇷 Français    | *"Donner une direction à la satisfaction client"* |
+| Néerlandais | *"Richting geven aan klanttevredenheid"*         |
+| Français    | *"Donner une direction à la satisfaction client"* |
 
 ### 6.3 Utilisation dans la documentation
 
@@ -126,6 +126,7 @@ toute la documentation, les rapports et les communications.
 
 ## Versiehistorie
 
-| Versie | Datum      | Wijzigingen      | Auteur         |
-|--------|------------|------------------|----------------|
-| 1.0    | 17/03/2026 | Version initiale | Danny Depecker |
+| Versie | Datum      | Wijzigingen                           | Auteur         |
+|--------|------------|---------------------------------------|----------------|
+| 1.0    | 17/03/2026 | Version initiale — traduction FR | Danny Depecker |
+| 1.1    | 17/03/2026 | Correction manuelle | Danny Depecker |
