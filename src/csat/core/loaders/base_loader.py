@@ -10,9 +10,18 @@ from loguru import logger
 
 # Verplichte kolomnamen vanuit V_CSAT_1
 REQUIRED_COLUMNS = [
-    "key", "issue_type", "priority", "summary", "score",
-    "comment", "satisfaction_date", "created",
-    "hospital", "product", "product_domain", "project_key",
+    "key",
+    "issue_type",
+    "priority",
+    "summary",
+    "score",
+    "comment",
+    "satisfaction_date",
+    "created",
+    "hospital",
+    "product",
+    "product_domain",
+    "project_key",
 ]
 
 
@@ -51,8 +60,6 @@ class BaseLoader(ABC):
         if missing:
             logger.warning(f"Ontbrekende kolommen in DataFrame: {missing}")
         logger.info(
-            f"[{self.__class__.__name__}] {len(df):,} rijen geladen "
-            f"({len(df.columns)} kolommen)"
+            f"[{self.__class__.__name__}] {len(df):,} rijen geladen ({len(df.columns)} kolommen)"
         )
         return df
-

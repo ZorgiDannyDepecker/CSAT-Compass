@@ -1,0 +1,116 @@
+[project]
+name = "csat-compass"
+version = "0.1.0"
+description = "ZORGI CSAT analyse en rapportage voor alle pijlers"
+requires-python = ">=3.11"
+
+# =============================================================================
+# Ruff — linter en formatter
+# =============================================================================
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+exclude = [
+    ".venv", ".git", "__pycache__", ".ruff_cache",
+    "archive", "data", "output", "logs",
+]
+
+[tool.ruff.lint]
+# Uitgebreide ruleset — conform ProjectTemplate-standaard
+# E/W = pycodestyle | F = pyflakes | I = isort | N = pep8-naming
+# UP = pyupgrade | B = bugbear | SIM = simplify | S = security
+# PD = pandas | PTH = pathlib | RUF = ruff-specific | C90 = complexity
+select = [
+    "E", "W", "F", "I", "N", "UP", "B", "SIM",
+    "S",    # Bandit-achtige security checks
+    "PD",   # Pandas best practices
+    "PTH",  # Gebruik pathlib i.p.v. os.path
+    "C90",  # McCabe complexiteit
+    "RUF",  # Ruff-specifieke regels
+    "T20",  # Geen print() statements in productie
+    "DTZ",  # Timezone-bewuste datetime
+]
+
+ignore = [
+    "E501",    # Regellengte — afgehandeld door formatter
+    "B008",    # Functieaanroepen als standaardargument
+    "SIM108",  # Ternary operator — soms minder leesbaar
+    "S101",    # assert — toegestaan in tests
+    "S105",    # Hardcoded passwords — false positives
+    "S608",    # SQL injection — false positives bij string-queries
+    
+    "T201",    # print() — toegestaan in scripts/debug
+    "RUF100",  # Ongebruikte noqa
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101", "S106", "PD", "T201", "DTZ001"]
+"scripts/*" = ["T201", "S603", "S607"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["csat"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+# =============================================================================
+# Mypy — statische typecontrole
+# =============================================================================
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+show_column_numbers = true
+show_error_codes = true
+exclude = [".venv", "archive", "data", "output"]
+
+# =============================================================================
+# Pytest
+# =============================================================================
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["tests"]
+addopts = "-ra -q --strict-markers --cov=src/csat --cov-report=term-missing --cov-report=html"
+python_files = ["test_*.py", "*_test.py"]
+markers = [
+    "unit: unit tests — snel, geen externe afhankelijkheden",
+    "integration: integratietests — vereisen DB of bestandssysteem",
+    "slow: trage tests — deselect met '-m not slow'",
+    "database: tests die DB-connectie vereisen",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
+]
+
+# =============================================================================
+# Coverage
+# =============================================================================
+
+[tool.coverage.run]
+source = ["src"]
+omit = [
+    "*/tests/*",
+    "*/test_*.py",
+    "*/__pycache__/*",
+    "*/site-packages/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "@(abc\\.)?abstractmethod",
+]

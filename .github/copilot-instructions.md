@@ -4,7 +4,7 @@ applyTo: '**/*'
 
 # CSAT-Compass - Copilot Instructions
 
-**Versie:** 2.4  
+**Versie:** 2.7  
 **Laatst bijgewerkt:** 19/03/2026
 
 **Doel:** GHC-gedragsinstructies en CSAT-projectcontext voor de CSAT-Compass repository  
@@ -231,8 +231,9 @@ Respect the following folder structure:
 - `archive/` - Oude versies van documenten/code/scripts voor referentie
 - `data/` - Lokale databestanden (uitgesloten van Git via .gitignore)
 - `docs/` - Documentation (3-layer structure: 01-strategisch, 02-tactisch, 03-operationeel)
-- `scripts/` - PowerShell hulpscripts
-- `src/` - Python scripts (analyse, rapportage, visualisatie)
+- `scripts/` - PowerShell projectscripts (analyse-runners, export-scripts)
+- `src/` - Python broncode (analyse, rapportage, visualisatie)
+- `tools/` - Dev-tooling (lint.ps1, hulpscripts voor ontwikkelaars — geen projectlogica)
 - `output/` - Gegenereerde rapporten en visualisaties (uitgesloten van Git)
 - `tests/` - Unit tests en testdata
 - `WIP/` - Work In Progress documenten en scripts (niet klaar voor productie)
@@ -296,6 +297,7 @@ GitHub Copilot executes the command **immediately** — geen bevestigingsvraag, 
 | `/pdf`    | Batch conversie van alle .md bestanden in Convertiemap/IN → PDF in Convertiemap/OUT |
 | `/advies` | Vraag om advies, bedenkingen of voorstellen — met MCQ-verduidelijking indien nodig  |
 | `/GIT`    | Stage alle wijzigingen, genereer een commit message op basis van de diff en commit  |
+| `/cve`    | CVE-scan van alle geïnstalleerde packages — werkt ook achter de ZORGI corporate proxy |
 
 ## /pdf
 
@@ -326,7 +328,17 @@ wordt vooropgesteld.
 
 ## /GIT
 
-When the user types `/GIT` as the entire message, immediately execute this sequence autonomously:
+When the user types `/GIT` as the entire message, immediately ask this single question first:
+
+> **Wil je vooraf de lint-checks uitvoeren?**
+>
+> - **1** — direct committen, geen lint
+> - **2** — alleen `.\tools\lint.ps1` uitvoeren, geen commit
+> - **3** — eerst lint, daarna committen als lint slaagt
+
+Wait for the user's answer (1, 2 or 3), then execute the matching flow below.
+
+### Flow 1 — direct committen
 
 1. **Stage** alle wijzigingen: `git add -A`
 2. **Analyseer** de diff: `git --no-pager diff --staged --stat`
@@ -337,12 +349,46 @@ When the user types `/GIT` as the entire message, immediately execute this seque
 4. **Commit**: `git commit -m "..."`
 5. **Toon** de commit hash + samenvatting
 
+### Flow 2 — alleen lint
+
+1. **Voer uit**: `.\tools\lint.ps1`
+2. **Toon** de volledige output
+3. Geen git-operaties — stop hier
+
+### Flow 3 — lint gevolgd door commit
+
+1. **Voer uit**: `.\tools\lint.ps1`
+2. **Toon** de lint-output
+3. Als lint **slaagt** (exit code 0): voer Flow 1 volledig uit
+4. Als lint **faalt**: stop — vermeld welke checks gefaald hebben en commit **niet**
+
 **Gedragsregels:**
 
-- Execute autonomously — geen bevestigingsvraag, geen uitleg vooraf
+- De keuzevraag is de enige vraag — geen verdere bevestigingen
 - Commit message altijd in het **Engels** (Git conventie)
 - Nooit credentials, patiëntdata of PII in de commit message
 - Geen automatische push — branch blijft lokaal tenzij de user expliciet vraagt te pushen
+
+---
+
+## /cve
+
+When the user types `/cve` as the entire message, immediately execute this sequence autonomously:
+
+1. **Lees** de geïnstalleerde packages: `python -m pip list --format=freeze`
+2. **Groepeer** de packages in batches (max 20 per aanroep)
+3. **Scan** elke batch via de ingebouwde CVE-tooling (OSV/GitHub Advisory Database)
+4. **Rapporteer** de resultaten in een overzichtstabel:
+   - Kolommen: Package | Versie | CVE | Ernst | Actie
+   - Alleen packages met CVE's worden getoond
+   - Als geen CVE's gevonden: één bevestigingsregel
+
+**Gedragsregels:**
+
+- Execute autonomously — geen bevestigingsvraag, geen uitleg vooraf
+- Werkt volledig zonder externe netwerkverbinding — geen SSL-fout op ZORGI-netwerk
+- Geeft de minimale versie aan die alle CVE's voor een package oplost
+- Na de scan: vermeld expliciet hoeveel packages gecontroleerd zijn
 
 ---
 
@@ -411,11 +457,14 @@ Bij elke branded output (rapport, dashboard, visualisatie) verifiëren:
 
 ## Versiehistorie
 
-| Versie | Datum      | Wijzigingen                                                                                                                                                                        | Auteur                  |
-| ------ | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------- |
-| 1.0    | 01/01/2026 | Initiële versie                                                                                                                                                                    | Danny Depecker          |
+| Versie | Datum      | Wijzigingen                                                                                                                                                                        | Auteur                 |
+| ------ | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
+| 1.0    | 01/01/2026 | Initiële versie                                                                                                                                                                    | Danny Depecker         |
 | 2.0    | 17/03/2026 | Herstructurering: document header, frontmatter, versiehistorie; overlappen met project-conventies verwijderd; CSAT/SD30 afkortingen gecentraliseerd; src/ en /pdf pad gecorrigeerd | Danny Depecker + Claude |
-| 2.1    | 17/03/2026 | Tweetaligheid NL/FR toegevoegd: gedragsregels GHC, bestandsnaamconventie rapporten                                                                                                 | Danny Depecker          |
-| 2.2    | 18/03/2026 | /advies custom command toegevoegd                                                                                                                                                  | Danny Depecker + GHC    |
-| 2.3    | 19/03/2026 | /GIT custom command toegevoegd                                                                                                                                                     | Danny Depecker + GHC    |
-| 2.4    | 19/03/2026 | Branding sectie toegevoegd op basis van zorgi-design-system.md; referentie toegevoegd in header                                                                                    | Danny Depecker + GHC    |
+| 2.1    | 17/03/2026 | Tweetaligheid NL/FR toegevoegd: gedragsregels GHC, bestandsnaamconventie rapporten                                                                                                 | Danny Depecker         |
+| 2.2    | 18/03/2026 | /advies custom command toegevoegd                                                                                                                                                  | Danny Depecker + GHC   |
+| 2.3    | 19/03/2026 | /GIT custom command toegevoegd                                                                                                                                                     | Danny Depecker + GHC   |
+| 2.4    | 19/03/2026 | Branding sectie toegevoegd op basis van zorgi-design-system.md; referentie toegevoegd in header                                                                                    | Danny Depecker + GHC   |
+| 2.5    | 19/03/2026 | /cve custom command toegevoegd als proxy-proof alternatief voor pip-audit                                                                                                          | GHC                    |
+| 2.6    | 19/03/2026 | Mapstructuur bijgewerkt: tools/ toegevoegd, scripts/ beperkt tot projectscripts; lint.ps1 verplaatst naar tools/                                                                   | Danny Depecker + GHC   |
+| 2.7    | 19/03/2026 | /GIT uitgebreid met lint-keuzevraag: 1 / 2 / 3 flows                                                                                                                              | Danny Depecker    |

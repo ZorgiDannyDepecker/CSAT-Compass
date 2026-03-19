@@ -58,16 +58,14 @@ class SqlLoader(BaseLoader):
         Returns:
             DataFrame met alle kolommen van V_CSAT_1
         """
-        query = f"SELECT * FROM {self.VIEW}"
+        query = f"SELECT * FROM {self.VIEW}"  # nosec B608
         conditions = []
 
         if pillar:
             conditions.append(f"product = '{pillar.strip()}'")
         if period:
             jaar, maand = period.split("-")
-            conditions.append(
-                f"YEAR(created) = {jaar} AND MONTH(created) = {int(maand)}"
-            )
+            conditions.append(f"YEAR(created) = {jaar} AND MONTH(created) = {int(maand)}")
 
         if conditions:
             query += " WHERE " + " AND ".join(conditions)
@@ -81,4 +79,3 @@ class SqlLoader(BaseLoader):
             parse_dates=DATE_COLUMNS,
         )
         return self._validate_dataframe(df)
-

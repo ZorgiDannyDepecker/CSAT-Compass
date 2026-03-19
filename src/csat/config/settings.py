@@ -5,6 +5,7 @@ Laadt configuratie uit omgevingsvariabelen (.env bestand).
 
 import os
 from pathlib import Path
+
 from dotenv import load_dotenv
 
 # Basis projectmap bepalen en .env laden
@@ -27,17 +28,11 @@ DB_CONN = (
 )
 
 # --- Paden ---
-CSV_FALLBACK_PATH = Path(
-    os.getenv("CSAT_CSV_FALLBACK_PATH", str(BASE_DIR / "data" / "fallback"))
-)
-OUTPUT_PATH = Path(
-    os.getenv("CSAT_OUTPUT_PATH", str(BASE_DIR / "output"))
-)
+CSV_FALLBACK_PATH = Path(os.getenv("CSAT_CSV_FALLBACK_PATH", str(BASE_DIR / "data" / "fallback")))
+OUTPUT_PATH = Path(os.getenv("CSAT_OUTPUT_PATH", str(BASE_DIR / "output")))
 TEMPLATES_PATH = BASE_DIR / "docs" / "templates"
 I18N_PATH = Path(__file__).resolve().parent.parent / "i18n"
-LOG_PATH = Path(
-    os.getenv("CSAT_LOG_PATH", str(BASE_DIR / "logs"))
-)
+LOG_PATH = Path(os.getenv("CSAT_LOG_PATH", str(BASE_DIR / "logs")))
 
 # --- Logging ---
 LOG_LEVEL = os.getenv("CSAT_LOG_LEVEL", "INFO")
@@ -46,4 +41,3 @@ LOG_LEVEL = os.getenv("CSAT_LOG_LEVEL", "INFO")
 def db_available() -> bool:
     """Controleer of een DB-wachtwoord beschikbaar is voor connectie."""
     return bool(DB_PASSWORD)
-

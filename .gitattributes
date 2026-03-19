@@ -1,0 +1,70 @@
+# .gitattributes
+# CSAT-Compass — Git line ending configuratie
+# Windows-first project (conform ProjectTemplate-standaard)
+
+# Auto-detectie voor tekst bestanden
+* text=auto
+
+# --- Python broncode — CRLF (Windows native) ---
+*.py   text eol=crlf
+*.pyw  text eol=crlf
+
+# --- Documentatie — CRLF (Windows native) ---
+*.md   text eol=crlf
+*.txt  text eol=crlf
+*.rst  text eol=crlf
+
+# --- Configuratiebestanden — LF (Unix/portabiliteit) ---
+*.yml  text eol=lf
+*.yaml text eol=lf
+*.json text eol=lf
+*.toml text eol=lf
+*.ini  text eol=lf
+*.cfg  text eol=lf
+*.env  text eol=lf
+.gitignore      text eol=lf
+.gitattributes  text eol=lf
+
+# --- Scripts ---
+*.sh   text eol=lf
+*.bash text eol=lf
+*.bat  text eol=crlf
+*.cmd  text eol=crlf
+*.ps1  text eol=crlf
+
+# --- Web & stijl ---
+*.html text eol=lf
+*.css  text eol=lf
+*.js   text eol=lf
+
+# --- Data ---
+*.csv  text eol=lf
+*.sql  text eol=lf
+*.j2   text eol=lf
+
+# --- Binaire bestanden (geen regeleindeconversie) ---
+*.png    binary
+*.jpg    binary
+*.jpeg   binary
+*.gif    binary
+*.ico    binary
+*.pdf    binary
+*.zip    binary
+*.gz     binary
+*.woff   binary
+*.woff2  binary
+*.ttf    binary
+*.pyc    binary
+*.pyd    binary
+*.db     binary
+*.sqlite binary
+*.xlsx   binary
+
+# --- Python diff driver ---
+*.py diff=python
+
+# --- GitHub taalstatistieken ---
+*.md            linguist-documentation
+docs/**         linguist-documentation
+tests/**        linguist-detectable=true
+

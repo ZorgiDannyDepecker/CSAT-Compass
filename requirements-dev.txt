@@ -10,7 +10,13 @@
 # --- Type stubs (IDE code insight) ---
 pandas-stubs>=3.0.0
 
-# --- Statische analyse & linting ---
+# --- Linting & formatting ---
+ruff>=0.15.0
 mypy>=1.9.0
-ruff>=0.4.0
 
+# --- Security ---
+bandit>=1.8.0
+pip-audit>=2.9.0
+
+# --- Pre-commit ---
+pre-commit>=4.0.0

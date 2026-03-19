@@ -54,9 +54,7 @@ class CsvLoader(BaseLoader):
         all_files = list(csv_files) + list(xlsx_files)
 
         if not all_files:
-            raise FileNotFoundError(
-                f"Geen CSV/Excel bestanden gevonden in {self.path}"
-            )
+            raise FileNotFoundError(f"Geen CSV/Excel bestanden gevonden in {self.path}")
 
         bestand = all_files[0]
         logger.info(f"[CsvLoader] Bestand geladen: {bestand.name}")
@@ -75,4 +73,3 @@ class CsvLoader(BaseLoader):
             df = df[df["created"].dt.to_period("M").astype(str) == period]
 
         return df
-

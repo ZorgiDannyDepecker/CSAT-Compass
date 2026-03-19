@@ -11,7 +11,7 @@ from .base_loader import BaseLoader
 from .csv_loader import CsvLoader
 from .sql_loader import SqlLoader
 
-__all__ = ["BaseLoader", "SqlLoader", "CsvLoader", "get_loader"]
+__all__ = ["BaseLoader", "CsvLoader", "SqlLoader", "get_loader"]
 
 
 def get_loader(
@@ -40,17 +40,13 @@ def get_loader(
         if sql.is_available():
             logger.info("DataLoader: SQL-loader actief (ZRG0014WI/Lerni_DB)")
             return sql
-        logger.warning(
-            "DataLoader: SQL niet bereikbaar — fallback naar CSV"
-        )
+        logger.warning("DataLoader: SQL niet bereikbaar — fallback naar CSV")
 
     csv = CsvLoader(Path(csv_path))
     if not csv.is_available():
         raise RuntimeError(
-            f"Geen databron beschikbaar — "
-            f"SQL niet bereikbaar én geen CSV-bestanden in {csv_path}"
+            f"Geen databron beschikbaar — SQL niet bereikbaar én geen CSV-bestanden in {csv_path}"
         )
 
     logger.info(f"DataLoader: CSV-loader actief ({csv_path})")
     return csv
-

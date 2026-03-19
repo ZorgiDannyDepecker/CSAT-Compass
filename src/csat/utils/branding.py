@@ -12,25 +12,25 @@ weasyprint (PDF-rapporten) om brandconsistentie te garanderen.
 
 COLORS: dict[str, str] = {
     # Primaire kleuren
-    "dark_blue":        "#003a70",
-    "red":              "#dc2b26",
-    "purple":           "#7f4267",
+    "dark_blue": "#003a70",
+    "red": "#dc2b26",
+    "purple": "#7f4267",
     # Secundaire kleuren
-    "grey_blue":        "#5f8495",
-    "light_blue":       "#609fce",
+    "grey_blue": "#5f8495",
+    "light_blue": "#609fce",
     "ultra_light_blue": "#d7e7f3",
     # Basiskleuren
-    "white":            "#ffffff",
-    "text":             "#1a1a1a",
+    "white": "#ffffff",
+    "text": "#1a1a1a",
 }
 
 # Kleur per pijler (conform kompasmetafoor)
 PILLAR_COLORS: dict[str, str] = {
-    "zorgi":      "#003a70",  # Dark Blue — centrum
-    "pharma":     "#003a70",  # Noord
-    "care":       "#609fce",  # Oost
+    "zorgi": "#003a70",  # Dark Blue — centrum
+    "pharma": "#003a70",  # Noord
+    "care": "#609fce",  # Oost
     "care_admin": "#5f8495",  # West
-    "erp4hc":     "#7f4267",  # Zuid
+    "erp4hc": "#7f4267",  # Zuid
 }
 
 # Gradient
@@ -43,10 +43,10 @@ GRADIENT_CSS = "linear-gradient(to right, #003a70, #7f4267, #dc2b26)"
 PLOTLY_LAYOUT: dict = {
     "font": {
         "family": "Poppins, Verdana, sans-serif",
-        "color":  COLORS["text"],
+        "color": COLORS["text"],
     },
     "paper_bgcolor": COLORS["white"],
-    "plot_bgcolor":  COLORS["ultra_light_blue"],
+    "plot_bgcolor": COLORS["ultra_light_blue"],
     "colorway": [
         COLORS["dark_blue"],
         COLORS["light_blue"],
@@ -57,11 +57,11 @@ PLOTLY_LAYOUT: dict = {
     "title": {
         "font": {
             "color": COLORS["dark_blue"],
-            "size":  16,
+            "size": 16,
         }
     },
     "legend": {
-        "bgcolor":     COLORS["ultra_light_blue"],
+        "bgcolor": COLORS["ultra_light_blue"],
         "bordercolor": COLORS["light_blue"],
         "borderwidth": 1,
     },
@@ -98,9 +98,9 @@ STREAMLIT_CSS: str = f"""
     }}
 
     /* Headers conform Design System sectie 3 */
-    h1 {{ color: {COLORS['dark_blue']}; font-weight: 800; }}
-    h2 {{ color: {COLORS['grey_blue']}; font-weight: 800; }}
-    h3 {{ color: {COLORS['light_blue']}; font-weight: 800; }}
+    h1 {{ color: {COLORS["dark_blue"]}; font-weight: 800; }}
+    h2 {{ color: {COLORS["grey_blue"]}; font-weight: 800; }}
+    h3 {{ color: {COLORS["light_blue"]}; font-weight: 800; }}
 
     /* Gradient header-blok */
     .zorgi-header {{
@@ -113,7 +113,7 @@ STREAMLIT_CSS: str = f"""
 
     /* Kaartcomponent */
     .zorgi-card {{
-        background: {COLORS['ultra_light_blue']};
+        background: {COLORS["ultra_light_blue"]};
         border-radius: 16px;
         padding: 1.25rem;
         margin-bottom: 1rem;
@@ -121,27 +121,27 @@ STREAMLIT_CSS: str = f"""
 
     /* KPI-blok */
     .zorgi-kpi {{
-        background: {COLORS['white']};
-        border-left: 4px solid {COLORS['dark_blue']};
+        background: {COLORS["white"]};
+        border-left: 4px solid {COLORS["dark_blue"]};
         border-radius: 8px;
         padding: 1rem;
     }}
 
     /* Streamlit metric-widget */
     [data-testid="stMetric"] {{
-        background: {COLORS['ultra_light_blue']};
+        background: {COLORS["ultra_light_blue"]};
         border-radius: 12px;
         padding: 0.75rem;
     }}
 
     /* Trend-indicatoren */
     .trend-up     {{ color: #00aa44; font-weight: 800; }}
-    .trend-down   {{ color: {COLORS['red']}; font-weight: 800; }}
-    .trend-stable {{ color: {COLORS['grey_blue']}; font-weight: 800; }}
+    .trend-down   {{ color: {COLORS["red"]}; font-weight: 800; }}
+    .trend-stable {{ color: {COLORS["grey_blue"]}; font-weight: 800; }}
 
     /* Sidebar branding */
     [data-testid="stSidebar"] {{
-        background: {COLORS['ultra_light_blue']};
+        background: {COLORS["ultra_light_blue"]};
     }}
 </style>
 """
@@ -160,4 +160,3 @@ def inject_css(st) -> None:
         inject_css(st)
     """
     st.markdown(STREAMLIT_CSS, unsafe_allow_html=True)
-

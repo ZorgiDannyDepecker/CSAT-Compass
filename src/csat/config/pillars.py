@@ -44,18 +44,18 @@ PILLAR_REGISTRY: dict[str, dict] = {
 
 # Kolomnamen zoals ze voorkomen in [dbo].[V_CSAT_1]
 VIEW_COLUMNS = {
-    "ticket_id":        "key",
-    "issue_type":       "issue_type",
-    "priority":         "priority",
-    "summary":          "summary",
-    "score":            "score",
-    "comment":          "comment",
+    "ticket_id": "key",
+    "issue_type": "issue_type",
+    "priority": "priority",
+    "summary": "summary",
+    "score": "score",
+    "comment": "comment",
     "satisfaction_date": "satisfaction_date",
-    "created":          "created",
-    "hospital":         "hospital",
-    "product":          "product",
-    "product_domain":   "product_domain",
-    "project_key":      "project_key",
+    "created": "created",
+    "hospital": "hospital",
+    "product": "product",
+    "product_domain": "product_domain",
+    "project_key": "project_key",
 }
 
 # Prioriteitswaarden die als High/Critical worden beschouwd
@@ -86,4 +86,3 @@ def get_pillar_for_product(product: str) -> str:
             if p.upper() == product_upper:
                 return pillar_key
     return "unknown"
-
