@@ -4,7 +4,7 @@ applyTo: '**/*'
 
 # CSAT-Compass - Copilot Instructions
 
-**Versie:** 2.3  
+**Versie:** 2.4  
 **Laatst bijgewerkt:** 19/03/2026
 
 **Doel:** GHC-gedragsinstructies en CSAT-projectcontext voor de CSAT-Compass repository  
@@ -16,7 +16,8 @@ applyTo: '**/*'
 **Path:** .github/
 
 > Generieke ZORGI PHARMA-conventies: `.github/instructions/project-conventies.instructions.md`  
-> Opmaakregels: `.github/docs/md-style-guide.md`
+> Opmaakregels: `.github/docs/md-style-guide.md`  
+> ZORGI Design System: `.github/docs/zorgi-design-system.md`
 
 ---
 
@@ -345,6 +346,69 @@ When the user types `/GIT` as the entire message, immediately execute this seque
 
 ---
 
+## Branding & productnamen
+
+> Volledig referentiedocument: `.github/docs/zorgi-design-system.md`  
+> Generieke conventies: `project-conventies.instructions.md § 12`
+
+### Productnamen — verplichte schrijfwijze
+
+Gebruik **altijd** deze exacte schrijfwijzen in alle documenten, code-commentaren, rapporten en gegenereerde output:
+
+| Product            | Correcte spelling | Fout |
+|--------------------|---|---|
+| Bedrijfsnaam       | ZORGI | Zorgi / zorgi |
+| Care-product       | CARE | Care / care |
+| Care Admin-product | OAZIS | Oazis / oazis |
+| Pharma-product     | ZORGI PHARMA | Zorgi Pharma / ZORGI pharma |
+| ERP-product        | ERP4HC²·⁰ | ERP4HC / erp4hc |
+
+> Uitzondering: "Zorgi" (kleine letter) is alleen correct bij verwijzing naar de Esperanto-woordoorsprong.
+
+### Kleuren — referentie
+
+| Variabele | HEX | Gebruik |
+| --------- | --- | ------- |
+| `--zorgi-dark-blue` | `#003a70` | Primaire kleur, H1, H4, donkere achtergronden |
+| `--zorgi-red` | `#dc2b26` | Accent, gradient einde, highlights |
+| `--zorgi-purple` | `#7f4267` | Gradient midden, titelbalken |
+| `--zorgi-grey-blue` | `#5f8495` | H2, secundaire tekst |
+| `--zorgi-light-blue` | `#609fce` | H3, H5, accenten |
+| `--zorgi-ultra-light-blue` | `#d7e7f3` | Achtergronden, kaarten, containers |
+
+Gradient: `linear-gradient(to right, #003a70, #7f4267, #dc2b26)`
+
+### Tone of voice
+
+- **Externe rapporten:** formeel "u"
+- **Interne documenten:** informeel "je"
+- Toon is altijd: empathisch, oplossingsgericht, transparant, persoonlijk
+
+### Schrijftips — eenvoudige taal
+
+| Niet gebruiken | Gebruik in de plaats |
+| -------------- | -------------------- |
+| Met betrekking tot / In verband met | Over |
+| Aan de hand van | Met |
+| Met uitzondering van | Behalve |
+| In geval dat | Als |
+| In overeenstemming met | Volgens |
+
+### Design checklist voor GHC
+
+Bij elke branded output (rapport, dashboard, visualisatie) verifiëren:
+
+- [ ] ZORGI geschreven in HOOFDLETTERS
+- [ ] Productnamen conform bovenstaande tabel
+- [ ] Uitsluitend brandkleuren gebruikt
+- [ ] Poppins / Verdana als fallback
+- [ ] Afgeronde hoeken (`border-radius: 16px` standaard)
+- [ ] Gradient loopt Dark Blue → Purple → Red
+- [ ] Toon is empathisch en oplossingsgericht
+- [ ] Eenvoudige taal
+
+---
+
 ## Versiehistorie
 
 | Versie | Datum      | Wijzigingen                                                                                                                                                                        | Auteur                  |
@@ -354,3 +418,4 @@ When the user types `/GIT` as the entire message, immediately execute this seque
 | 2.1    | 17/03/2026 | Tweetaligheid NL/FR toegevoegd: gedragsregels GHC, bestandsnaamconventie rapporten                                                                                                 | Danny Depecker          |
 | 2.2    | 18/03/2026 | /advies custom command toegevoegd                                                                                                                                                  | Danny Depecker + GHC    |
 | 2.3    | 19/03/2026 | /GIT custom command toegevoegd                                                                                                                                                     | Danny Depecker + GHC    |
+| 2.4    | 19/03/2026 | Branding sectie toegevoegd op basis van zorgi-design-system.md; referentie toegevoegd in header                                                                                    | Danny Depecker + GHC    |

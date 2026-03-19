@@ -1,0 +1,8 @@
+[theme]
+# ZORGI brand theme — afgeleid van zorgi-design-system.md
+primaryColor            = "#003a70"
+backgroundColor         = "#ffffff"
+secondaryBackgroundColor = "#d7e7f3"
+textColor               = "#1a1a1a"
+font                    = "sans serif"
+

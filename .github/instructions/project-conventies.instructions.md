@@ -4,7 +4,7 @@ applyTo: '**/*'
 
 # ZORGI PHARMA - Project Conventies
 
-**Versie:** 2.2  
+**Versie:** 2.3  
 **Laatst bijgewerkt:** 19/03/2026
 
 **Doel:** Gedeelde afspraken en conventies voor alle ZORGI PHARMA-projecten  
@@ -30,6 +30,7 @@ applyTo: '**/*'
 9. [Prompt Frameworks](#9-prompt-frameworks)
 10. [Afkortingen](#10-afkortingen)
 11. [T-shirt schattingen](#11-t-shirt-schattingen)
+12. [Branding & productnamen](#12-branding--productnamen)
 
 ---
 
@@ -372,11 +373,75 @@ inspanning op fase-, feature- of taakniveau. De schaal combineert een
 
 ---
 
+## 12. Branding & productnamen
+
+> Volledig referentiedocument: `.github/docs/zorgi-design-system.md`  
+> Brandingvragen: <marcom@zorgi.be>
+
+### 12.1 Productnamen — verplichte schrijfwijze
+
+Gebruik **altijd** deze exacte schrijfwijzen in alle documenten, code-commentaren, rapporten en gegenereerde output:
+
+| Product            | Correcte spelling | Fout |
+|--------------------| ----------------- | ---- |
+| Bedrijfsnaam       | ZORGI | Zorgi / zorgi |
+| Care-product       | CARE | Care / care |
+| Care Admin-product | OAZIS | Oazis / oazis |
+| Pharma-product     | ZORGI PHARMA | Zorgi Pharma / ZORGI pharma |
+| ERP-product        | ERP4HC²·⁰ | ERP4HC / erp4hc |
+
+> Uitzondering: "Zorgi" (kleine letter) is alleen correct bij verwijzing naar de Esperanto-woordoorsprong.
+
+### 12.2 Kleuren — referentie
+
+| Variabele | HEX | Gebruik |
+| --------- | --- | ------- |
+| `--zorgi-dark-blue` | `#003a70` | Primaire kleur, H1, H4, donkere achtergronden |
+| `--zorgi-red` | `#dc2b26` | Accent, gradient einde, highlights |
+| `--zorgi-purple` | `#7f4267` | Gradient midden, titelbalken |
+| `--zorgi-grey-blue` | `#5f8495` | H2, secundaire tekst |
+| `--zorgi-light-blue` | `#609fce` | H3, H5, accenten |
+| `--zorgi-ultra-light-blue` | `#d7e7f3` | Achtergronden, kaarten, containers |
+
+Gradient: `linear-gradient(to right, #003a70, #7f4267, #dc2b26)`
+
+### 12.3 Tone of voice
+
+- **Externe rapporten:** formeel "u"
+- **Interne documenten:** informeel "je"
+- Toon is altijd: empathisch, oplossingsgericht, transparant, persoonlijk
+
+### 12.4 Schrijftips — eenvoudige taal
+
+| Niet gebruiken | Gebruik in de plaats |
+| -------------- | -------------------- |
+| Met betrekking tot / In verband met | Over |
+| Aan de hand van | Met |
+| Met uitzondering van | Behalve |
+| In geval dat | Als |
+| In overeenstemming met | Volgens |
+
+### 12.5 Design checklist voor GHC
+
+Bij elke branded output (rapport, dashboard, visualisatie) verifiëren:
+
+- [ ] ZORGI geschreven in HOOFDLETTERS
+- [ ] Productnamen conform tabel 12.1
+- [ ] Uitsluitend brandkleuren gebruikt (zie 12.2)
+- [ ] Poppins / Verdana als fallback
+- [ ] Afgeronde hoeken (`border-radius: 16px` standaard)
+- [ ] Gradient loopt Dark Blue → Purple → Red
+- [ ] Toon is empathisch en oplossingsgericht
+- [ ] Eenvoudige taal (zie 12.4)
+
+---
+
 ## Versiehistorie
 
-| Versie | Datum      | Wijzigingen                                                                                                                     | Auteur                  |
+| Versie | Datum | Wijzigingen | Auteur |
 | ------ | ---------- | ------------------------------------------------------------------------------------------------------------------------------- | ----------------------- |
-| 1.0    | 01/01/2026 | Initiële versie                                                                                                                 | Danny Depecker          |
-| 2.0    | 17/03/2026 | Volledige herziening: document header, frontmatter, auteur-conventies, code conventies, Mermaid, prompt frameworks, afkortingen | Danny Depecker + Claude |
-| 2.1    | 19/03/2026 | Sectie 11 toegevoegd: T-shirt schattingen met schaal, GHC-gedragsregels en voorbeeld                                           | Danny Depecker + GHC    |
-| 2.2    | 19/03/2026 | Sectie 11 herzien: Punten vervangen door uurbandbreedte + gewicht t.o.v. XS                                                     | Danny Depecker + GHC    |
+| 1.0 | 01/01/2026 | Initiële versie | Danny Depecker |
+| 2.0 | 17/03/2026 | Volledige herziening: document header, frontmatter, auteur-conventies, code conventies, Mermaid, prompt frameworks, afkortingen | Danny Depecker + Claude |
+| 2.1 | 19/03/2026 | Sectie 11 toegevoegd: T-shirt schattingen met schaal, GHC-gedragsregels en voorbeeld | Danny Depecker + GHC |
+| 2.2 | 19/03/2026 | Sectie 11 herzien: Punten vervangen door uurbandbreedte + gewicht t.o.v. XS | Danny Depecker + GHC |
+| 2.3 | 19/03/2026 | Sectie 12 toegevoegd: Branding & productnamen op basis van zorgi-design-system.md | Danny Depecker + GHC |

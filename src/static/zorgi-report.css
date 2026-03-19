@@ -1,0 +1,267 @@
+/*
+ * zorgi-report.css
+ * ZORGI brand stylesheet voor PDF-rapporten via weasyprint.
+ * Gebaseerd op .github/docs/zorgi-design-system.md sectie 2, 3 en 5.
+ *
+ * Gebruik in report_exporter.py:
+ *   CSS = Path("src/static/zorgi-report.css")
+ *   HTML(string=html_content).write_pdf("output/rapport.pdf", stylesheets=[CSS])
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;800&display=swap');
+
+/* =============================================================================
+   CSS Variabelen — conform Design System sectie 10
+   ============================================================================= */
+
+:root {
+    --zorgi-dark-blue:        #003a70;
+    --zorgi-red:              #dc2b26;
+    --zorgi-purple:           #7f4267;
+    --zorgi-grey-blue:        #5f8495;
+    --zorgi-light-blue:       #609fce;
+    --zorgi-ultra-light-blue: #d7e7f3;
+    --zorgi-text:             #1a1a1a;
+    --zorgi-white:            #ffffff;
+    --zorgi-gradient:         linear-gradient(to right, #003a70, #7f4267, #dc2b26);
+
+    /* Radius — conform Design System sectie 5 */
+    --zorgi-radius-sm:   8px;
+    --zorgi-radius-md:   16px;
+    --zorgi-radius-lg:   24px;
+    --zorgi-radius-pill: 9999px;
+}
+
+/* =============================================================================
+   Basis typografie — conform Design System sectie 3
+   ============================================================================= */
+
+body {
+    font-family: 'Poppins', 'Verdana', sans-serif;
+    font-weight: 300;
+    font-size: 10.5pt;
+    color: var(--zorgi-text);
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+}
+
+/* =============================================================================
+   Headers — conform Design System sectie 3 (pt-groottes voor PDF)
+   ============================================================================= */
+
+h1 {
+    font-size: 16pt;
+    font-weight: 800;
+    color: var(--zorgi-dark-blue);
+    border-bottom: 3px solid var(--zorgi-dark-blue);
+    padding-bottom: 0.4rem;
+    margin-top: 2rem;
+    margin-bottom: 0.75rem;
+}
+
+h2 {
+    font-size: 14pt;
+    font-weight: 800;
+    color: var(--zorgi-grey-blue);
+    margin-top: 1.75rem;
+    margin-bottom: 0.5rem;
+}
+
+h3 {
+    font-size: 12pt;
+    font-weight: 800;
+    color: var(--zorgi-light-blue);
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+h4 {
+    font-size: 11pt;
+    font-weight: 800;
+    color: var(--zorgi-dark-blue);
+    margin-top: 1.25rem;
+}
+
+h5 {
+    font-size: 10.5pt;
+    font-weight: 800;
+    color: var(--zorgi-light-blue);
+    margin-top: 1rem;
+}
+
+p {
+    margin: 0.5rem 0 1rem 0;
+}
+
+/* =============================================================================
+   Rapport-header (eerste pagina) — gradient conform Design System sectie 2
+   ============================================================================= */
+
+.rapport-header {
+    background: linear-gradient(to right, #003a70, #7f4267, #dc2b26);
+    color: var(--zorgi-white);
+    padding: 2rem 2.5rem;
+    border-radius: var(--zorgi-radius-md);
+    margin-bottom: 2.5rem;
+}
+
+.rapport-header h1 {
+    color: var(--zorgi-white);
+    border: none;
+    font-size: 20pt;
+    margin: 0 0 0.5rem 0;
+}
+
+.rapport-header .rapport-meta {
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 10pt;
+    margin: 0;
+}
+
+/* =============================================================================
+   Tabellen
+   ============================================================================= */
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.25rem 0;
+    border-radius: var(--zorgi-radius-sm);
+    overflow: hidden;
+    font-size: 10pt;
+}
+
+thead tr {
+    background: var(--zorgi-dark-blue);
+    color: var(--zorgi-white);
+    font-weight: 800;
+}
+
+thead th {
+    padding: 0.6rem 0.8rem;
+    text-align: left;
+}
+
+tbody tr:nth-child(even) {
+    background: var(--zorgi-ultra-light-blue);
+}
+
+tbody tr:nth-child(odd) {
+    background: var(--zorgi-white);
+}
+
+tbody td {
+    padding: 0.5rem 0.8rem;
+    border-bottom: 1px solid var(--zorgi-ultra-light-blue);
+    vertical-align: top;
+}
+
+/* =============================================================================
+   KPI-raster — 3 kolommen
+   ============================================================================= */
+
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin: 1.5rem 0;
+}
+
+.kpi-card {
+    background: var(--zorgi-ultra-light-blue);
+    border-left: 4px solid var(--zorgi-dark-blue);
+    border-radius: var(--zorgi-radius-sm);
+    padding: 1rem;
+}
+
+.kpi-value {
+    font-size: 22pt;
+    font-weight: 800;
+    color: var(--zorgi-dark-blue);
+    display: block;
+    line-height: 1.2;
+}
+
+.kpi-label {
+    font-size: 8.5pt;
+    color: var(--zorgi-grey-blue);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-top: 0.25rem;
+}
+
+/* =============================================================================
+   Trend-indicatoren
+   ============================================================================= */
+
+.trend-up     { color: #00aa44; font-weight: 800; }
+.trend-down   { color: var(--zorgi-red); font-weight: 800; }
+.trend-stable { color: var(--zorgi-grey-blue); font-weight: 800; }
+
+/* =============================================================================
+   Sectiebalk (titelpill conform Design System sectie 5)
+   ============================================================================= */
+
+.sectie-balk {
+    background: var(--zorgi-purple);
+    color: var(--zorgi-white);
+    font-weight: 800;
+    font-size: 11pt;
+    padding: 0.4rem 1rem;
+    border-radius: var(--zorgi-radius-pill);
+    display: inline-block;
+    margin-bottom: 1rem;
+}
+
+/* =============================================================================
+   Admonitions
+   ============================================================================= */
+
+.admonition {
+    background: var(--zorgi-ultra-light-blue);
+    border-left: 4px solid var(--zorgi-light-blue);
+    border-radius: 0 var(--zorgi-radius-sm) var(--zorgi-radius-sm) 0;
+    padding: 0.75rem 1rem;
+    margin: 1rem 0;
+    font-size: 10pt;
+}
+
+.admonition.waarschuwing {
+    border-left-color: var(--zorgi-red);
+}
+
+/* =============================================================================
+   Pagina-opmaak en footer — weasyprint @page
+   ============================================================================= */
+
+@page {
+    size: A4;
+    margin: 2cm 2.5cm 3cm 2.5cm;
+
+    @bottom-left {
+        content: "ZORGI — Confidentieel";
+        font-family: 'Poppins', 'Verdana', sans-serif;
+        font-size: 8pt;
+        color: #5f8495;
+    }
+
+    @bottom-right {
+        content: counter(page) " / " counter(pages);
+        font-family: 'Poppins', 'Verdana', sans-serif;
+        font-size: 8pt;
+        color: #5f8495;
+    }
+}
+
+/* Eerste pagina zonder footer-tekst */
+@page :first {
+    @bottom-left { content: ""; }
+    @bottom-right { content: ""; }
+}
+
+/* Paginabreuk-hulpklassen */
+.page-break-before { page-break-before: always; }
+.page-break-after  { page-break-after:  always; }
+.no-break          { page-break-inside: avoid; }
+
