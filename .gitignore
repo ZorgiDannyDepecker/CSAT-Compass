@@ -15,6 +15,9 @@ env/
 .vscode/
 *.iml
 
+# Omgevingsvariabelen — nooit committen
+.env
+
 # Data & output (niet in Git)
 data/
 output/

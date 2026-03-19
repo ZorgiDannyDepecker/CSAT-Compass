@@ -1,0 +1,16 @@
+# =============================================================================
+# CSAT-Compass — Ontwikkelafhankelijkheden
+# Installeer met: pip install -r requirements-dev.txt
+# Bevat runtime-deps (via requirements.txt) + IDE/test-tools
+# =============================================================================
+
+# Alle runtime-afhankelijkheden inbegrepen
+-r requirements.txt
+
+# --- Type stubs (IDE code insight) ---
+pandas-stubs>=3.0.0
+
+# --- Statische analyse & linting ---
+mypy>=1.9.0
+ruff>=0.4.0
+

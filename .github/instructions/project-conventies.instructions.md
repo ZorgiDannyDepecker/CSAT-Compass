@@ -4,12 +4,12 @@ applyTo: '**/*'
 
 # ZORGI PHARMA - Project Conventies
 
-**Versie:** 2.0  
-**Laatst bijgewerkt:** 17/03/2026
+**Versie:** 2.2  
+**Laatst bijgewerkt:** 19/03/2026
 
 **Doel:** Gedeelde afspraken en conventies voor alle ZORGI PHARMA-projecten  
 **Type:** Convention  
-**Auteur:** Danny Depecker + Claude  
+**Auteur:** Danny Depecker
 **Status:** Approved
 
 **Bestandsnaam:** project-conventies.instructions.md  
@@ -29,6 +29,7 @@ applyTo: '**/*'
 8. [Navigatie en Traceerbaarheid](#8-navigatie-en-traceerbaarheid)
 9. [Prompt Frameworks](#9-prompt-frameworks)
 10. [Afkortingen](#10-afkortingen)
+11. [T-shirt schattingen](#11-t-shirt-schattingen)
 
 ---
 
@@ -334,9 +335,48 @@ Gebruik de volgende afkortingen consistent over alle ZORGI PHARMA-projecten:
 
 ---
 
+## 11. T-shirt schattingen
+
+ZORGI PHARMA-projecten gebruiken **T-shirt sizing** voor het inschatten van
+inspanning op fase-, feature- of taakniveau. De schaal combineert een
+**uurbandbreedte** (concrete indicatie) met een **relatief gewicht t.o.v. XS**
+(comparatieve maat voor complexiteit).
+
+### 11.1 Schaal
+
+| Maat  | Uurbandbreedte | Gewicht (t.o.v. XS) | Typisch gebruik                                       |
+| ----- | -------------- | ------------------- | ----------------------------------------------------- |
+| XS    | 1–4u           | 1×                  | Kleine aanpassing, bugfix, config-wijziging           |
+| S     | 4–8u           | 2×                  | Eenvoudige feature, bouwt op bestaande infrastructuur |
+| M     | 8–24u          | 5×                  | Nieuwe module of systeem, meerdere bestanden          |
+| L     | 24–48u         | 10×                 | Complexe feature, meerdere afhankelijkheden, UX-werk  |
+| XL    | 48–80u         | 20×                 | Grote deeloplossing, cross-module impact              |
+| XXL   | 80–120u        | 30×                 | Volledige fase of subsysteem                          |
+| XXXL  | >120u          | >40×                | Heel project of meerdere fasen gecombineerd           |
+
+### 11.2 Gedragsregels voor GHC
+
+- Gebruik T-shirt sizing wanneer gevraagd wordt om een inschatting van werk
+- Geef **altijd een toelichting** bij de keuze (1 zin per fase/item)
+- Geef bij een totaalbereik ook de **combinatiemaat** aan (bv. M+M+S = XXL)
+- Gebruik de schaal ook in implementatiegidsen en faseoverzichten
+- Verwijs naar deze tabel als referentie: `project-conventies.instructions.md § 11`
+
+### 11.3 Voorbeeld
+
+| Item                    | T-shirt | Uurbandbreedte | Redenering                                     |
+| ----------------------- | ------- | -------------- | ---------------------------------------------- |
+| Hybride loader opzetten | M       | 8–24u          | Nieuw systeem, 3 bestanden, unit tests vereist |
+| Extra pijler toevoegen  | S       | 4–8u           | Kopie van bestaande pijler + config aanpassen  |
+| Streamlit dashboard     | L       | 24–48u         | UX, filtering, charts, tweetaligheid           |
+
+---
+
 ## Versiehistorie
 
 | Versie | Datum      | Wijzigingen                                                                                                                     | Auteur                  |
 | ------ | ---------- | ------------------------------------------------------------------------------------------------------------------------------- | ----------------------- |
 | 1.0    | 01/01/2026 | Initiële versie                                                                                                                 | Danny Depecker          |
 | 2.0    | 17/03/2026 | Volledige herziening: document header, frontmatter, auteur-conventies, code conventies, Mermaid, prompt frameworks, afkortingen | Danny Depecker + Claude |
+| 2.1    | 19/03/2026 | Sectie 11 toegevoegd: T-shirt schattingen met schaal, GHC-gedragsregels en voorbeeld                                           | Danny Depecker + GHC    |
+| 2.2    | 19/03/2026 | Sectie 11 herzien: Punten vervangen door uurbandbreedte + gewicht t.o.v. XS                                                     | Danny Depecker + GHC    |

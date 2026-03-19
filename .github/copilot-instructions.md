@@ -4,8 +4,8 @@ applyTo: '**/*'
 
 # CSAT-Compass - Copilot Instructions
 
-**Versie:** 2.0  
-**Laatst bijgewerkt:** 17/03/2026
+**Versie:** 2.2  
+**Laatst bijgewerkt:** 18/03/2026
 
 **Doel:** GHC-gedragsinstructies en CSAT-projectcontext voor de CSAT-Compass repository  
 **Type:** Reference  
@@ -290,9 +290,10 @@ When showing terminal commands with expected output:
 The following shortcuts can be typed in the chat to trigger a specific terminal action.
 GitHub Copilot executes the command **immediately** — geen bevestigingsvraag, geen uitleg vooraf.
 
-| Shortcut | Beschrijving                                                                        |
-| -------- | ----------------------------------------------------------------------------------- |
-| `/pdf`   | Batch conversie van alle .md bestanden in Convertiemap/IN → PDF in Convertiemap/OUT |
+| Shortcut  | Beschrijving                                                                        |
+| --------- | ----------------------------------------------------------------------------------- |
+| `/pdf`    | Batch conversie van alle .md bestanden in Convertiemap/IN → PDF in Convertiemap/OUT |
+| `/advies` | Vraag om advies, bedenkingen of voorstellen — met MCQ-verduidelijking indien nodig  |
 
 ## /pdf
 
@@ -306,6 +307,21 @@ python "C:\Users\danndepe\Documents\AI\Q&A-Lab\code\md_to_pdf.py" --batch "C:\Us
 - Show the terminal output to the user
 - Report how many files were converted
 
+## /advies
+
+When the user types `/advies` as the entire message (optionally followed by a topic or question),
+respond using this exact approach:
+
+Geef advies, bedenkingen en voorstellen over het gevraagde onderwerp.
+Indien bijkomende informatie nodig is, stel vragen via maximaal 10 alfanumerieke MCQ-vragen,
+waarbij telkens de beste numerieke optie expliciet als **(advies)**
+wordt vooropgesteld.
+
+- Provide concrete advice, considerations and proposals
+- Ask MCQ questions **one by one** — not all at once
+- Always mark the recommended option explicitly with **(advies)**
+- Maximum 10 MCQ questions total
+
 ---
 
 ## Versiehistorie
@@ -315,3 +331,4 @@ python "C:\Users\danndepe\Documents\AI\Q&A-Lab\code\md_to_pdf.py" --batch "C:\Us
 | 1.0    | 01/01/2026 | Initiële versie                                                                                                                                                                    | Danny Depecker          |
 | 2.0    | 17/03/2026 | Herstructurering: document header, frontmatter, versiehistorie; overlappen met project-conventies verwijderd; CSAT/SD30 afkortingen gecentraliseerd; src/ en /pdf pad gecorrigeerd | Danny Depecker + Claude |
 | 2.1    | 17/03/2026 | Tweetaligheid NL/FR toegevoegd: gedragsregels GHC, bestandsnaamconventie rapporten                                                                                                 | Danny Depecker          |
+| 2.2    | 18/03/2026 | /advies custom command toegevoegd                                                                                                                                                  | Danny Depecker + GHC    |

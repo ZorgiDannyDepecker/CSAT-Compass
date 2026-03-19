@@ -1,18 +1,32 @@
-# Kernafhankelijkheden
-pandas>=2.0.0
-openpyxl>=3.1.0
-matplotlib>=3.7.0
-seaborn>=0.12.0
+# =============================================================================
+# CSAT-Compass — Python afhankelijkheden
+# Gegenereerd op: 19/03/2026 | Python .venv
+# =============================================================================
 
-# Rapportage
-markdown>=3.4.0
+# --- Fase 1: Data laden (SQL + CSV) ---
+pandas>=2.3.0
+openpyxl>=3.1.0
+sqlalchemy>=2.0.0
+pyodbc>=5.0.0
+
+# --- Fase 2: Rapportage + templates (NL/FR) ---
 jinja2>=3.1.0
+markdown>=3.4.0
+babel>=2.14.0
 weasyprint>=60.0
 
-# Utilities
+# --- Fase 3-4: Visualisatie ---
+matplotlib>=3.7.0
+seaborn>=0.12.0
+plotly>=5.20.0
+
+# --- Fase 5: Dashboard ---
+streamlit>=1.32.0
+
+# --- Utilities ---
 python-dotenv>=1.0.0
 loguru>=0.7.0
 
-# Testing
+# --- Testing ---
 pytest>=7.4.0
 pytest-cov>=4.1.0
