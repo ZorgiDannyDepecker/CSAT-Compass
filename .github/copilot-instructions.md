@@ -4,8 +4,8 @@ applyTo: '**/*'
 
 # CSAT-Compass - Copilot Instructions
 
-**Versie:** 2.2  
-**Laatst bijgewerkt:** 18/03/2026
+**Versie:** 2.3  
+**Laatst bijgewerkt:** 19/03/2026
 
 **Doel:** GHC-gedragsinstructies en CSAT-projectcontext voor de CSAT-Compass repository  
 **Type:** Reference  
@@ -294,6 +294,7 @@ GitHub Copilot executes the command **immediately** — geen bevestigingsvraag, 
 | --------- | ----------------------------------------------------------------------------------- |
 | `/pdf`    | Batch conversie van alle .md bestanden in Convertiemap/IN → PDF in Convertiemap/OUT |
 | `/advies` | Vraag om advies, bedenkingen of voorstellen — met MCQ-verduidelijking indien nodig  |
+| `/GIT`    | Stage alle wijzigingen, genereer een commit message op basis van de diff en commit  |
 
 ## /pdf
 
@@ -322,6 +323,26 @@ wordt vooropgesteld.
 - Always mark the recommended option explicitly with **(advies)**
 - Maximum 10 MCQ questions total
 
+## /GIT
+
+When the user types `/GIT` as the entire message, immediately execute this sequence autonomously:
+
+1. **Stage** alle wijzigingen: `git add -A`
+2. **Analyseer** de diff: `git --no-pager diff --staged --stat`
+3. **Genereer** een beschrijvende commit message op basis van de diff:
+   - Eerste regel: `type: korte samenvatting` (max 72 tekens)
+   - Types: `feat` / `fix` / `docs` / `refactor` / `chore`
+   - Bullet-lijst met de belangrijkste wijzigingen per categorie
+4. **Commit**: `git commit -m "..."`
+5. **Toon** de commit hash + samenvatting
+
+**Gedragsregels:**
+
+- Execute autonomously — geen bevestigingsvraag, geen uitleg vooraf
+- Commit message altijd in het **Engels** (Git conventie)
+- Nooit credentials, patiëntdata of PII in de commit message
+- Geen automatische push — branch blijft lokaal tenzij de user expliciet vraagt te pushen
+
 ---
 
 ## Versiehistorie
@@ -332,3 +353,4 @@ wordt vooropgesteld.
 | 2.0    | 17/03/2026 | Herstructurering: document header, frontmatter, versiehistorie; overlappen met project-conventies verwijderd; CSAT/SD30 afkortingen gecentraliseerd; src/ en /pdf pad gecorrigeerd | Danny Depecker + Claude |
 | 2.1    | 17/03/2026 | Tweetaligheid NL/FR toegevoegd: gedragsregels GHC, bestandsnaamconventie rapporten                                                                                                 | Danny Depecker          |
 | 2.2    | 18/03/2026 | /advies custom command toegevoegd                                                                                                                                                  | Danny Depecker + GHC    |
+| 2.3    | 19/03/2026 | /GIT custom command toegevoegd                                                                                                                                                     | Danny Depecker + GHC    |
