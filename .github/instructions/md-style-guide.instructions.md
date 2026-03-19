@@ -4,8 +4,8 @@ applyTo: '**/*'
 
 # ZORGI PHARMA - Markdown Style — GHC Instructies
 
-**Versie:** 1.0  
-**Laatst bijgewerkt:** 17/03/2026
+**Versie:** 1.1  
+**Laatst bijgewerkt:** 19/03/2026
 
 **Doel:** Compacte GHC-instructies afgeleid van md-style-guide.md  
 **Type:** Reference  
@@ -42,7 +42,7 @@ Every markdown document MUST start with this exact header structure:
 
 All fields are REQUIRED. Use `NVT` or `TBD` if no value is available.
 
-> ⚠️ **Trailing spaces:** Every header field line MUST end with **two spaces** (`  `)
+> ⚠️ **Trailing spaces:** Every header field line MUST end with **two spaces** (2× spatie)
 > before the line break — otherwise markdown viewers render all fields on one line.
 >
 > ✅ Correct: `**Versie:** 1.0` (two trailing spaces)
@@ -170,3 +170,4 @@ Every document MUST end with a version history table:
 | ------ | ---------- | ---------------------------------- | ----------------------- |
 | 0.1    | 17/03/2026 | Placeholder aangemaakt             | Claude                  |
 | 1.0    | 17/03/2026 | Volledige GHC-instructies ingevuld | Danny Depecker + Claude |
+| 1.1    | 19/03/2026 | MD038 fix: code span met spaties vervangen door leesbare notatie | Danny Depecker + GHC |
