@@ -17,8 +17,8 @@
 
 | Fase | Document | Inhoud | T-shirt | Status |
 |---|---|---|---|---|
-| Fase 1 | [fase1-data-analyse.md](fasen/fase1-data-analyse.md) | Hybride loader + PHARMA-analyser | M | 🔄 In progress |
-| Fase 2 | [fase2-rapportage.md](fasen/fase2-rapportage.md) | Jinja2-templates + i18n NL/FR | M | ⏳ Gepland |
+| Fase 1 | [fase1-data-analyse.md](fasen/fase1-data-analyse.md) | Hybride loader + PHARMA-analyser | M | ✅ Compleet |
+| Fase 2 | [fase2-rapportage.md](fasen/fase2-rapportage.md) | Jinja2-templates + i18n NL/FR | M | 🔄 In progress |
 | Fase 3 | [fase3-matrix.md](fasen/fase3-matrix.md) | Matrix-exporter (5 matrices) | S | ⏳ Gepland |
 | Fase 4 | [fase4-pijlers.md](fasen/fase4-pijlers.md) | CARE / CARE ADMIN / ERP4HC | M | ⏳ Gepland |
 | Fase 5 | [fase5-dashboard.md](fasen/fase5-dashboard.md) | Streamlit dashboard NL/FR | L | ⏳ Gepland |
