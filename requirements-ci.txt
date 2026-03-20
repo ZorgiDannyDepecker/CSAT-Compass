@@ -1,0 +1,25 @@
+# =============================================================================
+# CSAT-Compass — CI-afhankelijkheden (GitHub Actions / Ubuntu)
+# Bevat alleen wat nodig is om de testsuite te draaien.
+# Zware pakketten (weasyprint, streamlit, plotly, matplotlib) worden
+# weggelaten — die vereisen system-level libraries op Ubuntu die
+# niet beschikbaar zijn in de standaard GitHub Actions runner.
+# =============================================================================
+
+# --- Data laden (SQL + CSV) ---
+pandas>=2.3.0
+openpyxl>=3.1.0
+sqlalchemy>=2.0.0
+pyodbc>=5.0.0         # vereist: sudo apt-get install -y unixodbc-dev
+
+# --- Utilities ---
+python-dotenv>=1.0.0
+loguru>=0.7.0
+
+# --- Type stubs (mypy in CI) ---
+pandas-stubs>=3.0.0
+
+# --- Testing ---
+pytest>=7.0
+pytest-cov>=4.0
+
