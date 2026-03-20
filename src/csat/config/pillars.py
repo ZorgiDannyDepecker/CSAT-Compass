@@ -4,6 +4,8 @@ Koppelt product-waarden uit V_CSAT_1 aan de ZORGI-pijlers.
 """
 
 # Pijler-register — alle ZORGI-pijlers inclusief overall
+# Product-waarden bevestigd via df["product"].value_counts() op V_CSAT_1 (20/03/2026)
+# ⚠️ Producten zonder pijler (ECO/BOEK, H++/EPR, OmniPro, HRM, enz.) — te bevestigen door Danny
 PILLAR_REGISTRY: dict[str, dict] = {
     "zorgi": {
         "name": "ZORGI",
@@ -17,28 +19,29 @@ PILLAR_REGISTRY: dict[str, dict] = {
         "name_fr": "PHARMA",
         "direction": "noord",
         "color": "#0066CC",
-        "products": ["PHARMA"],
+        "products": ["Apotheek", "AZIS Pharmacy"],  # bevestigd 20/03/2026
     },
     "care": {
         "name": "CARE",
         "name_fr": "CARE",
         "direction": "oost",
         "color": "#00AA44",
-        "products": ["CARE"],
+        "products": ["ZORGI CARE"],  # bevestigd 20/03/2026
     },
     "care_admin": {
         "name": "CARE ADMIN",
         "name_fr": "CARE ADMIN",
         "direction": "west",
         "color": "#FF6600",
-        "products": ["CARE ADMIN", "CARE_ADMIN"],
+        "products": ["Oazis", "ZORGI Care Admin"],  # bevestigd 20/03/2026
     },
     "erp4hc": {
         "name": "ERP4HC",
         "name_fr": "ERP4HC",
         "direction": "zuid",
         "color": "#9900CC",
-        "products": ["ERP4HC"],
+        "products": ["ERP4HC2.0", "ERP4HC"],  # bevestigd 20/03/2026
+        # ⚠️ Te bevestigen: ECO/BOEK (327), HRM (193), PADM/TARFAC (108) ook ERP?
     },
 }
 
@@ -59,7 +62,10 @@ VIEW_COLUMNS = {
 }
 
 # Prioriteitswaarden die als High/Critical worden beschouwd
-HIGH_CRITICAL_PRIORITIES = ["High", "Critical", "Highest"]
+# Bevestigd via df["priority"].value_counts() op V_CSAT_1 (20/03/2026)
+# Jira-schaal: Blocker > Critical > Major > Minor > Trivial
+# ⚠️ Major is nog te bevestigen door Danny — staat nu wel inbegrepen
+HIGH_CRITICAL_PRIORITIES = ["Blocker", "Critical", "Major"]
 
 # Score-bereik (wordt bevestigd na eerste data-exploratie)
 SCORE_MIN = 1

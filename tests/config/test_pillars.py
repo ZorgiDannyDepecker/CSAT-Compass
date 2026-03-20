@@ -28,10 +28,11 @@ class TestPillarRegistry:
             assert verplicht.issubset(config.keys()), f"Sleutel ontbreekt in pijler '{key}'"
 
     def test_pharma_product_correct(self) -> None:
-        assert "PHARMA" in PILLAR_REGISTRY["pharma"]["products"]
+        assert "Apotheek" in PILLAR_REGISTRY["pharma"]["products"]
+        assert "AZIS Pharmacy" in PILLAR_REGISTRY["pharma"]["products"]
 
     def test_care_product_correct(self) -> None:
-        assert "CARE" in PILLAR_REGISTRY["care"]["products"]
+        assert "ZORGI CARE" in PILLAR_REGISTRY["care"]["products"]
 
     def test_zorgi_geen_producten(self) -> None:
         """zorgi is aggregatie — geen directe productfilter."""
@@ -39,14 +40,20 @@ class TestPillarRegistry:
 
 
 class TestHighCriticalPriorities:
-    def test_high_aanwezig(self) -> None:
-        assert "High" in HIGH_CRITICAL_PRIORITIES
+    def test_blocker_aanwezig(self) -> None:
+        assert "Blocker" in HIGH_CRITICAL_PRIORITIES
 
     def test_critical_aanwezig(self) -> None:
         assert "Critical" in HIGH_CRITICAL_PRIORITIES
 
-    def test_highest_aanwezig(self) -> None:
-        assert "Highest" in HIGH_CRITICAL_PRIORITIES
+    def test_major_aanwezig(self) -> None:
+        assert "Major" in HIGH_CRITICAL_PRIORITIES
+
+    def test_trivial_niet_aanwezig(self) -> None:
+        assert "Trivial" not in HIGH_CRITICAL_PRIORITIES
+
+    def test_minor_niet_aanwezig(self) -> None:
+        assert "Minor" not in HIGH_CRITICAL_PRIORITIES
 
 
 class TestViewColumns:
@@ -65,19 +72,25 @@ class TestViewColumns:
 class TestGetPillarForProduct:
     """Volledige dekking van get_pillar_for_product() — regels 79-88."""
 
-    def test_pharma(self) -> None:
-        assert get_pillar_for_product("PHARMA") == "pharma"
+    def test_pharma_apotheek(self) -> None:
+        assert get_pillar_for_product("Apotheek") == "pharma"
+
+    def test_pharma_azis(self) -> None:
+        assert get_pillar_for_product("AZIS Pharmacy") == "pharma"
 
     def test_care(self) -> None:
-        assert get_pillar_for_product("CARE") == "care"
+        assert get_pillar_for_product("ZORGI CARE") == "care"
 
-    def test_care_admin_met_spatie(self) -> None:
-        assert get_pillar_for_product("CARE ADMIN") == "care_admin"
+    def test_care_admin_oazis(self) -> None:
+        assert get_pillar_for_product("Oazis") == "care_admin"
 
-    def test_care_admin_met_underscore(self) -> None:
-        assert get_pillar_for_product("CARE_ADMIN") == "care_admin"
+    def test_care_admin_zorgi(self) -> None:
+        assert get_pillar_for_product("ZORGI Care Admin") == "care_admin"
 
-    def test_erp4hc(self) -> None:
+    def test_erp4hc_v2(self) -> None:
+        assert get_pillar_for_product("ERP4HC2.0") == "erp4hc"
+
+    def test_erp4hc_zonder_versie(self) -> None:
         assert get_pillar_for_product("ERP4HC") == "erp4hc"
 
     def test_onbekend_product(self) -> None:
@@ -86,14 +99,14 @@ class TestGetPillarForProduct:
     def test_lege_string(self) -> None:
         assert get_pillar_for_product("") == "unknown"
 
-    def test_case_insensitive_lowercase(self) -> None:
-        assert get_pillar_for_product("pharma") == "pharma"
+    def test_case_insensitive_apotheek(self) -> None:
+        assert get_pillar_for_product("apotheek") == "pharma"
 
     def test_case_insensitive_mixed(self) -> None:
-        assert get_pillar_for_product("PhArMa") == "pharma"
+        assert get_pillar_for_product("ApOtHeEk") == "pharma"
 
     def test_witruimte_wordt_genegeerd(self) -> None:
-        assert get_pillar_for_product("  PHARMA  ") == "pharma"
+        assert get_pillar_for_product("  Apotheek  ") == "pharma"
 
     def test_zorgi_sleutel_nooit_teruggegeven(self) -> None:
         """zorgi is aggregatiepijler — mag nooit als productmatch teruggegeven worden."""

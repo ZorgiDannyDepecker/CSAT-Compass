@@ -38,16 +38,16 @@ class TestPharmaFilter:
     """Controleer dat de PHARMA-filter correct werkt."""
 
     def test_alleen_pharma_tickets_geladen(self, analyser: PharmaAnalyser) -> None:
-        """Na filter moet het interne DataFrame enkel PHARMA-rijen bevatten."""
-        assert all(analyser._pillar_df["product"].str.upper() == "PHARMA")
+        """Na filter moet het interne DataFrame enkel Apotheek/AZIS Pharmacy-rijen bevatten."""
+        assert all(analyser._pillar_df["product"].isin(["Apotheek", "AZIS Pharmacy"]))
 
     def test_aantal_pharma_tickets(self, analyser: PharmaAnalyser) -> None:
-        """Sample bevat 8 PHARMA-tickets (6 jan + 2 feb)."""
+        """Sample bevat 8 PHARMA-tickets (product='Apotheek', 6 jan + 2 feb)."""
         assert len(analyser._pillar_df) == 8
 
     def test_care_tickets_gefilterd(self, analyser: PharmaAnalyser) -> None:
-        """CARE-tickets mogen niet in de PHARMA-analyser zitten."""
-        assert "CARE" not in analyser._pillar_df["product"].values
+        """ZORGI CARE-tickets mogen niet in de PHARMA-analyser zitten."""
+        assert "ZORGI CARE" not in analyser._pillar_df["product"].values
 
 
 # ------------------------------------------------------------------
@@ -62,7 +62,7 @@ class TestKpiJan2026:
     - SD-006 heeft geen score → 5 gescoord
     - Reactiegraad = 5/6 = 83,3%
     - Scores: 4, 3, 5, 2, 5 → gem = 3.8
-    - High/Critical: SD-001 (High) + SD-002 (Critical) = 2/6 = 33,3%
+    - Blocker/Critical/Major: SD-001 (Blocker) + SD-002 (Critical) = 2/6 = 33,3%
     """
 
     def test_totaal_tickets(self, analyser: PharmaAnalyser) -> None:
@@ -176,7 +176,7 @@ class TestDrempelwaardeEvaluatie:
         """Feb 2026: 1 High op 2 tickets = 50% — nog steeds boven drempel."""
         result = analyser.analyse("2026-02")
         status = analyser.kpi_status(result)
-        # SD-007 is High → 1/2 = 50% > 15% → False
+        # SD-007 is Major → 1/2 = 50% > 15% → False
         assert status["high_critical_ok"] is False
 
 
