@@ -79,7 +79,8 @@ exclude = [".venv", "archive", "data", "output"]
 [tool.pytest.ini_options]
 minversion = "7.0"
 testpaths = ["tests"]
-addopts = "-ra -q --strict-markers --cov=src/csat --cov-report=term-missing --cov-report=html"
+pythonpath = ["src"]
+addopts = "-ra -q --strict-markers --cov=src/csat --cov-report=term-missing --cov-report=html --cov-report=xml"
 python_files = ["test_*.py", "*_test.py"]
 markers = [
     "unit: unit tests — snel, geen externe afhankelijkheden",

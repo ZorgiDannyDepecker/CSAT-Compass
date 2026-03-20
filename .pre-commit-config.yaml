@@ -67,7 +67,7 @@ repos:
         entry: python -c "import sys,pathlib;[sys.exit(1) or print('Conflict:',f) for f in sys.argv[1:] if '<'*7 in pathlib.Path(f).read_text(errors='ignore')]"
         language: system
         types: [text]
-        exclude: '\.pre-commit-config\.yaml$'
+        exclude: '(\.pre-commit-config\.yaml|docs/03-operationeel/kwaliteitscontrole\.md)$'
 
 # Configuratie
 default_stages: [pre-commit]

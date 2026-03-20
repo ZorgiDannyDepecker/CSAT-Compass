@@ -1,0 +1,44 @@
+# Codecov — projectconfiguratie voor CSAT-Compass
+# Documentatie: https://docs.codecov.com/docs/codecov-yaml
+
+coverage:
+  status:
+    project:
+      default:
+        # Blokkeer geen PR's bij coverage-daling onder 5%
+        threshold: 5%
+        informational: false
+    patch:
+      default:
+        # Nieuwe code in een PR moet minstens 80% coverage hebben
+        target: 80%
+        threshold: 5%
+        informational: false
+
+  # Negeer bestanden die niet relevant zijn voor coverage
+  ignore:
+    - "tests/**"
+    - "archive/**"
+    - "WIP/**"
+    - "scripts/**"
+    - "tools/**"
+    - "docs/**"
+    - "src/dashboard/**"   # Streamlit UI — geen unit tests
+    - "src/static/**"
+
+comment:
+  layout: "reach,diff,flags,files"
+  behavior: default
+  require_changes: true   # Enkel commentaar als coverage verandert
+  require_base: true
+  require_head: true
+
+flags:
+  unittests:
+    paths:
+      - src/csat/
+
+# GitHub checks op basis van Codecov-rapportage
+github_checks:
+  annotations: true
+

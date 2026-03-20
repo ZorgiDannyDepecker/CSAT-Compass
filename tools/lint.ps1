@@ -1,8 +1,8 @@
-# scripts/lint.ps1
+# tools/lint.ps1
 # CSAT-Compass — volledige kwaliteitscontrole
 #
-# Gebruik: .\scripts\lint.ps1
-# Optie:   .\scripts\lint.ps1 -Fix   (automatisch herstelbare issues fixen)
+# Gebruik: .\tools\lint.ps1
+# Optie:   .\tools\lint.ps1 -Fix   (automatisch herstelbare issues fixen)
 #
 # Dekt dezelfde checks als pre-commit, maar manueel uit te voeren.
 # pre-commit (automatische gate bij git commit) vereist installatie
@@ -41,7 +41,7 @@ if ($Fix) {
 }
 if ($LASTEXITCODE -ne 0) {
     Write-Host "      Opmaak: afwijkingen gevonden." -ForegroundColor Red
-    Write-Host "      Tip: '.\scripts\lint.ps1 -Fix' past automatisch aan." -ForegroundColor Yellow
+    Write-Host "      Tip: '.\tools\lint.ps1 -Fix' past automatisch aan." -ForegroundColor Yellow
     $ErrorCount++
 } else {
     Write-Host "      Opmaak: alles in orde." -ForegroundColor Green
@@ -96,7 +96,7 @@ if ($ErrorCount -eq 0) {
     Write-Host " Alle checks geslaagd." -ForegroundColor Green
 } else {
     Write-Host " $ErrorCount check(s) mislukt." -ForegroundColor Red
-    Write-Host " Tip: voer '.\scripts\lint.ps1 -Fix' uit voor automatische fixes." -ForegroundColor Yellow
+    Write-Host " Tip: voer '.\tools\lint.ps1 -Fix' uit voor automatische fixes." -ForegroundColor Yellow
 }
 Write-Host "=============================" -ForegroundColor Cyan
 

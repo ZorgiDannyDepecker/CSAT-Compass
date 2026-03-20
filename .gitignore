@@ -30,6 +30,7 @@ archive/
 .pytest_cache/
 htmlcov/
 .coverage
+coverage.xml
 
 # Windows
 desktop.ini
