@@ -141,23 +141,23 @@ class TestKpiRandgevallen:
 class TestDrempelwaardeEvaluatie:
     """Controleer dat kpi_status() correct True/False retourneert."""
 
-    def test_reactiegraad_te_laag(self, analyser: PharmaAnalyser) -> None:
-        """Jan 2026: reactiegraad 83,3% < drempel 85% → False."""
-        result = analyser.analyse("2026-01")
-        status = analyser.kpi_status(result)
-        assert status["reactiegraad_ok"] is False
-
     def test_high_critical_te_hoog(self, analyser: PharmaAnalyser) -> None:
         """Jan 2026: H/C 33,3% > drempel 15% → False."""
         result = analyser.analyse("2026-01")
         status = analyser.kpi_status(result)
         assert status["high_critical_ok"] is False
 
-    def test_kpi_status_bevat_verplichte_sleutels(self, analyser: PharmaAnalyser) -> None:
+    def test_kpi_status_bevat_high_critical(self, analyser: PharmaAnalyser) -> None:
         result = analyser.analyse("2026-01")
         status = analyser.kpi_status(result)
-        assert "reactiegraad_ok" in status
         assert "high_critical_ok" in status
+
+    def test_reactiegraad_niet_in_status_als_na(self, analyser: PharmaAnalyser) -> None:
+        """ADR-006: REACTIEGRAAD_MIN = None → reactiegraad_ok afwezig in kpi_status."""
+        assert pharma_config.REACTIEGRAAD_MIN is None
+        result = analyser.analyse("2026-01")
+        status = analyser.kpi_status(result)
+        assert "reactiegraad_ok" not in status
 
     def test_avg_score_niet_in_status_als_tbd(self, analyser: PharmaAnalyser) -> None:
         """Zolang AVG_SCORE_MIN = None is de sleutel afwezig in kpi_status."""
@@ -166,18 +166,30 @@ class TestDrempelwaardeEvaluatie:
         status = analyser.kpi_status(result)
         assert "avg_score_ok" not in status
 
-    def test_reactiegraad_ok_bij_voldoende_respons(self, analyser: PharmaAnalyser) -> None:
-        """Feb 2026: 2/2 scores = 100% reactiegraad → True."""
+    def test_high_critical_ok_bij_laag_aandeel(self, analyser: PharmaAnalyser) -> None:
+        """Feb 2026: SD-007 is Major → 1/2 = 50% > 15% → False."""
         result = analyser.analyse("2026-02")
         status = analyser.kpi_status(result)
+        assert status["high_critical_ok"] is False
+
+    def test_reactiegraad_ok_activeerbaar_via_config(
+        self, analyser: PharmaAnalyser, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Als REACTIEGRAAD_MIN ingesteld wordt, verschijnt reactiegraad_ok terug."""
+        monkeypatch.setattr(pharma_config, "REACTIEGRAAD_MIN", 85.0)
+        result = analyser.analyse("2026-02")  # feb: 2/2 = 100%
+        status = analyser.kpi_status(result)
+        assert "reactiegraad_ok" in status
         assert status["reactiegraad_ok"] is True
 
-    def test_high_critical_ok_bij_laag_aandeel(self, analyser: PharmaAnalyser) -> None:
-        """Feb 2026: 1 High op 2 tickets = 50% — nog steeds boven drempel."""
-        result = analyser.analyse("2026-02")
+    def test_reactiegraad_warning_als_te_laag(
+        self, analyser: PharmaAnalyser, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Regel 59 — warning-branch: reactiegraad < drempel als REACTIEGRAAD_MIN ingesteld."""
+        monkeypatch.setattr(pharma_config, "REACTIEGRAAD_MIN", 85.0)
+        result = analyser.analyse("2026-01")  # jan: 5/6 = 83,3% < 85%
         status = analyser.kpi_status(result)
-        # SD-007 is Major → 1/2 = 50% > 15% → False
-        assert status["high_critical_ok"] is False
+        assert status["reactiegraad_ok"] is False
 
 
 # ------------------------------------------------------------------

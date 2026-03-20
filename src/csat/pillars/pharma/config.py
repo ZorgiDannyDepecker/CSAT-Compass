@@ -16,11 +16,16 @@ PRODUCT_FILTER = "Apotheek"  # primaire waarde voor enkelvoudige filter-context
 # KPI-drempelwaarden — bevestigd door team
 # ------------------------------------------------------------------
 
-REACTIEGRAAD_MIN: float = 85.0
-"""Minimale reactiegraad in % — tickets met een CSAT-score t.o.v. totaal."""
+# ⚠️ REACTIEGRAAD — NIET MEETBAAR (zie ADR-006, 20/03/2026)
+# V_CSAT_1 bevat enkel gescoorde tickets → reactiegraad = altijd 100%
+# Het totaal uitgenodigde tickets is niet beschikbaar in deze view.
+# REACTIEGRAAD_MIN blijft gedeclareerd voor toekomstig gebruik als
+# de databron uitgebreid wordt met uitnodigingsdata.
+REACTIEGRAAD_MIN: float | None = None  # N/A — zie ADR-006
+"""Reactiegraad drempel — niet activeerbaar zonder uitnodigingsdata."""
 
 HIGH_CRITICAL_MAX: float = 15.0
-"""Maximaal aandeel High/Critical-tickets in % t.o.v. totaal."""
+"""Maximaal aandeel Blocker/Critical/Major-tickets in % t.o.v. totaal."""
 
 # ------------------------------------------------------------------
 # KPI-drempelwaarden — TBD na data-exploratie

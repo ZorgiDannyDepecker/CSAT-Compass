@@ -52,19 +52,21 @@ class PharmaAnalyser(PillarAnalyser):
         Args:
             result: Ingevuld KpiResult na analyse
         """
-        # Reactiegraad
-        if result.reactiegraad < pharma_config.REACTIEGRAAD_MIN:
-            logger.warning(
-                f"[PharmaAnalyser] ⚠️ {result.period} — Reactiegraad te laag: "
-                f"{result.reactiegraad}% < {pharma_config.REACTIEGRAAD_MIN}% (drempel)"
-            )
-        else:
-            logger.info(
-                f"[PharmaAnalyser] ✅ {result.period} — Reactiegraad OK: "
-                f"{result.reactiegraad}% ≥ {pharma_config.REACTIEGRAAD_MIN}%"
-            )
+        # Reactiegraad — niet evalueerbaar (zie ADR-006)
+        # V_CSAT_1 bevat enkel gescoorde tickets → drempel N/A
+        if pharma_config.REACTIEGRAAD_MIN is not None:
+            if result.reactiegraad < pharma_config.REACTIEGRAAD_MIN:
+                logger.warning(
+                    f"[PharmaAnalyser] ⚠️ {result.period} — Reactiegraad te laag: "
+                    f"{result.reactiegraad}% < {pharma_config.REACTIEGRAAD_MIN}% (drempel)"
+                )
+            else:
+                logger.info(
+                    f"[PharmaAnalyser] ✅ {result.period} — Reactiegraad OK: "
+                    f"{result.reactiegraad}% ≥ {pharma_config.REACTIEGRAAD_MIN}%"
+                )
 
-        # High/Critical-ratio
+        # High/Critical-ratio (Blocker + Critical + Major)
         if result.high_critical_ratio > pharma_config.HIGH_CRITICAL_MAX:
             logger.warning(
                 f"[PharmaAnalyser] ⚠️ {result.period} — High/Critical te hoog: "
@@ -91,19 +93,22 @@ class PharmaAnalyser(PillarAnalyser):
 
     def kpi_status(self, result: KpiResult) -> dict[str, bool]:
         """
-        Geef een statusoverzicht van alle PHARMA-KPI's als dict.
+        Geef een statusoverzicht van alle actieve PHARMA-KPI's als dict.
+
+        Enkel KPI's waarvoor een drempelwaarde is ingesteld worden opgenomen.
+        Reactiegraad is momenteel N/A (zie ADR-006).
 
         Args:
             result: KpiResult na analyse
 
         Returns:
             Dict met KPI-naam → True als de drempel gehaald is.
-            Bevat enkel KPI's waarvoor een drempelwaarde is ingesteld.
         """
         status: dict[str, bool] = {
-            "reactiegraad_ok": result.reactiegraad >= pharma_config.REACTIEGRAAD_MIN,
             "high_critical_ok": result.high_critical_ratio <= pharma_config.HIGH_CRITICAL_MAX,
         }
+        if pharma_config.REACTIEGRAAD_MIN is not None:
+            status["reactiegraad_ok"] = result.reactiegraad >= pharma_config.REACTIEGRAAD_MIN
         if pharma_config.AVG_SCORE_MIN is not None:
             status["avg_score_ok"] = result.avg_score >= pharma_config.AVG_SCORE_MIN
 

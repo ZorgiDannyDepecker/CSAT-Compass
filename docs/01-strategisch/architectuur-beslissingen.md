@@ -20,6 +20,7 @@
 3. [ADR-003 — Jinja2 + i18n voor tweetaligheid](#3-adr-003--jinja2--i18n-voor-tweetaligheid)
 4. [ADR-004 — Selectieve migratie vanuit Customer Satisfaction](#4-adr-004--selectieve-migratie-vanuit-customer-satisfaction)
 5. [ADR-005 — PHARMA-first ontwikkelingsstrategie](#5-adr-005--pharma-first-ontwikkelingsstrategie)
+6. [ADR-006 — Reactiegraad KPI niet meetbaar via V_CSAT_1](#6-adr-006--reactiegraad-kpi-niet-meetbaar-via-v_csat_1)
 
 ---
 
@@ -209,8 +210,68 @@ De andere pijlers volgen als kopie + aanpassing van de PHARMA-module.
 
 ---
 
+---
+
+## 6. ADR-006 — Reactiegraad KPI niet meetbaar via V_CSAT_1
+
+**Datum:** 20/03/2026  
+**Status:** ✅ Approved
+
+### Context
+
+Bij de initiële KPI-definitie voor CSAT-Compass werd de **reactiegraad** opgenomen
+als kernindicator: het percentage tickets waarbij een klant effectief een CSAT-score
+invulde ten opzichte van het totaal aantal tickets waarvoor een uitnodiging werd verstuurd.
+
+De drempelwaarde was vastgelegd op ≥ 85% voor de PHARMA-pijler.
+
+Tijdens de eerste DB-exploratie op 20/03/2026 bleek dat de databron `[dbo].[V_CSAT_1]`
+uitsluitend tickets bevat die **reeds een CSAT-score hebben**. Van alle 6.000 records
+in de view heeft 100% een ingevulde scorewaarde.
+
+### Beslissing
+
+**Reactiegraad KPI wordt niet opgenomen in CSAT-Compass.**
+
+De meting is technisch onuitvoerbaar met de beschikbare databron:
+
+- `V_CSAT_1` is een **pre-gefilterde view** — enkel gescoorde tickets zijn zichtbaar
+- Het **totaal aantal verstuurde uitnodigingen** is niet beschikbaar in deze view
+- Zonder de noemer (totaal uitgenodigd) is het percentage niet berekbaar
+
+### Alternatieven overwogen
+
+| Optie | Omschrijving | Reden verworpen |
+|---|---|---|
+| A | Reactiegraad via V_CSAT_1 | ❌ View bevat enkel gescoorde tickets — teller = noemer = 100% altijd |
+| B | Reactiegraad via ruwe ticketing-export | ❌ Geen toegang tot de uitnodigingstabel op dit moment |
+| C | Reactiegraad schatten via historische patronen | ❌ Te onnauwkeurig voor rapportage aan CEO/COO |
+| **D** | **KPI weglaten — eerlijk communiceren** | **✅ Gekozen — integriteit boven volledigheid** |
+
+### Consequenties
+
+- `REACTIEGRAAD_MIN` wordt verwijderd als actieve drempelwaarde uit `pharma/config.py`
+- `_calc_reactiegraad()` blijft beschikbaar in `BaseAnalyser` voor toekomstig gebruik
+  als de databron uitgebreid wordt met uitnodigingsdata
+- Rapporten en dashboards vermelden deze KPI **niet**
+- Indien in de toekomst toegang komt tot de ruwe ticketingdata (alle tickets, ook
+  niet-gescoorde), kan de reactiegraad alsnog worden geactiveerd zonder architectuurwijziging
+- Deze beslissing wordt gecommuniceerd aan de stakeholders (CEO Eric, COO Christian)
+  bij de eerste rapportage
+
+### 💡 Toekomstige activering
+
+Zodra een databron beschikbaar is met alle tickets (gescoord + niet-gescoord), volstaat:
+
+1. `REACTIEGRAAD_MIN` terug instellen in `pharma/config.py` (en andere pijler-configs)
+2. De loader aanpassen om beide views te joinen of de ruwe export te laden
+3. `PharmaAnalyser._evaluate_thresholds()` activeert de check automatisch
+
+---
+
 ## Versiehistorie
 
 | Versie | Datum | Wijzigingen | Auteur |
 | ------ | ---------- | ----------------------------------------------- | -------------------- |
 | 1.0 | 18/03/2026 | Initiële versie — 5 ADRs op basis van MCQ-sessie | Danny Depecker + GHC |
+| 1.1 | 20/03/2026 | ADR-006 toegevoegd: reactiegraad niet meetbaar via V_CSAT_1 | Danny Depecker |
