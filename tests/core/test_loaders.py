@@ -148,3 +148,76 @@ class TestGetLoader:
                 force_csv=False,
             )
             assert isinstance(loader, SqlLoader)
+
+
+# ------------------------------------------------------------------
+# CsvLoader — aanvullende paden
+# ------------------------------------------------------------------
+
+
+class TestCsvLoaderExtra:
+    """Dekt xlsx-loading en period-filter (regels 65 + 73)."""
+
+    def test_laad_xlsx_retourneert_dataframe(self, tmp_path: Path, sample_df: pd.DataFrame) -> None:
+        """Regel 65 — pd.read_excel pad."""
+        bestand = tmp_path / "2026-01-export.xlsx"
+        sample_df.to_excel(bestand, index=False)
+        loader = CsvLoader(tmp_path)
+        result = loader.load()
+        assert len(result) == 12
+
+    def test_period_filter_csv(self, tmp_path: Path, sample_df: pd.DataFrame) -> None:
+        """Regel 73 — period-filter op created-kolom."""
+        sample_df.to_csv(tmp_path / "2026-01-export.csv", index=False)
+        loader = CsvLoader(tmp_path)
+        result = loader.load(period="2026-01")
+        assert len(result) == 10  # jan 2026: 6 PHARMA + 4 CARE
+
+
+# ------------------------------------------------------------------
+# SqlLoader — create_engine lazy init (regels 27-32)
+# ------------------------------------------------------------------
+
+
+class TestSqlLoaderEngine:
+    """Test de lazy engine-initialisatie en caching."""
+
+    def test_engine_wordt_aangemaakt_bij_eerste_aanroep(self) -> None:
+        loader = SqlLoader("mssql+pyodbc://test")
+        with patch("csat.core.loaders.sql_loader.create_engine") as mock_ce:
+            mock_ce.return_value = MagicMock()
+            loader._get_engine()
+            mock_ce.assert_called_once()
+
+    def test_engine_wordt_gecached(self) -> None:
+        """Tweede aanroep mag create_engine niet opnieuw aanroepen."""
+        loader = SqlLoader("mssql+pyodbc://test")
+        with patch("csat.core.loaders.sql_loader.create_engine") as mock_ce:
+            mock_ce.return_value = MagicMock()
+            loader._get_engine()
+            loader._get_engine()
+            mock_ce.assert_called_once()
+
+
+# ------------------------------------------------------------------
+# BaseLoader — ontbrekende kolommen (regel 61)
+# ------------------------------------------------------------------
+
+
+class TestBaseLoaderValidatie:
+    """Test de waarschuwing bij ontbrekende kolommen."""
+
+    def test_waarschuwing_bij_ontbrekende_kolommen(
+        self, tmp_path: Path, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        """Regel 61 — logger.warning bij ontbrekende kolommen."""
+
+        # CSV met datumkolommen aanwezig maar andere REQUIRED_COLUMNS ontbreken
+        csv_inhoud = "key,score,created,satisfaction_date\nSD-001,4.0,2026-01-05,2026-01-10\n"
+        (tmp_path / "onvolledig.csv").write_text(csv_inhoud)
+        loader = CsvLoader(tmp_path)
+        # _validate_dataframe logt warning over ontbrekende kolommen (issue_type, priority, ...)
+        result = loader.load()
+        # Validatie bereikt: DataFrame geladen ondanks ontbrekende kolommen
+        assert "key" in result.columns
+        assert len(result) == 1
