@@ -2,14 +2,11 @@
 Gedeelde pytest-fixtures voor CSAT-Compass unit tests.
 
 Bevat een sample DataFrame dat de structuur van [dbo].[V_CSAT_1] nabootst.
+Filterkolom voor pijlers: product_domain (bevestigd 20/03/2026)
 """
 
 import pandas as pd
 import pytest
-
-# ------------------------------------------------------------------
-# Helpers
-# ------------------------------------------------------------------
 
 
 def _make_row(
@@ -19,11 +16,11 @@ def _make_row(
     score: float | None,
     hospital: str,
     product: str,
+    product_domain: str,
     created: str,
     satisfaction_date: str | None = None,
     summary: str = "Test ticket",
     comment: str = "",
-    product_domain: str = "Pharma",
     project_key: str = "SD30",
 ) -> dict:
     """Maak één rij aan conform V_CSAT_1 kolomstructuur."""
@@ -43,31 +40,41 @@ def _make_row(
     }
 
 
-# ------------------------------------------------------------------
-# Fixtures
-# ------------------------------------------------------------------
-
-
 @pytest.fixture
 def sample_df() -> pd.DataFrame:
     """
     Testdataset met 12 tickets verdeeld over 3 ziekenhuizen en 2 pijlers.
 
-    Samenstelling:
-    - 8 PHARMA-tickets (product='Apotheek', jan 2026: 6, feb 2026: 2)
-    - 4 CARE-tickets (product='ZORGI CARE', jan 2026: 4)
-    - Reactiegraad PHARMA jan 2026: 5/6 = 83,3% (bewust onder 85% voor threshold-test)
+    Filterkolom: product_domain (bevestigd 20/03/2026)
+    - 8 PHARMA-tickets (product_domain='PHARMA', jan 2026: 6, feb 2026: 2)
+    - 4 CARE-tickets  (product_domain='CARE',   jan 2026: 4)
     - Blocker/Critical/Major PHARMA jan 2026: 2/6 = 33,3% (bewust boven 15%)
     - Gemiddelde score PHARMA jan 2026: (4+3+5+2+5)/5 = 3,8
-    - Priority-waarden conform werkelijke V_CSAT_1: Blocker/Critical/Major/Minor/Trivial
+    - SD-006 en SD-012 hebben geen score (randgeval test)
     """
     rijen = [
         # PHARMA — januari 2026 — AZ Groeninge
         _make_row(
-            "SD-001", "Bug", "Blocker", 4.0, "AZ Groeninge", "Apotheek", "2026-01-05", "2026-01-10"
+            "SD-001",
+            "Bug",
+            "Blocker",
+            4.0,
+            "AZ Groeninge",
+            "Apotheek",
+            "PHARMA",
+            "2026-01-05",
+            "2026-01-10",
         ),
         _make_row(
-            "SD-002", "Bug", "Critical", 3.0, "AZ Groeninge", "Apotheek", "2026-01-08", "2026-01-12"
+            "SD-002",
+            "Bug",
+            "Critical",
+            3.0,
+            "AZ Groeninge",
+            "Apotheek",
+            "PHARMA",
+            "2026-01-08",
+            "2026-01-12",
         ),
         _make_row(
             "SD-003",
@@ -76,6 +83,7 @@ def sample_df() -> pd.DataFrame:
             5.0,
             "AZ Groeninge",
             "Apotheek",
+            "PHARMA",
             "2026-01-10",
             "2026-01-14",
         ),
@@ -87,18 +95,35 @@ def sample_df() -> pd.DataFrame:
             2.0,
             "UZ Brussel",
             "Apotheek",
+            "PHARMA",
             "2026-01-15",
             "2026-01-20",
         ),
         _make_row(
-            "SD-005", "Bug", "Minor", 5.0, "UZ Brussel", "Apotheek", "2026-01-18", "2026-01-22"
+            "SD-005",
+            "Bug",
+            "Minor",
+            5.0,
+            "UZ Brussel",
+            "Apotheek",
+            "PHARMA",
+            "2026-01-18",
+            "2026-01-22",
         ),
         _make_row(
-            "SD-006", "Bug", "Trivial", None, "UZ Brussel", "Apotheek", "2026-01-20"
-        ),  # geen score
+            "SD-006", "Bug", "Trivial", None, "UZ Brussel", "Apotheek", "PHARMA", "2026-01-20"
+        ),
         # PHARMA — februari 2026 — AZ Groeninge
         _make_row(
-            "SD-007", "Bug", "Major", 4.0, "AZ Groeninge", "Apotheek", "2026-02-03", "2026-02-08"
+            "SD-007",
+            "Bug",
+            "Major",
+            4.0,
+            "AZ Groeninge",
+            "Apotheek",
+            "PHARMA",
+            "2026-02-03",
+            "2026-02-08",
         ),
         _make_row(
             "SD-008",
@@ -107,15 +132,32 @@ def sample_df() -> pd.DataFrame:
             3.0,
             "AZ Groeninge",
             "Apotheek",
+            "PHARMA",
             "2026-02-10",
             "2026-02-14",
         ),
         # CARE — januari 2026 — OLV Aalst
         _make_row(
-            "SD-009", "Bug", "Minor", 4.0, "OLV Aalst", "ZORGI CARE", "2026-01-06", "2026-01-11"
+            "SD-009",
+            "Bug",
+            "Minor",
+            4.0,
+            "OLV Aalst",
+            "ZORGI CARE",
+            "CARE",
+            "2026-01-06",
+            "2026-01-11",
         ),
         _make_row(
-            "SD-010", "Bug", "Trivial", 5.0, "OLV Aalst", "ZORGI CARE", "2026-01-12", "2026-01-16"
+            "SD-010",
+            "Bug",
+            "Trivial",
+            5.0,
+            "OLV Aalst",
+            "ZORGI CARE",
+            "CARE",
+            "2026-01-12",
+            "2026-01-16",
         ),
         _make_row(
             "SD-011",
@@ -124,21 +166,20 @@ def sample_df() -> pd.DataFrame:
             3.0,
             "OLV Aalst",
             "ZORGI CARE",
+            "CARE",
             "2026-01-19",
             "2026-01-23",
         ),
-        _make_row(
-            "SD-012", "Bug", "Major", None, "OLV Aalst", "ZORGI CARE", "2026-01-25"
-        ),  # geen score
+        _make_row("SD-012", "Bug", "Major", None, "OLV Aalst", "ZORGI CARE", "CARE", "2026-01-25"),
     ]
     return pd.DataFrame(rijen)
 
 
 @pytest.fixture
 def pharma_jan_df(sample_df: pd.DataFrame) -> pd.DataFrame:
-    """Subset: alleen PHARMA-tickets (Apotheek) uit januari 2026."""
+    """Subset: alleen PHARMA-tickets (product_domain='PHARMA') uit januari 2026."""
     mask = (
-        (sample_df["product"] == "Apotheek")
+        (sample_df["product_domain"] == "PHARMA")
         & (pd.to_datetime(sample_df["created"]).dt.year == 2026)
         & (pd.to_datetime(sample_df["created"]).dt.month == 1)
     )

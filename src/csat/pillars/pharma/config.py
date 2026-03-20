@@ -8,9 +8,9 @@ Overige drempelwaarden (avg_score, MoM-trend) worden ingevuld na data-exploratie
 # Pijler-identificatie
 PILLAR_KEY = "pharma"
 
-# Productfilters — bevestigd via df["product"].value_counts() op V_CSAT_1 (20/03/2026)
-PRODUCT_FILTERS = ["Apotheek", "AZIS Pharmacy"]
-PRODUCT_FILTER = "Apotheek"  # primaire waarde voor enkelvoudige filter-context
+# Filterwaarde in product_domain-kolom — bevestigd 20/03/2026
+# Filterkolom = product_domain (niet product)
+PRODUCT_FILTER = "PHARMA"
 
 # ------------------------------------------------------------------
 # KPI-drempelwaarden — bevestigd door team

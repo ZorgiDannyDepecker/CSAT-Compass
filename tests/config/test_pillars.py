@@ -1,18 +1,15 @@
 """
 Unit tests voor src/csat/config/pillars.py.
-Dekt PILLAR_REGISTRY structuur + get_pillar_for_product() volledig.
+Dekt PILLAR_REGISTRY structuur + get_pillar_for_domain() volledig.
 """
 
 from csat.config.pillars import (
+    FILTER_COLUMN,
     HIGH_CRITICAL_PRIORITIES,
     PILLAR_REGISTRY,
     VIEW_COLUMNS,
-    get_pillar_for_product,
+    get_pillar_for_domain,
 )
-
-# ------------------------------------------------------------------
-# PILLAR_REGISTRY structuur
-# ------------------------------------------------------------------
 
 
 class TestPillarRegistry:
@@ -27,16 +24,28 @@ class TestPillarRegistry:
         for key, config in PILLAR_REGISTRY.items():
             assert verplicht.issubset(config.keys()), f"Sleutel ontbreekt in pijler '{key}'"
 
-    def test_pharma_product_correct(self) -> None:
-        assert "Apotheek" in PILLAR_REGISTRY["pharma"]["products"]
-        assert "AZIS Pharmacy" in PILLAR_REGISTRY["pharma"]["products"]
+    def test_pharma_domein_correct(self) -> None:
+        assert "PHARMA" in PILLAR_REGISTRY["pharma"]["products"]
 
-    def test_care_product_correct(self) -> None:
-        assert "ZORGI CARE" in PILLAR_REGISTRY["care"]["products"]
+    def test_care_domein_correct(self) -> None:
+        assert "CARE" in PILLAR_REGISTRY["care"]["products"]
 
-    def test_zorgi_geen_producten(self) -> None:
-        """zorgi is aggregatie — geen directe productfilter."""
-        assert PILLAR_REGISTRY["zorgi"]["products"] == []
+    def test_care_admin_domein_correct(self) -> None:
+        assert "CARE ADMIN" in PILLAR_REGISTRY["care_admin"]["products"]
+
+    def test_erp_domein_correct(self) -> None:
+        assert "ERP" in PILLAR_REGISTRY["erp4hc"]["products"]
+
+    def test_zorgi_aggregeert_alle_vier_domeinen(self) -> None:
+        """zorgi filtert op alle 4 domeinen — sluit BI/EXTRAMUROS/HRM/MOBILE uit."""
+        zorgi_products = PILLAR_REGISTRY["zorgi"]["products"]
+        for domein in ["PHARMA", "CARE", "CARE ADMIN", "ERP"]:
+            assert domein in zorgi_products
+
+
+class TestFilterColumn:
+    def test_filterkolom_is_product_domain(self) -> None:
+        assert FILTER_COLUMN == "product_domain"
 
 
 class TestHighCriticalPriorities:
@@ -63,52 +72,49 @@ class TestViewColumns:
     def test_score_kolom(self) -> None:
         assert VIEW_COLUMNS["score"] == "score"
 
-
-# ------------------------------------------------------------------
-# get_pillar_for_product — alle paden
-# ------------------------------------------------------------------
+    def test_product_domain_kolom(self) -> None:
+        assert VIEW_COLUMNS["product_domain"] == "product_domain"
 
 
-class TestGetPillarForProduct:
-    """Volledige dekking van get_pillar_for_product() — regels 79-88."""
+class TestGetPillarForDomain:
+    """Volledige dekking van get_pillar_for_domain()."""
 
-    def test_pharma_apotheek(self) -> None:
-        assert get_pillar_for_product("Apotheek") == "pharma"
-
-    def test_pharma_azis(self) -> None:
-        assert get_pillar_for_product("AZIS Pharmacy") == "pharma"
+    def test_pharma(self) -> None:
+        assert get_pillar_for_domain("PHARMA") == "pharma"
 
     def test_care(self) -> None:
-        assert get_pillar_for_product("ZORGI CARE") == "care"
+        assert get_pillar_for_domain("CARE") == "care"
 
-    def test_care_admin_oazis(self) -> None:
-        assert get_pillar_for_product("Oazis") == "care_admin"
+    def test_care_admin(self) -> None:
+        assert get_pillar_for_domain("CARE ADMIN") == "care_admin"
 
-    def test_care_admin_zorgi(self) -> None:
-        assert get_pillar_for_product("ZORGI Care Admin") == "care_admin"
+    def test_erp(self) -> None:
+        assert get_pillar_for_domain("ERP") == "erp4hc"
 
-    def test_erp4hc_v2(self) -> None:
-        assert get_pillar_for_product("ERP4HC2.0") == "erp4hc"
+    def test_onbekend_domein(self) -> None:
+        assert get_pillar_for_domain("BI") == "unknown"
 
-    def test_erp4hc_zonder_versie(self) -> None:
-        assert get_pillar_for_product("ERP4HC") == "erp4hc"
+    def test_extramuros_genegeerd(self) -> None:
+        assert get_pillar_for_domain("EXTRAMUROS") == "unknown"
 
-    def test_onbekend_product(self) -> None:
-        assert get_pillar_for_product("ONBEKEND") == "unknown"
+    def test_hrm_genegeerd(self) -> None:
+        assert get_pillar_for_domain("HRM") == "unknown"
+
+    def test_mobile_genegeerd(self) -> None:
+        assert get_pillar_for_domain("MOBILE") == "unknown"
 
     def test_lege_string(self) -> None:
-        assert get_pillar_for_product("") == "unknown"
+        assert get_pillar_for_domain("") == "unknown"
 
-    def test_case_insensitive_apotheek(self) -> None:
-        assert get_pillar_for_product("apotheek") == "pharma"
+    def test_case_insensitive(self) -> None:
+        assert get_pillar_for_domain("pharma") == "pharma"
 
     def test_case_insensitive_mixed(self) -> None:
-        assert get_pillar_for_product("ApOtHeEk") == "pharma"
+        assert get_pillar_for_domain("PhArMa") == "pharma"
 
     def test_witruimte_wordt_genegeerd(self) -> None:
-        assert get_pillar_for_product("  Apotheek  ") == "pharma"
+        assert get_pillar_for_domain("  PHARMA  ") == "pharma"
 
     def test_zorgi_sleutel_nooit_teruggegeven(self) -> None:
-        """zorgi is aggregatiepijler — mag nooit als productmatch teruggegeven worden."""
-        result = get_pillar_for_product("ZORGI")
-        assert result == "unknown"
+        """zorgi is aggregatiepijler — mag nooit als domeinmatch teruggegeven worden."""
+        assert get_pillar_for_domain("ZORGI") == "unknown"

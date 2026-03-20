@@ -8,7 +8,7 @@ per periode en per ziekenhuis.
 import pandas as pd
 from loguru import logger
 
-from csat.config.pillars import PILLAR_REGISTRY
+from csat.config.pillars import FILTER_COLUMN, PILLAR_REGISTRY
 from csat.utils.date_utils import filter_period, filter_ytd, previous_period
 
 from .base_analyser import BaseAnalyser, KpiResult
@@ -44,26 +44,27 @@ class PillarAnalyser(BaseAnalyser):
 
     def _filter_pillar(self, df: pd.DataFrame) -> pd.DataFrame:
         """
-        Filter het DataFrame op de producten van deze pijler.
+        Filter het DataFrame op de product_domain-waarden van deze pijler.
 
-        De 'zorgi'-pijler bevat geen productfilter en aggregeert alle pijlers.
+        Filterkolom: 'product_domain' (bevestigd 20/03/2026).
+        Zorgi filtert op alle 4 relevante domeinen en sluit
+        BI / EXTRAMUROS / HRM / MOBILE expliciet uit.
         """
         products = self._pillar_config.get("products", [])
 
-        if not products:
-            # zorgi = aggregatie over alle pijlers, geen filter
+        if not products:  # pragma: no cover
             logger.debug(
-                f"[PillarAnalyser:{self._pillar_key}] Geen productfilter — volledige dataset"
+                f"[PillarAnalyser:{self._pillar_key}] Geen domeinfilter — volledige dataset"
             )
             return df.copy()
 
         products_upper = [p.upper() for p in products]
-        mask = df["product"].str.strip().str.upper().isin(products_upper)
+        mask = df[FILTER_COLUMN].str.strip().str.upper().isin(products_upper)
         filtered = df[mask].copy()
 
         logger.info(
             f"[PillarAnalyser:{self._pillar_key}] {len(filtered):,} rijen na filter "
-            f"op producten: {products}"
+            f"op {FILTER_COLUMN}: {products}"
         )
         return filtered
 

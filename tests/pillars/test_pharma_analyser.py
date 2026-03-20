@@ -38,16 +38,16 @@ class TestPharmaFilter:
     """Controleer dat de PHARMA-filter correct werkt."""
 
     def test_alleen_pharma_tickets_geladen(self, analyser: PharmaAnalyser) -> None:
-        """Na filter moet het interne DataFrame enkel Apotheek/AZIS Pharmacy-rijen bevatten."""
-        assert all(analyser._pillar_df["product"].isin(["Apotheek", "AZIS Pharmacy"]))
+        """Na filter moet product_domain uitsluitend PHARMA bevatten."""
+        assert all(analyser._pillar_df["product_domain"].str.upper() == "PHARMA")
 
     def test_aantal_pharma_tickets(self, analyser: PharmaAnalyser) -> None:
-        """Sample bevat 8 PHARMA-tickets (product='Apotheek', 6 jan + 2 feb)."""
+        """Sample bevat 8 PHARMA-tickets (product_domain='PHARMA', 6 jan + 2 feb)."""
         assert len(analyser._pillar_df) == 8
 
     def test_care_tickets_gefilterd(self, analyser: PharmaAnalyser) -> None:
-        """ZORGI CARE-tickets mogen niet in de PHARMA-analyser zitten."""
-        assert "ZORGI CARE" not in analyser._pillar_df["product"].values
+        """CARE-tickets mogen niet in de PHARMA-analyser zitten."""
+        assert "CARE" not in analyser._pillar_df["product_domain"].values
 
 
 # ------------------------------------------------------------------

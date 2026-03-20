@@ -1,47 +1,54 @@
 """
 Pijler-definities voor CSAT-Compass.
-Koppelt product-waarden uit V_CSAT_1 aan de ZORGI-pijlers.
+Filtert op de kolom 'product_domain' uit V_CSAT_1.
+
+Bevestigd door Danny Depecker op 20/03/2026 via Excel-review van V_CSAT_1:
+- Filterkolom: product_domain
+- Relevante waarden: PHARMA, CARE, CARE ADMIN, ERP
+- Genegeerd: BI, EXTRAMUROS, HRM, MOBILE
 """
 
+# Kolom waarop de pijlerfilter toegepast wordt — bevestigd 20/03/2026
+FILTER_COLUMN = "product_domain"
+
 # Pijler-register — alle ZORGI-pijlers inclusief overall
-# Product-waarden bevestigd via df["product"].value_counts() op V_CSAT_1 (20/03/2026)
-# ⚠️ Producten zonder pijler (ECO/BOEK, H++/EPR, OmniPro, HRM, enz.) — te bevestigen door Danny
+# 'products' = waarden uit de kolom product_domain (niet product)
 PILLAR_REGISTRY: dict[str, dict] = {
     "zorgi": {
         "name": "ZORGI",
         "name_fr": "ZORGI",
         "direction": "centrum",
         "color": "#003366",
-        "products": [],  # aggregatie — geen directe productfilter
+        # Aggregatie van alle 4 relevante domeinen — sluit BI/EXTRAMUROS/HRM/MOBILE uit
+        "products": ["PHARMA", "CARE", "CARE ADMIN", "ERP"],
     },
     "pharma": {
         "name": "PHARMA",
         "name_fr": "PHARMA",
         "direction": "noord",
         "color": "#0066CC",
-        "products": ["Apotheek", "AZIS Pharmacy"],  # bevestigd 20/03/2026
+        "products": ["PHARMA"],
     },
     "care": {
         "name": "CARE",
         "name_fr": "CARE",
         "direction": "oost",
         "color": "#00AA44",
-        "products": ["ZORGI CARE"],  # bevestigd 20/03/2026
+        "products": ["CARE"],
     },
     "care_admin": {
         "name": "CARE ADMIN",
         "name_fr": "CARE ADMIN",
         "direction": "west",
         "color": "#FF6600",
-        "products": ["Oazis", "ZORGI Care Admin"],  # bevestigd 20/03/2026
+        "products": ["CARE ADMIN"],
     },
     "erp4hc": {
         "name": "ERP4HC",
         "name_fr": "ERP4HC",
         "direction": "zuid",
         "color": "#9900CC",
-        "products": ["ERP4HC2.0", "ERP4HC"],  # bevestigd 20/03/2026
-        # ⚠️ Te bevestigen: ECO/BOEK (327), HRM (193), PADM/TARFAC (108) ook ERP?
+        "products": ["ERP"],
     },
 }
 
@@ -61,34 +68,33 @@ VIEW_COLUMNS = {
     "project_key": "project_key",
 }
 
-# Prioriteitswaarden die als High/Critical worden beschouwd
-# Bevestigd via df["priority"].value_counts() op V_CSAT_1 (20/03/2026)
-# Jira-schaal: Blocker > Critical > Major > Minor > Trivial
-# ⚠️ Major is nog te bevestigen door Danny — staat nu wel inbegrepen
+# Prioriteitswaarden die als hoog-kritisch worden beschouwd
+# Jira-schaal in V_CSAT_1: Blocker > Critical > Major > Minor > Trivial
+# Bevestigd door Danny op 20/03/2026
 HIGH_CRITICAL_PRIORITIES = ["Blocker", "Critical", "Major"]
 
-# Score-bereik (wordt bevestigd na eerste data-exploratie)
+# Score-bereik — bevestigd via data-exploratie 20/03/2026
 SCORE_MIN = 1
 SCORE_MAX = 5
 
 
-def get_pillar_for_product(product: str) -> str:
+def get_pillar_for_domain(domain: str) -> str:
     """
-    Geef de pijlersleutel terug op basis van de product-waarde uit de view.
+    Geef de pijlersleutel terug op basis van product_domain uit V_CSAT_1.
 
     Args:
-        product: Waarde uit de product-kolom van V_CSAT_1
+        domain: Waarde uit de product_domain-kolom (bv. 'PHARMA', 'ERP')
 
     Returns:
         Pijlersleutel (pharma, care, care_admin, erp4hc) of 'unknown'
     """
-    if not product:
+    if not domain:
         return "unknown"
-    product_upper = product.strip().upper()
+    domain_upper = domain.strip().upper()
     for pillar_key, pillar_config in PILLAR_REGISTRY.items():
         if pillar_key == "zorgi":
             continue
         for p in pillar_config["products"]:
-            if p.upper() == product_upper:
+            if p.upper() == domain_upper:
                 return pillar_key
     return "unknown"
