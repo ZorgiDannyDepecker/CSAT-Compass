@@ -1,12 +1,12 @@
 # CSAT-Compass - Fase 1: Data-analyse en hybride loader
 
-**Versie:** 1.1  
-**Laatst bijgewerkt:** 19/03/2026  
+**Versie:** 1.2  
+**Laatst bijgewerkt:** 20/03/2026
 
 **Doel:** Uitwerking van Fase 1 — hybride dataloader en PHARMA-analyser als referentie-implementatie  
 **Type:** Implementatie  
 **Auteur:** Danny Depecker + GHC  
-**Status:** In Progress  
+**Status:** Compleet  
 
 **Bestandsnaam:** fase1-data-analyse.md  
 **Path:** docs/02-tactisch/fasen/  
@@ -42,17 +42,17 @@ klaar voor rapportage in Fase 2.
 
 | Bestand | Beschrijving | Status |
 |---|---|---|
-| `src/csat/core/loaders/base_loader.py` | Abstracte loader-interface | ⏳ |
-| `src/csat/core/loaders/sql_loader.py` | SQL-connectie via sqlalchemy | ⏳ |
-| `src/csat/core/loaders/csv_loader.py` | CSV/Excel loader via pandas | ⏳ |
-| `src/csat/core/analysers/base_analyser.py` | Gedeelde analyselogica | ⏳ |
-| `src/csat/core/analysers/pillar_analyser.py` | Pillar-specifieke berekeningen | ⏳ |
-| `src/csat/pillars/pharma/config.py` | PHARMA KPI-configuratie | ⏳ |
-| `src/csat/pillars/pharma/analyser.py` | PHARMA-analyser (erft base) | ⏳ |
-| `src/csat/config/settings.py` | DB-connectie, paden, constanten | ⏳ |
-| `src/csat/config/pillars.py` | Pijler-definities | ⏳ |
-| `tests/core/test_loaders.py` | Unit tests voor loaders | ⏳ |
-| `tests/pillars/test_pharma_analyser.py` | Unit tests PHARMA-analyser | ⏳ |
+| `src/csat/core/loaders/base_loader.py` | Abstracte loader-interface | ✅ |
+| `src/csat/core/loaders/sql_loader.py` | SQL-connectie via sqlalchemy | ✅ |
+| `src/csat/core/loaders/csv_loader.py` | CSV/Excel loader via pandas | ✅ |
+| `src/csat/core/analysers/base_analyser.py` | Gedeelde analyselogica | ✅ |
+| `src/csat/core/analysers/pillar_analyser.py` | Pillar-specifieke berekeningen | ✅ |
+| `src/csat/pillars/pharma/config.py` | PHARMA KPI-configuratie | ✅ |
+| `src/csat/pillars/pharma/analyser.py` | PHARMA-analyser (erft base) | ✅ |
+| `src/csat/config/settings.py` | DB-connectie, paden, constanten | ✅ |
+| `src/csat/config/pillars.py` | Pijler-definities | ✅ |
+| `tests/core/test_loaders.py` | Unit tests voor loaders | ✅ |
+| `tests/pillars/test_pharma_analyser.py` | Unit tests PHARMA-analyser | ✅ |
 
 ---
 
@@ -181,15 +181,15 @@ config/pillars.py   ← PILLAR_REGISTRY dict met naam, kleur, richting per pijle
 
 | KPI | Berekening | Drempel | Status |
 |---|---|---|---|
-| Gemiddelde CSAT-score | `AVG(score)` | TBD na exploratie | ⚠️ |
-| Score-distributie | `COUNT per score-waarde / total * 100` | TBD | ⚠️ |
-| Reactiegraad (sluitingsratio) | `tickets met score / totaal tickets * 100` | ≥ 85% | ✅ |
-| High/Critical ratio | `COUNT priority IN (High, Critical) / total * 100` | ≤ 15% | ✅ |
-| Trend MoM (gemiddelde score) | Verschil `AVG(score)` t.o.v. vorige maand | TBD na exploratie | ⚠️ |
-| Baseline vergelijking | Verschil t.o.v. 2025-gemiddelde | TBD | ⚠️ |
+| Gemiddelde CSAT-score | `AVG(score)` | TBD — te bepalen met PHARMA-team | ⚠️ TBD |
+| Score-distributie | `COUNT per score-waarde / total * 100` | Informatief, geen drempel | ✅ |
+| Reactiegraad (sluitingsratio) | N/A — view bevat enkel gescoorde tickets | N/A (zie ADR-006) | ❌ N/A |
+| High/Critical ratio | `COUNT priority IN (Blocker, Critical, Major) / total * 100` | ≤ 15% | ✅ |
+| Trend MoM (gemiddelde score) | Verschil `AVG(score)` t.o.v. vorige maand | Informatief, geen drempel | ✅ |
+| Baseline vergelijking | Verschil t.o.v. 2025-gemiddelde | Informatief | ⏳ Fase 2 |
 
-> 💡 Score-bereik en drempelwaarden voor gemiddelde score en trend
-> worden afgeleid na de eerste data-exploratie op V_CSAT_1.
+> 💡 Score-bereik bevestigd via data-exploratie 20/03/2026: **1 tot 5** (integer).
+> Prioriteitsschaal in V_CSAT_1: Blocker > Critical > Major > Minor > Trivial.
 
 ---
 
@@ -197,12 +197,12 @@ config/pillars.py   ← PILLAR_REGISTRY dict met naam, kleur, richting per pijle
 
 Fase 1 is **afgerond** wanneer:
 
-- [ ] `CsvLoader` laadt een PHARMA-testbestand correct in een pandas DataFrame
-- [ ] `SqlLoader` maakt verbinding met `ZRG0014WI/Lerni_DB` en levert een DataFrame
-- [ ] Fallback-logica schakelt automatisch van SQL naar CSV bij connectiefout
-- [ ] `PharmaAnalyser` berekent reactiegraad en High/Critical ratio correct op testdata
-- [ ] Alle unit tests slagen (`pytest tests/ -v`)
-- [ ] Logging toont duidelijk welke loader actief is
+- [x] `CsvLoader` laadt een PHARMA-testbestand correct in een pandas DataFrame
+- [x] `SqlLoader` maakt verbinding met `ZRG0014WI/Lerni_DB` en levert een DataFrame
+- [x] Fallback-logica schakelt automatisch van SQL naar CSV bij connectiefout
+- [x] `PharmaAnalyser` berekent reactiegraad en High/Critical ratio correct op testdata
+- [x] Alle unit tests slagen (`pytest tests/ -v`) — 151 tests, 100% coverage
+- [x] Logging toont duidelijk welke loader actief is
 
 ---
 
@@ -210,10 +210,10 @@ Fase 1 is **afgerond** wanneer:
 
 | Afhankelijkheid | Type | Status |
 |---|---|---|
-| Wachtwoord `csat_user` invullen in `.env` | Configuratie | ⚠️ Te doen door Danny |
+| Wachtwoord `csat_user` invullen in `.env` | Configuratie | ✅ Ingevuld |
 | ODBC Driver 18 for SQL Server geïnstalleerd | Software | ✅ Bevestigd |
-| Score-bereik V_CSAT_1 bepalen (exploratie) | Inhoudelijk | ⚠️ Na eerste connectie |
-| Drempelwaarden gemiddelde score + trend MoM | Inhoudelijk | ⚠️ Na eerste exploratie |
+| Score-bereik V_CSAT_1 bepalen (exploratie) | Inhoudelijk | ✅ Bereik 1–5 bevestigd 20/03/2026 |
+| Drempelwaarden gemiddelde score + trend MoM | Inhoudelijk | ⚠️ TBD met PHARMA-team in Fase 2 |
 
 ---
 
@@ -223,9 +223,4 @@ Fase 1 is **afgerond** wanneer:
 | ------ | ---------- | ------------------------------------------------------------ | -------------------- |
 | 1.0 | 18/03/2026 | Initiële versie | Danny Depecker + GHC |
 | 1.1 | 19/03/2026 | DB-gegevens, kolomnamen V_CSAT_1 en KPI-tabel ingevuld | Danny Depecker + GHC |
-
-## Versiehistorie
-
-| Versie | Datum | Wijzigingen | Auteur |
-| ------ | ---------- | ----------------------- | -------------------- |
-| 1.0 | 18/03/2026 | Initiële versie | Danny Depecker + GHC |
+| 1.2 | 20/03/2026 | Status Compleet — deliverables, KPI-tabel en criteria bijgewerkt na live validatie | Danny Depecker + GHC |

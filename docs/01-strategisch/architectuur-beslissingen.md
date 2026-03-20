@@ -21,6 +21,7 @@
 4. [ADR-004 — Selectieve migratie vanuit Customer Satisfaction](#4-adr-004--selectieve-migratie-vanuit-customer-satisfaction)
 5. [ADR-005 — PHARMA-first ontwikkelingsstrategie](#5-adr-005--pharma-first-ontwikkelingsstrategie)
 6. [ADR-006 — Reactiegraad KPI niet meetbaar via V_CSAT_1](#6-adr-006--reactiegraad-kpi-niet-meetbaar-via-v_csat_1)
+7. [ADR-007 — Analyseperiode en ONBEKEND hospital](#7-adr-007--analyseperiode-en-onbekend-hospital)
 
 ---
 
@@ -269,9 +270,65 @@ Zodra een databron beschikbaar is met alle tickets (gescoord + niet-gescoord), v
 
 ---
 
+---
+
+## 7. ADR-007 — Analyseperiode en ONBEKEND hospital
+
+**Datum:** 20/03/2026  
+**Status:** ✅ Approved
+
+### Context
+
+Twee praktische bevindingen uit de live DB-exploratie op 20/03/2026 vereisen een
+expliciete architectuurkeuze:
+
+1. **Analyseperiode:** V_CSAT_1 bevat historische data die teruggaat tot vóór 2025.
+   Voor CSAT-Compass is enkel data vanaf 01/01/2025 relevant (baseline-jaar).
+   Er moet een configureerbaar filter zijn dat oudere data uitsluit.
+
+2. **NULL hospital:** 9 van de 64 ziekenhuizen in de view hebben geen
+   ziekenhuisidentificatie (`hospital = NULL`). Bij aggregatie per ziekenhuis
+   gaan deze tickets verloren als ze niet expliciet worden afgehandeld.
+
+### Beslissing
+
+**Analyseperiode:** configureerbaar via omgevingsvariabele `CSAT_ANALYSE_START_DATE` (standaard `2025-01-01`).
+
+**NULL hospital:** tickets zonder ziekenhuisidentificatie worden weergegeven als `ONBEKEND`
+zodat ze zichtbaar blijven in rapporten en dashboards.
+
+### Alternatieven overwogen
+
+| Optie | Omschrijving | Reden verworpen |
+|---|---|---|
+| A | Vaste startdatum hardcoded in broncode | ❌ Niet configureerbaar zonder codewijziging |
+| B | Filter in SQL-query meegeven aan loader | ❌ CSV-fallback zou dan ander gedrag hebben |
+| **C** | **Filter in PillarAnalyser via env-variabele** | **✅ Gekozen — consistent voor SQL en CSV** |
+| A | NULL hospitals negeren / weggooien | ❌ Verlies van tickets — onzichtbaar in rapportage |
+| B | NULL hospitals als aparte categorie | ❌ Moeilijk te communiceren |
+| **C** | **NULL hospitals tonen als 'ONBEKEND'** | **✅ Gekozen — zichtbaar en actiebaar** |
+
+### Consequenties
+
+- `ANALYSE_START_DATE` is configureerbaar via `.env` (`CSAT_ANALYSE_START_DATE`)
+- `PillarAnalyser._filter_start_date()` past het filter toe na de pijlerfilter
+- `BaseAnalyser._group_by_hospital()` vult `NULL` aan met `"ONBEKEND"` via `fillna()`
+- Rapporten tonen een `ONBEKEND`-rij als er tickets zijn zonder ziekenhuisnaam
+- Aandachtspunt voor Fase 4: actie vereist om de 9 NULL-hospitals te identificeren
+  en correct toe te wijzen (data-kwaliteitsissue aan ZORGI-zijde)
+
+### 💡 Data-kwaliteitsopvolging
+
+De 9 tickets met `NULL` hospital zijn in de huidige PHARMA-data zichtbaar als `ONBEKEND`.
+Dit is een bekende data-kwaliteitslacune in V_CSAT_1 die buiten de scope van
+CSAT-Compass valt maar moet worden gecommuniceerd aan het PHARMA-team.
+
+---
+
 ## Versiehistorie
 
 | Versie | Datum | Wijzigingen | Auteur |
 | ------ | ---------- | ----------------------------------------------- | -------------------- |
 | 1.0 | 18/03/2026 | Initiële versie — 5 ADRs op basis van MCQ-sessie | Danny Depecker + GHC |
 | 1.1 | 20/03/2026 | ADR-006 toegevoegd: reactiegraad niet meetbaar via V_CSAT_1 | Danny Depecker |
+| 1.2 | 20/03/2026 | ADR-007 toegevoegd: analyseperiode en ONBEKEND hospital | Danny Depecker + GHC |
