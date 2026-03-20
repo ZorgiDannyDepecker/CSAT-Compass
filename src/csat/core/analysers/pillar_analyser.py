@@ -1,14 +1,19 @@
 """
 Pijleranalyser voor CSAT-Compass.
 
-Filtert het DataFrame op pijler (product-kolom) en berekent KPI's
+Filtert het DataFrame op pijler (product_domain-kolom) en berekent KPI's
 per periode en per ziekenhuis.
+
+Spelregels (zie ADR-007):
+- Analyseperiode start op ANALYSE_START_DATE (standaard 01/01/2025)
+- Tickets zonder ziekenhuisidentificatie worden weergegeven als 'ONBEKEND'
 """
 
 import pandas as pd
 from loguru import logger
 
 from csat.config.pillars import FILTER_COLUMN, PILLAR_REGISTRY
+from csat.config.settings import ANALYSE_START_DATE
 from csat.utils.date_utils import filter_period, filter_ytd, previous_period
 
 from .base_analyser import BaseAnalyser, KpiResult
@@ -37,6 +42,7 @@ class PillarAnalyser(BaseAnalyser):
         self._pillar_key = pillar_key
         self._pillar_config = PILLAR_REGISTRY[pillar_key]
         self._pillar_df = self._filter_pillar(df)
+        self._pillar_df = self._filter_start_date(self._pillar_df)
 
     # ------------------------------------------------------------------
     # Intern — pijlerfilter
@@ -65,6 +71,25 @@ class PillarAnalyser(BaseAnalyser):
         logger.info(
             f"[PillarAnalyser:{self._pillar_key}] {len(filtered):,} rijen na filter "
             f"op {FILTER_COLUMN}: {products}"
+        )
+        return filtered
+
+    def _filter_start_date(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Sluit tickets uit die aangemaakt zijn vóór ANALYSE_START_DATE.
+
+        Spelregel (ADR-007): analyses bevatten enkel data vanaf 01/01/2025.
+        De instelling is configureerbaar via de omgevingsvariabele
+        CSAT_ANALYSE_START_DATE.
+        """
+        if not ANALYSE_START_DATE:  # pragma: no cover
+            return df
+        start = pd.Timestamp(ANALYSE_START_DATE)
+        mask = pd.to_datetime(df["created"]) >= start
+        filtered = df.loc[mask].copy()
+        logger.info(
+            f"[PillarAnalyser:{self._pillar_key}] Datumfilter >= {ANALYSE_START_DATE}: "
+            f"{len(filtered):,} rijen behouden (was {len(df):,})"
         )
         return filtered
 

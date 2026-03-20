@@ -37,6 +37,11 @@ LOG_PATH = Path(os.getenv("CSAT_LOG_PATH", str(BASE_DIR / "logs")))
 # --- Logging ---
 LOG_LEVEL = os.getenv("CSAT_LOG_LEVEL", "INFO")
 
+# --- Analyseperiode ---
+# Enkel data vanaf deze datum wordt meegenomen in analyses en rapporten.
+# Beslissing Danny Depecker 20/03/2026 — zie ADR-007.
+ANALYSE_START_DATE: str = os.getenv("CSAT_ANALYSE_START_DATE", "2025-01-01")
+
 
 def db_available() -> bool:
     """Controleer of een DB-wachtwoord beschikbaar is voor connectie."""

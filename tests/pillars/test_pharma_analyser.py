@@ -333,3 +333,81 @@ class TestAvgScoreDrempel:
         result = analyser.analyse("2026-01")
         status = analyser.kpi_status(result)
         assert status["avg_score_ok"] is False
+
+
+# ------------------------------------------------------------------
+# ADR-007 — Datumfilter en ONBEKEND hospital
+# ------------------------------------------------------------------
+
+
+class TestDatumfilter:
+    """Datumfilter: tickets voor ANALYSE_START_DATE worden uitgesloten."""
+
+    def test_tickets_voor_startdatum_uitgesloten(
+        self, sample_df: pd.DataFrame, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Filter op 2026-02-01 → enkel feb-tickets overblijven."""
+        import csat.core.analysers.pillar_analyser as pa_module
+
+        monkeypatch.setattr(pa_module, "ANALYSE_START_DATE", "2026-02-01")
+        analyser = PharmaAnalyser(sample_df)
+        assert len(analyser._pillar_df) == 2  # alleen SD-007 en SD-008
+
+    def test_alle_tickets_aanwezig_als_start_voor_data(
+        self, sample_df: pd.DataFrame, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Start ruim voor de data → alle PHARMA-tickets aanwezig."""
+        import csat.core.analysers.pillar_analyser as pa_module
+
+        monkeypatch.setattr(pa_module, "ANALYSE_START_DATE", "2020-01-01")
+        analyser = PharmaAnalyser(sample_df)
+        assert len(analyser._pillar_df) == 8
+
+    def test_lege_dataset_als_alles_uitgefilterd(
+        self, sample_df: pd.DataFrame, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Start na alle data → lege dataset, geen crash."""
+        import csat.core.analysers.pillar_analyser as pa_module
+
+        monkeypatch.setattr(pa_module, "ANALYSE_START_DATE", "2030-01-01")
+        analyser = PharmaAnalyser(sample_df)
+        assert len(analyser._pillar_df) == 0
+
+
+class TestOnbekendHospital:
+    """NULL hospital-waarden worden getoond als ONBEKEND in per-hospital dict."""
+
+    def test_null_hospital_verschijnt_als_onbekend(
+        self, sample_df: pd.DataFrame, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Voeg een rij zonder hospital toe — moet als ONBEKEND verschijnen."""
+        import csat.core.analysers.pillar_analyser as pa_module
+
+        monkeypatch.setattr(pa_module, "ANALYSE_START_DATE", "2020-01-01")
+
+        rij_zonder_hospital = sample_df.iloc[[0]].copy()
+        rij_zonder_hospital["hospital"] = None
+        rij_zonder_hospital["key"] = "SD-999"
+        df_met_null = pd.concat([sample_df, rij_zonder_hospital], ignore_index=True)
+
+        analyser = PharmaAnalyser(df_met_null)
+        result = analyser.analyse("2026-01")
+        assert "ONBEKEND" in result.per_hospital
+
+    def test_onbekend_telt_mee_in_totaal(
+        self, sample_df: pd.DataFrame, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """ONBEKEND-rij telt mee in total_tickets van het resultaat."""
+        import csat.core.analysers.pillar_analyser as pa_module
+
+        monkeypatch.setattr(pa_module, "ANALYSE_START_DATE", "2020-01-01")
+
+        rij_zonder_hospital = sample_df.iloc[[0]].copy()
+        rij_zonder_hospital["hospital"] = None
+        rij_zonder_hospital["key"] = "SD-999"
+        rij_zonder_hospital["created"] = pd.Timestamp("2026-01-03")
+        df_met_null = pd.concat([sample_df, rij_zonder_hospital], ignore_index=True)
+
+        analyser = PharmaAnalyser(df_met_null)
+        result = analyser.analyse("2026-01")
+        assert result.per_hospital["ONBEKEND"]["total_tickets"] == 1

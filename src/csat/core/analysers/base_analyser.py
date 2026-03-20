@@ -161,6 +161,9 @@ class BaseAnalyser(ABC):
         """
         Aggregeer KPI's per ziekenhuis.
 
+        Tickets zonder ziekenhuisidentificatie worden weergegeven als 'ONBEKEND'
+        zodat ze zichtbaar blijven in rapporten en dashboards (zie ADR-007).
+
         Args:
             df: DataFrame (al gefilterd op pijler en periode)
 
@@ -171,8 +174,11 @@ class BaseAnalyser(ABC):
         if df.empty:
             return {}
 
+        df_filled = df.copy()
+        df_filled["hospital"] = df_filled["hospital"].fillna("ONBEKEND")
+
         result: dict[str, dict] = {}
-        for hospital, group in df.groupby("hospital"):
+        for hospital, group in df_filled.groupby("hospital"):
             total, scored, reactiegraad = self._calc_reactiegraad(group)
             hc_count, hc_ratio = self._calc_high_critical(group)
             avg = self._calc_avg_score(group)

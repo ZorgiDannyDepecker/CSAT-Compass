@@ -100,3 +100,4 @@ if ($ErrorCount -eq 0) {
 }
 Write-Host "=============================" -ForegroundColor Cyan
 
+exit $ErrorCount
