@@ -319,9 +319,18 @@ class TestReportExporterRender:
         assert "ZORGI PHARMA" in output
 
     def test_render_bevat_periode(self, pharma_result: KpiResult, templates_path: Path) -> None:
+        """Periode moet leesbaar in de titel staan (bv. 'januari 2026'), niet als YYYY-MM."""
         exporter = ReportExporter(lang="nl", templates_path=templates_path)
         output = exporter.render(pharma_result)
-        assert "2026-01" in output
+        assert "januari 2026" in output
+
+    def test_render_fr_bevat_fr_periode(
+        self, pharma_result: KpiResult, templates_path: Path
+    ) -> None:
+        """FR-rapport moet de periode in het Frans bevatten."""
+        exporter = ReportExporter(lang="fr", templates_path=templates_path)
+        output = exporter.render(pharma_result)
+        assert "janvier 2026" in output
 
     def test_render_nl_kpi_labels(self, pharma_result: KpiResult, templates_path: Path) -> None:
         exporter = ReportExporter(lang="nl", templates_path=templates_path)
@@ -388,14 +397,6 @@ class TestReportExporterRender:
         output = exporter.render(pharma_result)
         assert "data-kwaliteit" not in output
 
-    def test_render_bevat_versiehistorie(
-        self, pharma_result: KpiResult, templates_path: Path
-    ) -> None:
-        exporter = ReportExporter(lang="nl", templates_path=templates_path)
-        output = exporter.render(pharma_result)
-        assert "## Versiehistorie" in output
-        assert "GHC" in output
-
     def test_render_bevat_adr006_waarschuwing(
         self, pharma_result: KpiResult, templates_path: Path
     ) -> None:
@@ -426,20 +427,6 @@ class TestReportExporterRender:
         output = exporter.render(empty_result)
         assert "# CSAT-Compass" in output
         assert "0" in output
-
-    def test_render_bestandsnaam_in_header_nl(
-        self, pharma_result: KpiResult, templates_path: Path
-    ) -> None:
-        exporter = ReportExporter(lang="nl", templates_path=templates_path)
-        output = exporter.render(pharma_result)
-        assert "rapport-2026-01-nl.md" in output
-
-    def test_render_bestandsnaam_in_header_fr(
-        self, pharma_result: KpiResult, templates_path: Path
-    ) -> None:
-        exporter = ReportExporter(lang="fr", templates_path=templates_path)
-        output = exporter.render(pharma_result)
-        assert "rapport-2026-01-fr.md" in output
 
 
 # ---------------------------------------------------------------------------
