@@ -36,7 +36,7 @@
     "na": "N/A"
   },
   "thresholds": {
-    "avg_score_min": "TBD",
+    "avg_score_min": "≥ 4,00",
     "high_critical_max": "≤ 15%",
     "reactiegraad": "N/A"
   },
@@ -49,7 +49,6 @@
   },
   "notes": {
     "reactiegraad_na": "Le taux de réponse n'est pas mesurable : V_CSAT_1 ne contient que les tickets évalués (voir ADR-006).",
-    "avg_score_tbd": "Le seuil pour le score CSAT moyen n'est pas encore défini — concertation prévue avec l'équipe PHARMA.",
     "onbekend_hospitals": "Les tickets sans identification d'hôpital sont affichés comme 'ONBEKEND' — suivi requis avec l'équipe PHARMA (qualité des données)."
   },
   "history": {

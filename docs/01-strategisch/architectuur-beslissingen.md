@@ -23,6 +23,7 @@
 6. [ADR-006 — Reactiegraad KPI niet meetbaar via V_CSAT_1](#6-adr-006--reactiegraad-kpi-niet-meetbaar-via-v_csat_1)
 7. [ADR-007 — Analyseperiode en ONBEKEND hospital](#7-adr-007--analyseperiode-en-onbekend-hospital)
 8. [ADR-008 — Mapstructuur en mapfilosofie](#8-adr-008--mapstructuur-en-mapfilosofie)
+9. [ADR-009 — AVG_SCORE_MIN drempelwaarde](#9-adr-009--avg_score_min-drempelwaarde)
 
 ---
 
@@ -374,6 +375,59 @@ hoort het in `scripts/` of `src/`.
 
 ---
 
+## 9. ADR-009 — AVG_SCORE_MIN drempelwaarde
+
+**Datum:** 22/03/2026  
+**Status:** Approved  
+**Beslissing:** Minimale aanvaardbare gemiddelde CSAT-score = **4,00** (op schaal 1–5)
+
+### Context
+
+De gemiddelde CSAT-score is een kernKPI in alle PHARMA-rapporten. Om een zinvolle
+OK/waarschuwing-status te tonen, is een drempelwaarde nodig.
+
+Analyse van de historische PHARMA-data (V_CSAT_1) op 22/03/2026:
+
+| Periode | Gem. score | Tickets |
+|---|---|---|
+| jan–mei 2025 | 2,10 – 2,91 | 136 |
+| jun–dec 2025 | 4,18 – 4,87 | 111 |
+| 2026 YTD | 4,43 | 67 |
+| **2025 volledig** | **3,51** | **247** |
+
+De sterke breuk rond juni 2025 wijst op een structurele verandering in het
+ticketingproces of de scoremethode. Het volledige 2025-gemiddelde van 3,51 is
+daardoor niet representatief als drempelwaarde.
+
+### Beslissing
+
+Drempel: **≥ 4,00** — configureerbaar via omgevingsvariabele `CSAT_AVG_SCORE_MIN`.
+
+Redenering:
+
+- Ligt bewust iets onder het huidig niveau (4,43) — ruimte voor tijdelijke schommelingen
+- Gebaseerd op de stabiele periode jun–dec 2025 en 2026 YTD
+- Één universele drempel voor alle ziekenhuizen (niet per ziekenhuis)
+
+### Alternatieven overwogen
+
+| Optie | Waarde | Reden verworpen |
+|---|---|---|
+| A | 3,51 (volledig 2025 gem.) | ❌ Vertekend door anomalie jan–mei 2025 |
+| B | 4,50 (stabiel 2025 H2 gem.) | ❌ Te streng — geen marge bij tijdelijke dip |
+| C | 4,43 (2026 YTD) | ❌ Fluctueert maandelijks — onbetrouwbaar als vaste drempel |
+| **D** | **4,00** | **✅ Gekozen — praktisch, verdedigbaar, stabiel** |
+
+### Consequenties
+
+- `AVG_SCORE_MIN = 4.0` toegevoegd aan `src/csat/config/settings.py`
+- `avg_score_ok` berekend in `ReportExporter._build_context()`
+- KPI-tabel toont ✅ OK of ⚠️ Aandacht voor gemiddelde score
+- `thresholds.avg_score_min` in nl.json + fr.json bijgewerkt van TBD naar "≥ 4,00"
+- `notes.avg_score_tbd` verwijderd uit i18n en templates
+
+---
+
 ## Versiehistorie
 
 | Versie | Datum | Wijzigingen | Auteur |
@@ -382,3 +436,4 @@ hoort het in `scripts/` of `src/`.
 | 1.1 | 20/03/2026 | ADR-006 toegevoegd: reactiegraad niet meetbaar via V_CSAT_1 | Danny Depecker |
 | 1.2 | 20/03/2026 | ADR-007 toegevoegd: analyseperiode en ONBEKEND hospital | Danny Depecker + GHC |
 | 1.3 | 22/03/2026 | ADR-008 toegevoegd: mapstructuur en mapfilosofie | Danny Depecker + GHC |
+| 1.4 | 22/03/2026 | ADR-009 toegevoegd: AVG_SCORE_MIN drempelwaarde = 4,00 | Danny Depecker + GHC |

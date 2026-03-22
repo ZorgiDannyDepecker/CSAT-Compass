@@ -16,7 +16,7 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 from loguru import logger
 
 from csat.config.pillars import PILLAR_REGISTRY
-from csat.config.settings import OUTPUT_PATH, TEMPLATES_PATH
+from csat.config.settings import AVG_SCORE_MIN, OUTPUT_PATH, TEMPLATES_PATH
 from csat.core.analysers.base_analyser import KpiResult
 from csat.i18n import SUPPORTED_LANGS, load_translations
 
@@ -216,6 +216,7 @@ class ReportExporter:
         mom_score = getattr(result, "mom_score", 0.0)
 
         hc_ok = result.high_critical_ratio <= 15.0
+        avg_score_ok = result.avg_score >= AVG_SCORE_MIN
 
         # Ziekenhuizen gesorteerd: ONBEKEND altijd onderaan
         sorted_hospitals = sorted(
@@ -239,6 +240,7 @@ class ReportExporter:
             "n_hospitals": len(result.hospitals),
             "mom_score": mom_score,
             "hc_ok": hc_ok,
+            "avg_score_ok": avg_score_ok,
             "per_hospital": sorted_hospitals,
             "has_unknown": has_unknown,
             "lang": self._lang,

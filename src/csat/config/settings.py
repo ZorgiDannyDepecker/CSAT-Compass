@@ -42,6 +42,17 @@ LOG_LEVEL = os.getenv("CSAT_LOG_LEVEL", "INFO")
 # Beslissing Danny Depecker 20/03/2026 — zie ADR-007.
 ANALYSE_START_DATE: str = os.getenv("CSAT_ANALYSE_START_DATE", "2025-01-01")
 
+# --- KPI-drempelwaarden ---
+# Minimale aanvaardbare gemiddelde CSAT-score (schaal 1-5).
+# Beslissing Danny Depecker 22/03/2026 — zie ADR-009.
+# Gebaseerd op stabiele periode jun-dec 2025 (~4,50) en 2026 YTD (4,43).
+# Drempel bewust iets lager dan huidig niveau: ruimte voor tijdelijke schommelingen.
+AVG_SCORE_MIN: float = float(os.getenv("CSAT_AVG_SCORE_MIN", "4.0"))
+
+# Maximale aanvaardbare High/Critical-ratio (percentage).
+# Beslissing Danny Depecker 20/03/2026 — zie ADR-007.
+HIGH_CRITICAL_MAX: float = float(os.getenv("CSAT_HIGH_CRITICAL_MAX", "15.0"))
+
 
 def db_available() -> bool:
     """Controleer of een DB-wachtwoord beschikbaar is voor connectie."""

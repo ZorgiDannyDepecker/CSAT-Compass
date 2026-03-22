@@ -49,7 +49,6 @@
   },
   "notes": {
     "reactiegraad_na": "Reactiegraad is niet meetbaar: V_CSAT_1 bevat enkel gescoorde tickets (zie ADR-006).",
-    "avg_score_tbd": "Drempelwaarde voor gemiddelde CSAT-score is nog niet bepaald — overleg gepland met PHARMA-team.",
     "onbekend_hospitals": "Tickets zonder ziekenhuisnaam worden weergegeven als 'ONBEKEND' — opvolgen met PHARMA-team (data-kwaliteit)."
   },
   "history": {
