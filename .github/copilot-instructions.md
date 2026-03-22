@@ -231,7 +231,7 @@ Respect the following folder structure:
 - `archive/` - Oude versies van documenten/code/scripts voor referentie
 - `data/` - Lokale databestanden (uitgesloten van Git via .gitignore)
 - `docs/` - Documentation (3-layer structure: 01-strategisch, 02-tactisch, 03-operationeel)
-- `scripts/` - PowerShell projectscripts (analyse-runners, export-scripts)
+- `scripts/` - Projectscripts: CLI-entrypoints en runners (Python + PowerShell) — geen library-code
 - `src/` - Python broncode (analyse, rapportage, visualisatie)
 - `tools/` - Dev-tooling (lint.ps1, hulpscripts voor ontwikkelaars — geen projectlogica)
 - `output/` - Gegenereerde rapporten en visualisaties (uitgesloten van Git)

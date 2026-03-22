@@ -14,27 +14,35 @@ op basis van maandelijkse ticketingdata.
 
 ```text
 CSAT-Compass/
-├── src/csat/
-│   ├── config/        # Instellingen per pijler
+├── src/csat/               # Python-library — herbruikbare modules (importeerbaar)
+│   ├── config/             # Pijlerdefinities en globale instellingen
 │   ├── core/
-│   │   ├── loaders/   # Data inladen (xlsx/csv)
-│   │   ├── analysers/ # Berekeningen & tendensen
-│   │   └── exporters/ # PNG, MD, PDF output
-│   ├── pillars/       # pharma / care / care_admin / erp4hc
-│   └── utils/
-├── tests/
-├── data/              # Input bestanden (niet in Git)
-├── output/            # Gegenereerde rapporten (niet in Git)
+│   │   ├── loaders/        # Data inladen: SQL (primair) of CSV (fallback)
+│   │   ├── analysers/      # KPI-berekeningen per pijler
+│   │   └── exporters/      # Rapport- en dashboardgeneratie
+│   ├── pillars/            # Pijlerspecifieke config + analysers (pharma, care, ...)
+│   ├── i18n/               # Vertalingen NL/FR (nl.json, fr.json)
+│   └── utils/              # Gedeelde hulpfuncties (logger, datumnotatie, branding)
+├── scripts/                # CLI-entrypoints — roepen src/ aan, bevatten geen library-code
+│   └── export_data.py      # Data exporteren uit V_CSAT_1 naar CSV
+├── tools/                  # Dev-tooling — niet projectspecifiek, voor ontwikkelaars
+│   └── lint.ps1            # Ruff + mypy + pytest (kwaliteitscheck voor commit)
+├── tests/                  # Unit tests — spiegelt src/csat/ structuur
 ├── docs/
-│   ├── 01-strategisch/
-│   ├── 02-tactisch/
-│   ├── 03-operationeel/
-│   └── templates/
-├── scripts/
-├── logs/
-├── archive/
-└── WIP/
+│   ├── 01-strategisch/     # WAAROM — projectplan, ADRs (architectuurbeslissingen)
+│   ├── 02-tactisch/        # HOE — implementatiegids, fasedocumentatie
+│   ├── 03-operationeel/    # DAGELIJKS — runbook, troubleshooting, tool-manuals
+│   └── templates/          # Jinja2-templates voor NL/FR rapporten
+├── data/                   # Ruwe ticketingdata — nooit in Git (zie .gitignore)
+├── output/                 # Gegenereerde rapporten en CSV-exports — niet in Git
+├── logs/                   # Applicatielogs — niet in Git
+├── archive/                # Oude versies van bestanden — ter referentie bewaard
+└── WIP/                    # Work In Progress — niet productierijp
 ```
+
+> 💡 **Nieuwe collega?** De bewuste keuze achter deze structuur staat in
+> [ADR-008](docs/01-strategisch/architectuur-beslissingen.md#8-adr-008--mapstructuur-en-mapfilosofie).
+> Kernregel: `src/` = library, `scripts/` = runners, `tools/` = dev-hulp.
 
 ## 🚀 Snelstart
 

@@ -1,0 +1,27 @@
+# CSAT-Compass — {{ pillar_name }} — {{ t.report.subtitle }} {{ period_label }} — {{ generated_date }}
+
+## 1. {{ t.sections.summary }}
+
+| {{ t.kpi.label }} | {{ t.kpi.value }} | {{ t.kpi.threshold }} | {{ t.kpi.status }} |
+| --- | --- | --- | --- |
+| {{ t.kpi.total_tickets }} | {{ total_tickets | fmt(0) }} | — | — |
+| {{ t.kpi.scored_tickets }} | {{ scored_tickets | fmt(0) }} | — | — |
+| {{ t.kpi.avg_score }} | {{ avg_score | fmt(2) }} | {{ t.thresholds.avg_score_min }} | {{ t.status.tbd }} |
+| {{ t.kpi.high_critical_ratio }} | {{ high_critical_ratio | fmt(1) }}% | {{ t.thresholds.high_critical_max }} | {% if hc_ok %}{{ t.status.ok }}{% else %}{{ t.status.warning }}{% endif %} |
+| {{ t.kpi.mom_score }} | {{ mom_score | fmt_mom }} | — | — |
+| {{ t.kpi.n_hospitals }} | {{ n_hospitals }} | — | — |
+
+> ⚠️ {{ t.notes.reactiegraad_na }}
+
+## 2. {{ t.sections.hospital_breakdown }}
+
+| {{ t.table.hospital }} | {{ t.table.total_tickets }} | {{ t.table.avg_score }} | {{ t.table.hc_ratio }} | {{ t.table.hc_count }} |
+| --- | --- | --- | --- | --- |
+{% for hospital, kpis in per_hospital %}| {{ hospital }} | {{ kpis.total_tickets | fmt(0) }} | {{ kpis.avg_score | fmt(2) }} | {{ kpis.high_critical_ratio | fmt(1) }}% | {{ kpis.high_critical_count | fmt(0) }} |
+{% endfor %}
+
+## 3. {{ t.sections.notes }}
+
+- {{ t.notes.avg_score_tbd }}
+{% if has_unknown %}- {{ t.notes.onbekend_hospitals }}
+{% endif %}

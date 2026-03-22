@@ -1,0 +1,22 @@
+# EditorConfig — https://editorconfig.org
+# Geldig voor alle editors die EditorConfig ondersteunen (PyCharm, VS Code, ...)
+
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.j2]
+# Jinja2-templates genereren Markdown — trailing spaces zijn vereist
+# voor regeleinden in document headers (md-style-guide §1).
+# PyCharm en andere editors mogen deze NIET weghalen.
+trim_trailing_whitespace = false
+
+[*.md]
+# Markdown: trailing double spaces = harde regelafbreking (md-style-guide §1).
+# Nooit automatisch verwijderen.
+trim_trailing_whitespace = false
+

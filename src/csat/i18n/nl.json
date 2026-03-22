@@ -1,0 +1,59 @@
+{
+  "months": [
+    "januari", "februari", "maart", "april", "mei", "juni",
+    "juli", "augustus", "september", "oktober", "november", "december"
+  ],
+  "report": {
+    "subtitle": "Maandrapportage",
+    "doel": "Maandelijkse klanttevredenheidsanalyse",
+    "pillar": "Pijler",
+    "period": "Periode",
+    "source": "Databron",
+    "generated_on": "Gegenereerd op"
+  },
+  "sections": {
+    "summary": "Samenvatting",
+    "hospital_breakdown": "Uitsplitsing per ziekenhuis",
+    "notes": "Opmerkingen"
+  },
+  "kpi": {
+    "label": "KPI",
+    "value": "Waarde",
+    "threshold": "Drempel",
+    "status": "Status",
+    "total_tickets": "Totaal tickets",
+    "scored_tickets": "Gescoorde tickets",
+    "avg_score": "Gemiddelde CSAT-score",
+    "high_critical_ratio": "High/Critical-ratio",
+    "high_critical_count": "High/Critical-tickets",
+    "mom_score": "Trend score MoM",
+    "n_hospitals": "Aantal ziekenhuizen"
+  },
+  "status": {
+    "ok": "✅ OK",
+    "warning": "⚠️ Aandacht",
+    "tbd": "⏳ TBD",
+    "na": "N/A"
+  },
+  "thresholds": {
+    "avg_score_min": "TBD",
+    "high_critical_max": "≤ 15%",
+    "reactiegraad": "N/A"
+  },
+  "table": {
+    "hospital": "Ziekenhuis",
+    "total_tickets": "Tickets",
+    "avg_score": "Gem. score",
+    "hc_ratio": "H/C %",
+    "hc_count": "H/C tickets"
+  },
+  "notes": {
+    "reactiegraad_na": "Reactiegraad is niet meetbaar: V_CSAT_1 bevat enkel gescoorde tickets (zie ADR-006).",
+    "avg_score_tbd": "Drempelwaarde voor gemiddelde CSAT-score is nog niet bepaald — overleg gepland met PHARMA-team.",
+    "onbekend_hospitals": "Tickets zonder ziekenhuisnaam worden weergegeven als 'ONBEKEND' — opvolgen met PHARMA-team (data-kwaliteit)."
+  },
+  "history": {
+    "initial": "Initiële versie"
+  }
+}
+

@@ -22,6 +22,7 @@
 5. [ADR-005 — PHARMA-first ontwikkelingsstrategie](#5-adr-005--pharma-first-ontwikkelingsstrategie)
 6. [ADR-006 — Reactiegraad KPI niet meetbaar via V_CSAT_1](#6-adr-006--reactiegraad-kpi-niet-meetbaar-via-v_csat_1)
 7. [ADR-007 — Analyseperiode en ONBEKEND hospital](#7-adr-007--analyseperiode-en-onbekend-hospital)
+8. [ADR-008 — Mapstructuur en mapfilosofie](#8-adr-008--mapstructuur-en-mapfilosofie)
 
 ---
 
@@ -325,6 +326,54 @@ CSAT-Compass valt maar moet worden gecommuniceerd aan het PHARMA-team.
 
 ---
 
+## 8. ADR-008 — Mapstructuur en mapfilosofie
+
+**Datum:** 22/03/2026  
+**Status:** Approved  
+**Beslissing:** Strikte scheiding tussen `src/` (library), `scripts/` (runners) en `tools/` (dev-hulp)
+
+### Context
+
+Naarmate het project groeit, worden meer Python-bestanden aangemaakt. Zonder een bewuste
+mapfilosofie belandt alle code in één map en is het voor nieuwe collega's onduidelijk
+waar iets thuishoort en waarom.
+
+Drie vragen lagen aan de basis van deze beslissing:
+
+1. Waar staat herbruikbare code die door andere modules wordt geïmporteerd?
+2. Waar staan scripts die rechtstreeks via de terminal worden aangeroepen?
+3. Waar staat tooling die niets weet van CSAT maar de ontwikkelaar helpt?
+
+### Beslissing
+
+| Map | Rol | Projectspecifiek | Voorbeeld |
+|---|---|---|---|
+| `src/csat/` | Python-library — importeerbare modules | ✅ Ja | `PharmaAnalyser`, `ReportExporter` |
+| `scripts/` | CLI-entrypoints — roepen `src/` aan | ✅ Ja | `export_data.py` |
+| `tools/` | Dev-hulpscripts — geen projectlogica | ❌ Nee | `lint.ps1` |
+
+**Kernregel:** als je `tools/` naar een ander Python-project kopieert en het werkt er
+ook — dan hoort het in `tools/`. Als het enkel zinvol is binnen CSAT-Compass — dan
+hoort het in `scripts/` of `src/`.
+
+### Alternatieven overwogen
+
+| Optie | Omschrijving | Reden verworpen |
+|---|---|---|
+| A | Alles in `src/` | ❌ Mengt library-code met runners en dev-tooling |
+| B | Alles in `scripts/` | ❌ Geen onderscheid tussen projectlogica en dev-tools |
+| **C** | **src/ + scripts/ + tools/ als aparte lagen** | **✅ Gekozen — elke map heeft één duidelijke verantwoordelijkheid** |
+
+### Consequenties
+
+- `src/csat/` bevat uitsluitend importeerbare modules — geen `if __name__ == "__main__":` blokken
+- `scripts/` bevat uitsluitend entrypoints — minimale logica, alles delegeren aan `src/`
+- `tools/` is projectonafhankelijk — `lint.ps1` werkt op élk Python-project
+- Eenmalige debug- of herstelscripts (bv. `fix_templates.py`) worden na gebruik **verwijderd**, niet bewaard
+- `WIP/` is de tijdelijke opvangmap voor alles wat nog niet productierijp is
+
+---
+
 ## Versiehistorie
 
 | Versie | Datum | Wijzigingen | Auteur |
@@ -332,3 +381,4 @@ CSAT-Compass valt maar moet worden gecommuniceerd aan het PHARMA-team.
 | 1.0 | 18/03/2026 | Initiële versie — 5 ADRs op basis van MCQ-sessie | Danny Depecker + GHC |
 | 1.1 | 20/03/2026 | ADR-006 toegevoegd: reactiegraad niet meetbaar via V_CSAT_1 | Danny Depecker |
 | 1.2 | 20/03/2026 | ADR-007 toegevoegd: analyseperiode en ONBEKEND hospital | Danny Depecker + GHC |
+| 1.3 | 22/03/2026 | ADR-008 toegevoegd: mapstructuur en mapfilosofie | Danny Depecker + GHC |

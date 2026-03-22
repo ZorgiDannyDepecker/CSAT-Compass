@@ -17,6 +17,8 @@ PILLAR_REGISTRY: dict[str, dict] = {
     "zorgi": {
         "name": "ZORGI",
         "name_fr": "ZORGI",
+        "report_name": "ZORGI",
+        "report_name_fr": "ZORGI",
         "direction": "centrum",
         "color": "#003366",
         # Aggregatie van alle 4 relevante domeinen — sluit BI/EXTRAMUROS/HRM/MOBILE uit
@@ -25,6 +27,8 @@ PILLAR_REGISTRY: dict[str, dict] = {
     "pharma": {
         "name": "PHARMA",
         "name_fr": "PHARMA",
+        "report_name": "ZORGI PHARMA",
+        "report_name_fr": "ZORGI PHARMA",
         "direction": "noord",
         "color": "#0066CC",
         "products": ["PHARMA"],
@@ -32,6 +36,8 @@ PILLAR_REGISTRY: dict[str, dict] = {
     "care": {
         "name": "CARE",
         "name_fr": "CARE",
+        "report_name": "ZORGI CARE",
+        "report_name_fr": "ZORGI CARE",
         "direction": "oost",
         "color": "#00AA44",
         "products": ["CARE"],
@@ -39,6 +45,8 @@ PILLAR_REGISTRY: dict[str, dict] = {
     "care_admin": {
         "name": "CARE ADMIN",
         "name_fr": "CARE ADMIN",
+        "report_name": "OAZIS",
+        "report_name_fr": "OAZIS",
         "direction": "west",
         "color": "#FF6600",
         "products": ["CARE ADMIN"],
@@ -46,6 +54,8 @@ PILLAR_REGISTRY: dict[str, dict] = {
     "erp4hc": {
         "name": "ERP4HC",
         "name_fr": "ERP4HC",
+        "report_name": "ERP4HC²·⁰",
+        "report_name_fr": "ERP4HC²·⁰",
         "direction": "zuid",
         "color": "#9900CC",
         "products": ["ERP"],
