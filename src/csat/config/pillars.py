@@ -20,7 +20,7 @@ PILLAR_REGISTRY: dict[str, dict] = {
         "report_name": "ZORGI",
         "report_name_fr": "ZORGI",
         "direction": "centrum",
-        "color": "#003366",
+        "color": "#003a70",  # Dark Blue — conform ZORGI Design System
         # Aggregatie van alle 4 relevante domeinen — sluit BI/EXTRAMUROS/HRM/MOBILE uit
         "products": ["PHARMA", "CARE", "CARE ADMIN", "ERP"],
     },
@@ -30,16 +30,16 @@ PILLAR_REGISTRY: dict[str, dict] = {
         "report_name": "ZORGI PHARMA",
         "report_name_fr": "ZORGI PHARMA",
         "direction": "noord",
-        "color": "#0066CC",
+        "color": "#609fce",  # Light Blue — conform ZORGI Design System
         "products": ["PHARMA"],
     },
     "care": {
         "name": "CARE",
         "name_fr": "CARE",
-        "report_name": "ZORGI CARE",
-        "report_name_fr": "ZORGI CARE",
+        "report_name": "CARE",
+        "report_name_fr": "CARE",
         "direction": "oost",
-        "color": "#00AA44",
+        "color": "#5f8495",  # Grey Blue — conform ZORGI Design System
         "products": ["CARE"],
     },
     "care_admin": {
@@ -48,16 +48,16 @@ PILLAR_REGISTRY: dict[str, dict] = {
         "report_name": "OAZIS",
         "report_name_fr": "OAZIS",
         "direction": "west",
-        "color": "#FF6600",
+        "color": "#a06b8a",  # Light Purple — afgeleide 60% gradient Purple→ULB
         "products": ["CARE ADMIN"],
     },
     "erp4hc": {
-        "name": "ERP4HC",
-        "name_fr": "ERP4HC",
+        "name": "ERP4HC²·⁰",
+        "name_fr": "ERP4HC²·⁰",
         "report_name": "ERP4HC²·⁰",
         "report_name_fr": "ERP4HC²·⁰",
         "direction": "zuid",
-        "color": "#9900CC",
+        "color": "#7f4267",  # Purple — conform ZORGI Design System
         "products": ["ERP"],
     },
 }

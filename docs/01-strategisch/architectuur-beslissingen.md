@@ -24,6 +24,7 @@
 7. [ADR-007 — Analyseperiode en ONBEKEND hospital](#7-adr-007--analyseperiode-en-onbekend-hospital)
 8. [ADR-008 — Mapstructuur en mapfilosofie](#8-adr-008--mapstructuur-en-mapfilosofie)
 9. [ADR-009 — AVG_SCORE_MIN drempelwaarde](#9-adr-009--avg_score_min-drempelwaarde)
+10. [ADR-010 — ZORGI Design System integratie en kleurbeleid](#10-adr-010--zorgi-design-system-integratie-en-kleurbeleid)
 
 ---
 
@@ -428,6 +429,100 @@ Redenering:
 
 ---
 
+## 10. ADR-010 — ZORGI Design System integratie en kleurbeleid
+
+**Datum:** 23/03/2026
+**Status:** ✅ Approved
+**Beslissing:** Alle visuele output gebruikt uitsluitend ZORGI Design System kleuren; rood gereserveerd voor alarmen; logo-assets gebundeld; productnamen conform branding-tabel
+
+### Context
+
+Bij de start van CSAT-Compass werden pijlerkleuren ad hoc gekozen in `pillars.py` en
+`branding.py`. Een review op 23/03/2026 bracht vijf off-brand kleuren aan het licht
+(groen, oranje, willekeurig blauw) die nergens in het ZORGI Design System voorkomen.
+Daarnaast ontbraken logo-assets, lokale fonts voor matplotlib, en was het Design System
+zelf niet opgenomen in de repository.
+
+Parallel werden productnamen inconsistent gebruikt: `ZORGI PHARMA` en `ZORGI CARE` als
+`report_name` terwijl het Design System (§8) deze producten als `PHARMA` en `CARE`
+benoemt. De interne naam `ERP4HC` miste het superscript `²·⁰`.
+
+### Beslissingen
+
+**1. Pijler-kleurschema (Optie A)**
+
+Dark Blue is gereserveerd voor ZORGI als overkoepelend merk. De vier pijlers staan op
+gelijk niveau en krijgen elk een eigen unieke kleur:
+
+| Pijler | Kleur | HEX | Bron |
+|---|---|---|---|
+| ZORGI | Dark Blue | `#003a70` | Design System — primair |
+| PHARMA | Light Blue | `#609fce` | Design System — secundair |
+| CARE | Grey Blue | `#5f8495` | Design System — secundair |
+| OAZIS | Light Purple | `#a06b8a` | Afgeleide (zie onder) |
+| ERP4HC²·⁰ | Purple | `#7f4267` | Design System — primair |
+
+**2. Rood gereserveerd voor alarmen**
+
+Rood (`#dc2b26`) wordt **niet** als pijlerkleur gebruikt en is verwijderd uit
+`PLOTLY_LAYOUT.colorway`. Het is uitsluitend beschikbaar voor `trend-down`,
+KPI-waarschuwingen en alarmen. Dit voorkomt verwarring in dashboards en rapporten
+waar rood "slecht" betekent.
+
+**3. Afgeleide kleur Light Purple (#a06b8a)**
+
+Het Design System biedt 6 kleuren. Met Dark Blue voor ZORGI en Red gereserveerd voor
+alarmen, resteren 4 kleuren voor 4 pijlers. Omdat Purple naar ERP4HC gaat, heeft OAZIS
+(CARE ADMIN) een afgeleide nodig. `#a06b8a` is het 60%-punt op de gradient van
+Purple (#7f4267) naar Ultra Light Blue (#d7e7f3) — on-brand in feel, visueel goed
+onderscheidbaar van Purple.
+
+**4. Logo-assets gebundeld**
+
+6 heartbeat-iconen opgenomen in `src/static/img/` met dev-friendly naamconventie
+(`heartbeat_*`). Kanaal-toewijzing: wit-varianten voor gradient-headers (Streamlit, PDF),
+kleur-varianten voor lichte achtergronden (favicon, sidebar), transparante variant voor
+matplotlib-watermark.
+
+**5. Poppins TTF lokaal gebundeld**
+
+Poppins Light (300) en ExtraBold (800) opgenomen in `src/static/fonts/` zodat matplotlib
+ze kan gebruiken onafhankelijk van de systeeminstallatie. Streamlit en WeasyPrint
+gebruiken Google Fonts `@import`.
+
+**6. Productnamen conform branding-tabel**
+
+- `erp4hc.name` en `name_fr`: `ERP4HC` → `ERP4HC²·⁰` (superscript consistent)
+- `pharma.report_name`: `ZORGI PHARMA` → `PHARMA` (conform Design System §8)
+- `care.report_name`: `ZORGI CARE` → `CARE` (conform Design System §8)
+
+### Alternatieven overwogen
+
+| Optie | Omschrijving | Reden verworpen |
+|---|---|---|
+| Rood als ERP4HC-kleur | Maximaal contrast | ❌ Rood = "alarm" in dashboards — verwarrend |
+| Bordeaux (#9e3347) als ERP4HC-kleur | Warm accent | ❌ Te dicht bij Purple in kleine grafieken |
+| Ultra Light Blue als ERP4HC-kleur | 100% on-brand | ❌ Te licht voor lijngrafieken |
+| Alle pijlerkleuren uit Design System (geen afgeleide) | Strikt compliant | ❌ Onvoldoende unieke kleuren na reservering van rood |
+
+### Consequenties
+
+- `PILLAR_REGISTRY[x]["color"]` in `pillars.py` bevat uitsluitend toegestane kleuren
+- `PILLAR_COLORS` in `branding.py` is exact gesynchroniseerd met `pillars.py`
+- `PLOTLY_LAYOUT.colorway` en matplotlib `axes.prop_cycle` gebruiken pijlerkleuren (geen rood)
+- `LOGO_ASSETS` dict in `branding.py` centraliseert alle logo-paden
+- Validatietests (`test_branding.py`) afdwingen:
+  - Alle pijlerkleuren in toegestaan palet
+  - Cross-check `pillars.py` ↔ `branding.py`
+  - Alle logo-assets bestaan op schijf
+  - Geen rood in colorways
+  - CSS-kleuren consistent met `COLORS` dict
+- Design System opgenomen als `docs/01-strategisch/ZORGI_Design_System.md`
+- Wijziging aan `report_name` beïnvloedt enkel nieuw gegenereerde rapporten
+- Validatie van `#a06b8a` door <marcom@zorgi.be> wordt aanbevolen
+
+---
+
 ## Versiehistorie
 
 | Versie | Datum | Wijzigingen | Auteur |
@@ -437,3 +532,4 @@ Redenering:
 | 1.2 | 20/03/2026 | ADR-007 toegevoegd: analyseperiode en ONBEKEND hospital | Danny Depecker + GHC |
 | 1.3 | 22/03/2026 | ADR-008 toegevoegd: mapstructuur en mapfilosofie | Danny Depecker + GHC |
 | 1.4 | 22/03/2026 | ADR-009 toegevoegd: AVG_SCORE_MIN drempelwaarde = 4,00 | Danny Depecker + GHC |
+| 1.5 | 23/03/2026 | ADR-010 toegevoegd: ZORGI Design System integratie en kleurbeleid | Danny Depecker + Claude |

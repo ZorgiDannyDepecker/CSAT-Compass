@@ -6,7 +6,7 @@
 **Doel:** Uitwerking van Fase 2 — tweetalige markdown-rapportage via Jinja2 en i18n  
 **Type:** Implementatie  
 **Auteur:** Danny Depecker + GHC  
-**Status:** In Progress  
+**Status:** Compleet  
 
 **Bestandsnaam:** fase2-rapportage.md  
 **Path:** docs/02-tactisch/fasen/  

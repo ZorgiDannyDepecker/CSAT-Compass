@@ -18,7 +18,7 @@
 | Fase | Document | Inhoud | T-shirt | Status |
 |---|---|---|---|---|
 | Fase 1 | [fase1-data-analyse.md](fasen/fase1-data-analyse.md) | Hybride loader + PHARMA-analyser | M | ✅ Compleet |
-| Fase 2 | [fase2-rapportage.md](fasen/fase2-rapportage.md) | Jinja2-templates + i18n NL/FR | M | 🔄 In progress |
+| Fase 2 | [fase2-rapportage.md](fasen/fase2-rapportage.md) | Jinja2-templates + i18n NL/FR | M | ✅ Compleet |
 | Fase 3 | [fase3-matrix.md](fasen/fase3-matrix.md) | Matrix-exporter (5 matrices) | S | ⏳ Gepland |
 | Fase 4 | [fase4-pijlers.md](fasen/fase4-pijlers.md) | CARE / CARE ADMIN / ERP4HC | M | ⏳ Gepland |
 | Fase 5 | [fase5-dashboard.md](fasen/fase5-dashboard.md) | Streamlit dashboard NL/FR | L | ⏳ Gepland |
@@ -92,3 +92,4 @@ graph TD
 | 1.0 | 18/03/2026 | Initiële versie — index | Danny Depecker + GHC |
 | 1.1 | 19/03/2026 | T-shirt schattingen toegevoegd per fase | Danny Depecker + GHC |
 | 1.2 | 19/03/2026 | T-shirt tabellen herzien: Punten vervangen door uurbandbreedte + gewicht t.o.v. XS | Danny Depecker + GHC |
+| 1.3 | 22/03/2026 | Fase 2 status bijgewerkt naar Compleet | GHC |

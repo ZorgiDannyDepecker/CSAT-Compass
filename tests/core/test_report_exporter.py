@@ -302,13 +302,13 @@ class TestReportExporterRender:
     def test_render_bevat_h1_titel_nl(self, pharma_result: KpiResult, templates_path: Path) -> None:
         exporter = ReportExporter(lang="nl", templates_path=templates_path)
         output = exporter.render(pharma_result)
-        assert "# CSAT-Compass" in output
+        assert "CSAT-Compass" in output
         assert "januari 2026" in output
 
     def test_render_bevat_h1_titel_fr(self, pharma_result: KpiResult, templates_path: Path) -> None:
         exporter = ReportExporter(lang="fr", templates_path=templates_path)
         output = exporter.render(pharma_result)
-        assert "# CSAT-Compass" in output
+        assert "CSAT-Compass" in output
         assert "janvier 2026" in output
 
     def test_render_bevat_pijlernaam_nl(
@@ -425,7 +425,7 @@ class TestReportExporterRender:
         """Leeg KpiResult (0 tickets) mag geen fout geven."""
         exporter = ReportExporter(lang="nl", templates_path=templates_path)
         output = exporter.render(empty_result)
-        assert "# CSAT-Compass" in output
+        assert "CSAT-Compass" in output
         assert "0" in output
 
 
@@ -476,7 +476,7 @@ class TestReportExporterExport:
         exporter = ReportExporter(lang="nl", templates_path=templates_path, output_path=tmp_path)
         output_file = exporter.export(pharma_result)
         content = output_file.read_text(encoding="utf-8")
-        assert "# CSAT-Compass" in content
+        assert "CSAT-Compass" in content
 
     def test_export_maakt_outputmap_aan(
         self,

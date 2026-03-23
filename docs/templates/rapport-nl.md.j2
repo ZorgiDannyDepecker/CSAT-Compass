@@ -1,4 +1,8 @@
-# CSAT-Compass — {{ pillar_name }} — {{ t.report.subtitle }} {{ period_label }} — {{ generated_date }}
+<div class="rapport-header">
+{% if logo_path %}<img src="{{ logo_path }}" alt="ZORGI" width="36" height="36" style="float:right; margin-top:4px;" />{% endif %}
+<h1>CSAT-Compass — {{ pillar_name }}</h1>
+<p class="rapport-meta">{{ t.report.subtitle }} {{ period_label }} — {{ generated_date }}</p>
+</div>
 
 ## 1. {{ t.sections.summary }}
 

@@ -1,10 +1,12 @@
 """
 ZORGI brand-constanten voor CSAT-Compass.
 
-Gebaseerd op .github/docs/zorgi-design-system.md — single source of truth.
+Gebaseerd op docs/01-strategisch/ZORGI_Design_System.md — single source of truth.
 Gebruik deze module in Streamlit (dashboard), Plotly (grafieken) en
 weasyprint (PDF-rapporten) om brandconsistentie te garanderen.
 """
+
+from pathlib import Path
 
 # =============================================================================
 # Kleuren
@@ -24,17 +26,43 @@ COLORS: dict[str, str] = {
     "text": "#1a1a1a",
 }
 
-# Kleur per pijler (conform kompasmetafoor)
-PILLAR_COLORS: dict[str, str] = {
-    "zorgi": "#003a70",  # Dark Blue — centrum
-    "pharma": "#003a70",  # Noord
-    "care": "#609fce",  # Oost
-    "care_admin": "#5f8495",  # West
-    "erp4hc": "#7f4267",  # Zuid
-}
 
 # Gradient
 GRADIENT_CSS = "linear-gradient(to right, #003a70, #7f4267, #dc2b26)"
+
+# =============================================================================
+# Paden — statische assets
+# =============================================================================
+
+_STATIC_DIR = Path(__file__).resolve().parent.parent.parent / "static"
+_IMG_DIR = _STATIC_DIR / "img"
+_FONTS_DIR = _STATIC_DIR / "fonts"
+
+# =============================================================================
+# Logo-assets — conform Design System sectie 4
+# =============================================================================
+
+LOGO_ASSETS: dict[str, Path] = {
+    "heartbeat_144_wit": _IMG_DIR / "heartbeat_144_wit.png",
+    "heartbeat_144_kleur": _IMG_DIR / "heartbeat_144_kleur.png",
+    "heartbeat_512_wit": _IMG_DIR / "heartbeat_512_wit.png",
+    "heartbeat_512_kleur": _IMG_DIR / "heartbeat_512_kleur.png",
+    "heartbeat_hires_transparant": _IMG_DIR / "heartbeat_hires_transparant.png",
+    "heartbeat_klein_kleur": _IMG_DIR / "heartbeat_klein_kleur.png",
+}
+
+# =============================================================================
+# Pijlerkleuren
+# =============================================================================
+
+# Kleur per pijler (conform kompasmetafoor en Design System §3.1)
+PILLAR_COLORS: dict[str, str] = {
+    "zorgi": "#003a70",  # Dark Blue — centrum
+    "pharma": "#609fce",  # Light Blue — noord
+    "care": "#5f8495",  # Grey Blue — oost
+    "care_admin": "#a06b8a",  # Light Purple — west (afgeleide gradient)
+    "erp4hc": "#7f4267",  # Purple — zuid
+}
 
 # =============================================================================
 # Plotly theme
@@ -51,8 +79,8 @@ PLOTLY_LAYOUT: dict = {
         COLORS["dark_blue"],
         COLORS["light_blue"],
         COLORS["grey_blue"],
+        "#a06b8a",  # Light Purple — OAZIS
         COLORS["purple"],
-        COLORS["red"],
     ],
     "title": {
         "font": {
@@ -160,3 +188,79 @@ def inject_css(st) -> None:
         inject_css(st)
     """
     st.markdown(STREAMLIT_CSS, unsafe_allow_html=True)
+
+
+# =============================================================================
+# Matplotlib theme — Fase B2
+# =============================================================================
+
+
+def _register_poppins() -> str:
+    """
+    Registreer lokale Poppins TTF-bestanden bij matplotlib.
+
+    Zoekt in src/static/fonts/ naar Poppins-*.ttf bestanden en registreert
+    ze via matplotlib.font_manager. Valt terug op Verdana als er geen
+    TTF-bestanden gevonden worden.
+
+    Returns:
+        Fontnaam 'Poppins' indien beschikbaar, anders 'Verdana'.
+    """
+    from matplotlib import font_manager
+
+    registered = False
+    for ttf in _FONTS_DIR.glob("Poppins-*.ttf"):
+        font_manager.fontManager.addfont(str(ttf))
+        registered = True
+    return "Poppins" if registered else "Verdana"
+
+
+def apply_matplotlib_theme() -> None:
+    """
+    Pas ZORGI brand-kleuren en -fonts toe als matplotlib rcParams.
+
+    Registreert lokale Poppins-fonts (indien aanwezig in src/static/fonts/)
+    en configureert kleuren, achtergronden en typografie conform het
+    ZORGI Design System.
+
+    Gebruik:
+        from csat.utils.branding import apply_matplotlib_theme
+        apply_matplotlib_theme()
+        # Alle volgende plots gebruiken nu ZORGI-stijl
+    """
+    import matplotlib.pyplot as plt
+
+    font_name = _register_poppins()
+
+    plt.rcParams.update(
+        {
+            "font.family": [font_name, "Verdana", "sans-serif"],
+            "font.weight": "light",
+            "axes.titleweight": "800",
+            "axes.prop_cycle": plt.cycler(color=list(PILLAR_COLORS.values())),
+            "axes.facecolor": COLORS["ultra_light_blue"],
+            "figure.facecolor": COLORS["white"],
+            "axes.edgecolor": COLORS["grey_blue"],
+            "axes.labelcolor": COLORS["dark_blue"],
+            "text.color": COLORS["text"],
+            "xtick.color": COLORS["grey_blue"],
+            "ytick.color": COLORS["grey_blue"],
+        }
+    )
+
+
+def add_watermark(fig, alpha: float = 0.08) -> None:
+    """
+    Voeg het ZORGI heartbeat-icoon toe als subtiel watermark
+    in de rechteronderhoek van een matplotlib-figuur.
+
+    Args:
+        fig:   Matplotlib figure object
+        alpha: Transparantie (standaard 0.08 — nauwelijks zichtbaar)
+    """
+    logo_path = LOGO_ASSETS.get("heartbeat_hires_transparant")
+    if logo_path and logo_path.exists():
+        from matplotlib.image import imread
+
+        logo = imread(str(logo_path))
+        fig.figimage(logo, xo=fig.bbox.xmax - 80, yo=10, alpha=alpha, zorder=1)

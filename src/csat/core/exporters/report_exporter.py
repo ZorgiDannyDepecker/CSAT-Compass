@@ -19,6 +19,7 @@ from csat.config.pillars import PILLAR_REGISTRY
 from csat.config.settings import AVG_SCORE_MIN, OUTPUT_PATH, TEMPLATES_PATH
 from csat.core.analysers.base_analyser import KpiResult
 from csat.i18n import SUPPORTED_LANGS, load_translations
+from csat.utils.branding import LOGO_ASSETS
 
 # ---------------------------------------------------------------------------
 # Hulpfuncties — getal- en datumformattering
@@ -225,8 +226,13 @@ class ReportExporter:
         )
         has_unknown = "ONBEKEND" in result.per_hospital
 
+        # Logo-pad voor rapport-header (wit icoon op gradient)
+        logo_asset = LOGO_ASSETS.get("heartbeat_144_wit")
+        logo_path = str(logo_asset) if logo_asset and logo_asset.exists() else None
+
         return {
             "t": t,
+            "logo_path": logo_path,
             "period": result.period,
             "period_label": period_label,
             "generated_date": generated_date,
