@@ -305,7 +305,7 @@ Six principles for good slides:
 
 When using Tailwind CSS in React artifacts, map brand colors to utilities:
 
-```
+```text
 Dark Blue:       text-[#003a70]  bg-[#003a70]  border-[#003a70]
 Red:             text-[#dc2b26]  bg-[#dc2b26]  border-[#dc2b26]
 Purple:          text-[#7f4267]  bg-[#7f4267]  border-[#7f4267]

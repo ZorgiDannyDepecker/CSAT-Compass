@@ -181,11 +181,17 @@ class TestAddWatermark:
 
     def test_watermark_met_logo(self) -> None:
         """fig.figimage() wordt aangeroepen als logo op schijf bestaat."""
+        import sys
+
         mock_fig = MagicMock()
         mock_fig.bbox.xmax = 800
         logo_path = LOGO_ASSETS["heartbeat_hires_transparant"]
         assert logo_path.exists(), "Voorwaarde: logo-asset moet bestaan voor deze test"
-        with patch("matplotlib.image.imread", return_value=MagicMock()):
+        mock_imread = MagicMock(return_value=MagicMock())
+        mock_mpl_image = MagicMock(imread=mock_imread)
+        with patch.dict(
+            sys.modules, {"matplotlib": MagicMock(), "matplotlib.image": mock_mpl_image}
+        ):
             add_watermark(mock_fig)
         mock_fig.figimage.assert_called_once()
 
