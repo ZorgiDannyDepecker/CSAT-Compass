@@ -3,10 +3,7 @@ Unit tests voor src/csat/utils/branding.py.
 Test constanten, apply_plotly_theme() en inject_css() via mocks.
 """
 
-import importlib.util
 from unittest.mock import MagicMock, patch
-
-import pytest
 
 from csat.config.pillars import PILLAR_REGISTRY
 from csat.utils.branding import (
@@ -21,8 +18,6 @@ from csat.utils.branding import (
     apply_plotly_theme,
     inject_css,
 )
-
-_matplotlib_available = importlib.util.find_spec("matplotlib") is not None
 
 # ------------------------------------------------------------------
 # Constanten
@@ -186,17 +181,11 @@ class TestAddWatermark:
 
     def test_watermark_met_logo(self) -> None:
         """fig.figimage() wordt aangeroepen als logo op schijf bestaat."""
-        import sys
-
         mock_fig = MagicMock()
         mock_fig.bbox.xmax = 800
         logo_path = LOGO_ASSETS["heartbeat_hires_transparant"]
         assert logo_path.exists(), "Voorwaarde: logo-asset moet bestaan voor deze test"
-        mock_imread = MagicMock(return_value=MagicMock())
-        mock_mpl_image = MagicMock(imread=mock_imread)
-        with patch.dict(
-            sys.modules, {"matplotlib": MagicMock(), "matplotlib.image": mock_mpl_image}
-        ):
+        with patch("matplotlib.image.imread", return_value=MagicMock()):
             add_watermark(mock_fig)
         mock_fig.figimage.assert_called_once()
 
@@ -205,23 +194,19 @@ class TestAddWatermark:
 # B5 — Matplotlib-thema tests
 # ------------------------------------------------------------------
 
-_skip_matplotlib = pytest.mark.skipif(
-    not _matplotlib_available, reason="matplotlib niet beschikbaar in CI"
-)
-
 
 class TestMatplotlibTheme:
     """Test ZORGI matplotlib-thema en Poppins-registratie."""
 
-    @_skip_matplotlib
     def test_register_poppins_geeft_string_terug(self) -> None:
+        """_register_poppins() retourneert altijd 'Poppins' of 'Verdana'."""
         from csat.utils.branding import _register_poppins
 
         result = _register_poppins()
         assert result in ("Poppins", "Verdana")
 
-    @_skip_matplotlib
     def test_apply_matplotlib_theme_wijzigt_rcparams(self) -> None:
+        """apply_matplotlib_theme() past ZORGI-kleuren toe op rcParams."""
         import matplotlib.pyplot as plt
 
         from csat.utils.branding import apply_matplotlib_theme
@@ -231,8 +216,8 @@ class TestMatplotlibTheme:
         assert plt.rcParams["figure.facecolor"] == COLORS["white"]
         assert plt.rcParams["text.color"] == COLORS["text"]
 
-    @_skip_matplotlib
     def test_colorway_bevat_geen_rood(self) -> None:
+        """Rood mag niet in de matplotlib colorway — gereserveerd voor alarmen."""
         import matplotlib.pyplot as plt
 
         from csat.utils.branding import apply_matplotlib_theme
