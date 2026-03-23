@@ -3,7 +3,10 @@ Unit tests voor src/csat/utils/branding.py.
 Test constanten, apply_plotly_theme() en inject_css() via mocks.
 """
 
+import importlib.util
 from unittest.mock import MagicMock, patch
+
+import pytest
 
 from csat.config.pillars import PILLAR_REGISTRY
 from csat.utils.branding import (
@@ -18,6 +21,8 @@ from csat.utils.branding import (
     apply_plotly_theme,
     inject_css,
 )
+
+_matplotlib_available = importlib.util.find_spec("matplotlib") is not None
 
 # ------------------------------------------------------------------
 # Constanten
@@ -200,16 +205,22 @@ class TestAddWatermark:
 # B5 — Matplotlib-thema tests
 # ------------------------------------------------------------------
 
+_skip_matplotlib = pytest.mark.skipif(
+    not _matplotlib_available, reason="matplotlib niet beschikbaar in CI"
+)
+
 
 class TestMatplotlibTheme:
     """Test ZORGI matplotlib-thema en Poppins-registratie."""
 
+    @_skip_matplotlib
     def test_register_poppins_geeft_string_terug(self) -> None:
         from csat.utils.branding import _register_poppins
 
         result = _register_poppins()
         assert result in ("Poppins", "Verdana")
 
+    @_skip_matplotlib
     def test_apply_matplotlib_theme_wijzigt_rcparams(self) -> None:
         import matplotlib.pyplot as plt
 
@@ -220,6 +231,7 @@ class TestMatplotlibTheme:
         assert plt.rcParams["figure.facecolor"] == COLORS["white"]
         assert plt.rcParams["text.color"] == COLORS["text"]
 
+    @_skip_matplotlib
     def test_colorway_bevat_geen_rood(self) -> None:
         import matplotlib.pyplot as plt
 
