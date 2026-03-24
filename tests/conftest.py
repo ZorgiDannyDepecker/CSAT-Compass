@@ -187,6 +187,145 @@ def pharma_jan_df(sample_df: pd.DataFrame) -> pd.DataFrame:
 
 
 @pytest.fixture
+def evolution_df() -> pd.DataFrame:
+    """
+    Testdataset voor EvolutionAnalyser — bevat baseline (2025) + current (2026) data.
+
+    PHARMA-pijler, 3 ziekenhuizen: AZ Groeninge, UZ Brussel, OLV Aalst.
+    OLV Aalst verdwijnt in de current-periode (hospital_disappeared).
+
+    Verwachte waarden bij baseline=["2025-06","2025-07"], current=["2026-01","2026-02"]:
+    - Baseline: 6 tickets, 5 gescoord, avg=2,80, pct_pos=20,0%, pct_neg=40,0%
+    - Current:  4 tickets, 4 gescoord, avg=4,50, pct_pos=100,0%, pct_neg=0,0%
+    - Delta:    +1,70
+    - Baseline HC (Blocker/Critical/Major): 3/6 = 50,0%
+    - Current HC: 0/4 = 0,0%
+    - Baseline responstijd: (15+15+13+9+10)/5 = 12,4 d
+    - Current responstijd:  (1+2+2+2)/4 = 1,75 → 1,8 d
+    - Thema's: responstijd (EB-001) + onvolledig (EB-003) → beide OPGELOST in current
+    """
+    rijen = [
+        # 2025-06 — AZ Groeninge (lage scores, keywords voor thema-detectie)
+        _make_row(
+            "EB-001",
+            "Bug",
+            "Blocker",
+            2.0,
+            "AZ Groeninge",
+            "Apotheek",
+            "PHARMA",
+            "2025-06-05",
+            "2025-06-20",
+            comment="te lang gewacht",
+        ),
+        _make_row(
+            "EB-002",
+            "Bug",
+            "Critical",
+            3.0,
+            "AZ Groeninge",
+            "Apotheek",
+            "PHARMA",
+            "2025-06-10",
+            "2025-06-25",
+        ),
+        # 2025-06 — UZ Brussel
+        _make_row(
+            "EB-003",
+            "Question",
+            "Trivial",
+            2.0,
+            "UZ Brussel",
+            "Apotheek",
+            "PHARMA",
+            "2025-06-15",
+            "2025-06-28",
+            comment="nog steeds niet opgelost",
+        ),
+        # 2025-07 — UZ Brussel + OLV Aalst
+        _make_row(
+            "EB-004",
+            "Bug",
+            "Major",
+            4.0,
+            "UZ Brussel",
+            "Apotheek",
+            "PHARMA",
+            "2025-07-01",
+            "2025-07-10",
+        ),
+        _make_row(
+            "EB-005",
+            "Improvement",
+            "Minor",
+            3.0,
+            "OLV Aalst",
+            "Apotheek",
+            "PHARMA",
+            "2025-07-05",
+            "2025-07-15",
+        ),
+        _make_row(
+            "EB-006",
+            "Bug",
+            "Minor",
+            None,
+            "OLV Aalst",
+            "Apotheek",
+            "PHARMA",
+            "2025-07-08",
+        ),
+        # 2026-01 — AZ Groeninge (hoge scores)
+        _make_row(
+            "EC-001",
+            "Bug",
+            "Trivial",
+            5.0,
+            "AZ Groeninge",
+            "Apotheek",
+            "PHARMA",
+            "2026-01-05",
+            "2026-01-06",
+        ),
+        _make_row(
+            "EC-002",
+            "Question",
+            "Minor",
+            4.0,
+            "AZ Groeninge",
+            "Apotheek",
+            "PHARMA",
+            "2026-01-10",
+            "2026-01-12",
+        ),
+        # 2026-02 — UZ Brussel (hoge scores)
+        _make_row(
+            "EC-003",
+            "Bug",
+            "Trivial",
+            5.0,
+            "UZ Brussel",
+            "Apotheek",
+            "PHARMA",
+            "2026-02-05",
+            "2026-02-07",
+        ),
+        _make_row(
+            "EC-004",
+            "Improvement",
+            "Trivial",
+            4.0,
+            "UZ Brussel",
+            "Apotheek",
+            "PHARMA",
+            "2026-02-10",
+            "2026-02-12",
+        ),
+    ]
+    return pd.DataFrame(rijen)
+
+
+@pytest.fixture
 def empty_df() -> pd.DataFrame:
     """Leeg DataFrame met correcte kolomstructuur (randgeval tests)."""
     kolommen = [

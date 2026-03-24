@@ -1,0 +1,145 @@
+"""
+Dataklassen voor de evolutie-analyse in CSAT-Compass.
+
+Bevat EvolutionResult en alle helper-dataklassen die de vergelijking
+tussen baseline en huidige periode beschrijven.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from enum import StrEnum
+
+
+class KpiStatus(StrEnum):
+    """Status van een KPI-meting t.o.v. de drempelwaarden (ADR-009)."""
+
+    OK = "ok"
+    WARNING = "warning"
+    AT_RISK = "at_risk"
+    UNKNOWN = "unknown"
+
+
+@dataclass
+class MonthlyDataPoint:
+    """Datapunt voor één maand in de evolutie-tijdlijn."""
+
+    period: str  # "YYYY-MM"
+    avg_score: float  # Gemiddelde CSAT-score (alleen gescoorde tickets)
+    total_tickets: int  # Totaal tickets (inclusief ongescoorde)
+    pct_negative: float  # % scores <= 2 t.o.v. gescoorde tickets
+    fase: str  # "H1 YYYY" of "H2 YYYY"
+
+
+@dataclass
+class IssueTypeComparison:
+    """Vergelijking per issue type — baseline vs huidig."""
+
+    issue_type: str
+    baseline_score: float
+    baseline_pct_neg: float
+    current_score: float
+    current_pct_neg: float
+
+
+@dataclass
+class PriorityComparison:
+    """Vergelijking per prioriteit — baseline vs huidig."""
+
+    priority: str
+    baseline_score: float
+    baseline_pct_neg: float
+    current_score: float
+    current_pct_neg: float
+
+
+@dataclass
+class HospitalComparison:
+    """Vergelijking per ziekenhuis — baseline vs huidig."""
+
+    hospital: str
+    baseline_score: float
+    baseline_total: int
+    current_score: float | None  # None als ziekenhuis niet aanwezig in huidig
+    current_total: int
+
+
+@dataclass
+class ThemeEvolution:
+    """Evolutie van een negatief feedbackthema (keyword matching op comment-veld)."""
+
+    theme_key: str  # "responstijd" / "onvolledig" / "communicatie" / ...
+    pct_baseline: float  # % van negatieve comments in baseline (score <= 2)
+    pct_current: float  # % van negatieve comments in huidige periode
+    status: str  # "OPGELOST" / "NOG_AANWEZIG" / "NIEUW"
+
+
+@dataclass
+class ResponseTimeRow:
+    """Gemiddelde responstijd per score-niveau (satisfaction_date - created)."""
+
+    score_level: int  # 1-5
+    baseline_days: float | None  # None als geen data beschikbaar
+    current_days: float | None  # None als geen data beschikbaar
+
+
+@dataclass
+class EvolutionResult:
+    """
+    Container voor alle vergelijkingsdata baseline vs huidige periode.
+
+    Dit is de pure data-laag voor de evolutie-analyse.
+    Fase 3c (EvolutionExporter) gebruikt dit object als input voor template-rendering.
+
+    ADR-verwijzingen:
+    - ADR-006: reactiegraad N/A — niet opgenomen
+    - ADR-007: baseline start 01/01/2025
+    - ADR-009: KPI OK = avg_score >= 4,00
+    """
+
+    # --- Identificatie ---
+    pillar: str
+    baseline_label: str  # bv. "2025"
+    current_label: str  # bv. "2026"
+
+    # --- Kerncijfers (sectie 1 + 3) ---
+    baseline_total: int
+    current_total: int
+    baseline_avg_score: float
+    current_avg_score: float
+    delta_avg_score: float  # current - baseline, afgerond op 2 decimalen
+    baseline_pct_positive: float  # % score >= 4 (t.o.v. gescoorde tickets)
+    current_pct_positive: float
+    baseline_pct_negative: float  # % score <= 2 (t.o.v. gescoorde tickets)
+    current_pct_negative: float
+    baseline_avg_response_days: float
+    current_avg_response_days: float
+    baseline_n_hospitals: int
+    current_n_hospitals: int
+    baseline_hc_ratio: float  # % High/Critical-tickets
+    current_hc_ratio: float
+
+    # --- Trend classificatie ---
+    trend_is_structural: bool  # True = delta >= 0,5 (significante verbetering)
+    trend_breadth: str  # "breed" / "beperkt" / "gemengd"
+
+    # --- Tijdlijn (sectie 2) ---
+    monthly_timeline: list[MonthlyDataPoint] = field(default_factory=list)
+
+    # --- Breakdowns (secties 4-5) ---
+    by_issue_type: list[IssueTypeComparison] = field(default_factory=list)
+    by_priority: list[PriorityComparison] = field(default_factory=list)
+
+    # --- Responstijd per score-niveau (sectie 5) ---
+    response_time_by_score: dict[int, ResponseTimeRow] = field(default_factory=dict)
+
+    # --- Ziekenhuizen (sectie 7) ---
+    hospital_comparison: list[HospitalComparison] = field(default_factory=list)
+    hospitals_disappeared: list[str] = field(default_factory=list)  # baseline → verdwenen
+    hospitals_new: list[str] = field(default_factory=list)  # nieuw in huidig
+
+    # --- Thema's (sectie 8) ---
+    negative_themes: list[ThemeEvolution] = field(default_factory=list)
+
+    # --- KPI status (sectie 9) ---
+    kpi_status: dict[str, KpiStatus] = field(default_factory=dict)

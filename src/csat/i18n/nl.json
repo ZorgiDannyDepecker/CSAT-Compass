@@ -51,8 +51,103 @@
     "reactiegraad_na": "Reactiegraad is niet meetbaar: V_CSAT_1 bevat enkel gescoorde tickets (zie ADR-006).",
     "onbekend_hospitals": "Tickets zonder ziekenhuisnaam worden weergegeven als 'ONBEKEND' — opvolgen met PHARMA-team (data-kwaliteit)."
   },
+  "matrix": {
+    "title": "Vergelijkingsmatrix",
+    "subtitle": "Maandoverzicht klanttevredenheid",
+    "sections": {
+      "score_matrix": "Gemiddelde CSAT-score per ziekenhuis",
+      "hc_matrix": "High/Critical-ratio per ziekenhuis",
+      "volume_matrix": "Ticketvolume per ziekenhuis",
+      "rankings": "Top/bottom performers",
+      "trends": "Trendsamenvatting",
+      "quarterly_score": "Gemiddelde CSAT-score per kwartaal",
+      "quarterly_hc": "High/Critical-ratio per kwartaal",
+      "quarterly_volume": "Ticketvolume per kwartaal",
+      "yearly_score": "Gemiddelde CSAT-score per jaar",
+      "yearly_hc": "High/Critical-ratio per jaar",
+      "yearly_volume": "Ticketvolume per jaar"
+    },
+    "table": {
+      "rank": "Rang",
+      "hospital": "Ziekenhuis",
+      "overall_avg": "Gem. score (totaal)",
+      "trend": "Trend",
+      "score": "Score",
+      "hc_pct": "H/C %",
+      "volume": "Tickets"
+    },
+    "trends": {
+      "up": "↑ Stijgend",
+      "stable": "→ Stabiel",
+      "down": "↓ Dalend",
+      "na": "— N/A"
+    },
+    "no_data": "—"
+  },
   "history": {
     "initial": "Initiële versie"
+  },
+  "evolution": {
+    "title": "Evolutie-analyse",
+    "subtitle": "Vergelijking baseline vs huidig jaar",
+    "sections": {
+      "summary": "Kerncijfers",
+      "monthly_timeline": "Maandelijkse tijdlijn",
+      "issue_type": "Analyse per type",
+      "priority": "Analyse per prioriteit",
+      "response_time": "Responstijd per score-niveau",
+      "hospitals": "Ziekenhuisvergelijking",
+      "themes": "Negatieve feedbackthema's",
+      "kpi_status": "KPI-status",
+      "conclusion": "Conclusie en aanbevelingen"
+    },
+    "kpi": {
+      "delta_avg_score": "Delta gem. score",
+      "pct_positive": "% Positief (≥ 4)",
+      "pct_negative": "% Negatief (≤ 2)",
+      "avg_response_days": "Gem. responstijd (dagen)",
+      "n_hospitals": "Aantal ziekenhuizen",
+      "hc_ratio": "High/Critical-ratio"
+    },
+    "status": {
+      "ok": "✅ OK",
+      "warning": "⚠️ Aandacht",
+      "at_risk": "🔴 Risico",
+      "unknown": "⏳ Onbekend"
+    },
+    "theme": {
+      "opgelost": "✅ Opgelost",
+      "nog_aanwezig": "⚠️ Nog aanwezig",
+      "nieuw": "🔴 Nieuw",
+      "responstijd": "Responstijd",
+      "onvolledig": "Onvolledig opgelost",
+      "communicatie": "Communicatie",
+      "urgentie": "Urgentie",
+      "automatisering": "Automatisering"
+    },
+    "trend": {
+      "structural": "Structureel",
+      "temporary": "Tijdelijk / onduidelijk",
+      "breed": "Breed — meerdere ziekenhuizen",
+      "beperkt": "Beperkt — enkelen",
+      "gemengd": "Gemengd"
+    },
+    "table": {
+      "period": "Periode",
+      "baseline": "Baseline",
+      "current": "Huidig",
+      "delta": "Delta",
+      "avg_score": "Gem. score",
+      "pct_negative": "% Negatief",
+      "hospital": "Ziekenhuis",
+      "issue_type": "Type",
+      "priority": "Prioriteit",
+      "score_level": "Score",
+      "response_days": "Responstijd (d)",
+      "theme": "Thema",
+      "pct_comments": "% neg. comments",
+      "status": "Status"
+    }
   }
 }
 

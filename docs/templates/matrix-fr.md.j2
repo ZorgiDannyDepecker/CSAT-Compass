@@ -1,0 +1,87 @@
+# CSAT-Compass — {{ pillar_name }} | {{ t.matrix.title }} {{ year }}
+
+**{{ t.matrix.subtitle }}** | {{ generated_date }}
+
+---
+
+## 1. {{ t.matrix.sections.score_matrix }}
+
+| {{ t.matrix.table.hospital }} {% for p in periods %}| {{ p }} {% endfor %}|
+| --- {% for p in periods %}| --- {% endfor %}|
+{% for hospital in hospitals %}| {{ hospital }} {% for p in periods %}| {% if score_matrix[hospital][p] is not none %}{{ score_matrix[hospital][p] | fmt(2) }}{% else %}{{ t.matrix.no_data }}{% endif %} {% endfor %}|
+{% endfor %}
+
+## 2. {{ t.matrix.sections.hc_matrix }}
+
+| {{ t.matrix.table.hospital }} {% for p in periods %}| {{ p }} {% endfor %}|
+| --- {% for p in periods %}| --- {% endfor %}|
+{% for hospital in hospitals %}| {{ hospital }} {% for p in periods %}| {% if hc_matrix[hospital][p] is not none %}{{ hc_matrix[hospital][p] | fmt(1) }}%{% else %}{{ t.matrix.no_data }}{% endif %} {% endfor %}|
+{% endfor %}
+
+## 3. {{ t.matrix.sections.volume_matrix }}
+
+| {{ t.matrix.table.hospital }} {% for p in periods %}| {{ p }} {% endfor %}|
+| --- {% for p in periods %}| --- {% endfor %}|
+{% for hospital in hospitals %}| {{ hospital }} {% for p in periods %}| {% if volume_matrix[hospital][p] is not none %}{{ volume_matrix[hospital][p] | fmt(0) }}{% else %}{{ t.matrix.no_data }}{% endif %} {% endfor %}|
+{% endfor %}
+
+## 4. {{ t.matrix.sections.rankings }}
+
+| {{ t.matrix.table.rank }} | {{ t.matrix.table.hospital }} | {{ t.matrix.table.overall_avg }} |
+| --- | --- | --- |
+{% for rank, hospital, avg in rankings %}| {{ rank }} | {{ hospital }} | {{ avg | fmt(2) }} |
+{% endfor %}
+
+## 5. {{ t.matrix.sections.trends }}
+
+| {{ t.matrix.table.hospital }} | {{ t.matrix.table.trend }} |
+| --- | --- |
+{% for hospital, trend in trends %}| {{ hospital }} | {{ trend }} |
+{% endfor %}
+
+---
+
+## 6. {{ t.matrix.sections.quarterly_score }}
+
+| {{ t.matrix.table.hospital }} {% for q in quarters %}| {{ q }} {% endfor %}|
+| --- {% for q in quarters %}| --- {% endfor %}|
+{% for hospital in hospitals %}| {{ hospital }} {% for q in quarters %}| {% if quarterly_score_matrix[hospital][q] is not none %}{{ quarterly_score_matrix[hospital][q] | fmt(2) }}{% else %}{{ t.matrix.no_data }}{% endif %} {% endfor %}|
+{% endfor %}
+
+## 7. {{ t.matrix.sections.quarterly_hc }}
+
+| {{ t.matrix.table.hospital }} {% for q in quarters %}| {{ q }} {% endfor %}|
+| --- {% for q in quarters %}| --- {% endfor %}|
+{% for hospital in hospitals %}| {{ hospital }} {% for q in quarters %}| {% if quarterly_hc_matrix[hospital][q] is not none %}{{ quarterly_hc_matrix[hospital][q] | fmt(1) }}%{% else %}{{ t.matrix.no_data }}{% endif %} {% endfor %}|
+{% endfor %}
+
+## 8. {{ t.matrix.sections.quarterly_volume }}
+
+| {{ t.matrix.table.hospital }} {% for q in quarters %}| {{ q }} {% endfor %}|
+| --- {% for q in quarters %}| --- {% endfor %}|
+{% for hospital in hospitals %}| {{ hospital }} {% for q in quarters %}| {% if quarterly_volume_matrix[hospital][q] is not none %}{{ quarterly_volume_matrix[hospital][q] | fmt(0) }}{% else %}{{ t.matrix.no_data }}{% endif %} {% endfor %}|
+{% endfor %}
+
+---
+
+## 9. {{ t.matrix.sections.yearly_score }}
+
+| {{ t.matrix.table.hospital }} {% for y in year_labels %}| {{ y }} {% endfor %}|
+| --- {% for y in year_labels %}| --- {% endfor %}|
+{% for hospital in hospitals %}| {{ hospital }} {% for y in year_labels %}| {% if yearly_score_matrix[hospital][y] is not none %}{{ yearly_score_matrix[hospital][y] | fmt(2) }}{% else %}{{ t.matrix.no_data }}{% endif %} {% endfor %}|
+{% endfor %}
+
+## 10. {{ t.matrix.sections.yearly_hc }}
+
+| {{ t.matrix.table.hospital }} {% for y in year_labels %}| {{ y }} {% endfor %}|
+| --- {% for y in year_labels %}| --- {% endfor %}|
+{% for hospital in hospitals %}| {{ hospital }} {% for y in year_labels %}| {% if yearly_hc_matrix[hospital][y] is not none %}{{ yearly_hc_matrix[hospital][y] | fmt(1) }}%{% else %}{{ t.matrix.no_data }}{% endif %} {% endfor %}|
+{% endfor %}
+
+## 11. {{ t.matrix.sections.yearly_volume }}
+
+| {{ t.matrix.table.hospital }} {% for y in year_labels %}| {{ y }} {% endfor %}|
+| --- {% for y in year_labels %}| --- {% endfor %}|
+{% for hospital in hospitals %}| {{ hospital }} {% for y in year_labels %}| {% if yearly_volume_matrix[hospital][y] is not none %}{{ yearly_volume_matrix[hospital][y] | fmt(0) }}{% else %}{{ t.matrix.no_data }}{% endif %} {% endfor %}|
+{% endfor %}
+

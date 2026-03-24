@@ -51,8 +51,103 @@
     "reactiegraad_na": "Le taux de réponse n'est pas mesurable : V_CSAT_1 ne contient que les tickets évalués (voir ADR-006).",
     "onbekend_hospitals": "Les tickets sans identification d'hôpital sont affichés comme 'ONBEKEND' — suivi requis avec l'équipe PHARMA (qualité des données)."
   },
+  "matrix": {
+    "title": "Matrice comparative",
+    "subtitle": "Aperçu mensuel de la satisfaction client",
+    "sections": {
+      "score_matrix": "Score CSAT moyen par hôpital",
+      "hc_matrix": "Taux High/Critical par hôpital",
+      "volume_matrix": "Volume de tickets par hôpital",
+      "rankings": "Meilleures et moins bonnes performances",
+      "trends": "Résumé des tendances",
+      "quarterly_score": "Score CSAT moyen par trimestre",
+      "quarterly_hc": "Taux High/Critical par trimestre",
+      "quarterly_volume": "Volume de tickets par trimestre",
+      "yearly_score": "Score CSAT moyen par an",
+      "yearly_hc": "Taux High/Critical par an",
+      "yearly_volume": "Volume de tickets par an"
+    },
+    "table": {
+      "rank": "Rang",
+      "hospital": "Hôpital",
+      "overall_avg": "Score moy. (global)",
+      "trend": "Tendance",
+      "score": "Score",
+      "hc_pct": "H/C %",
+      "volume": "Tickets"
+    },
+    "trends": {
+      "up": "↑ En hausse",
+      "stable": "→ Stable",
+      "down": "↓ En baisse",
+      "na": "— N/A"
+    },
+    "no_data": "—"
+  },
   "history": {
     "initial": "Version initiale"
+  },
+  "evolution": {
+    "title": "Analyse d'évolution",
+    "subtitle": "Comparaison baseline vs année en cours",
+    "sections": {
+      "summary": "Chiffres clés",
+      "monthly_timeline": "Chronologie mensuelle",
+      "issue_type": "Analyse par type",
+      "priority": "Analyse par priorité",
+      "response_time": "Délai de réponse par niveau de score",
+      "hospitals": "Comparaison par hôpital",
+      "themes": "Thèmes de feedback négatif",
+      "kpi_status": "Statut KPI",
+      "conclusion": "Conclusion et recommandations"
+    },
+    "kpi": {
+      "delta_avg_score": "Delta score moy.",
+      "pct_positive": "% Positif (≥ 4)",
+      "pct_negative": "% Négatif (≤ 2)",
+      "avg_response_days": "Délai moy. de réponse (jours)",
+      "n_hospitals": "Nombre d'hôpitaux",
+      "hc_ratio": "Taux High/Critical"
+    },
+    "status": {
+      "ok": "✅ OK",
+      "warning": "⚠️ Attention",
+      "at_risk": "🔴 À risque",
+      "unknown": "⏳ Inconnu"
+    },
+    "theme": {
+      "opgelost": "✅ Résolu",
+      "nog_aanwezig": "⚠️ Toujours présent",
+      "nieuw": "🔴 Nouveau",
+      "responstijd": "Délai de réponse",
+      "onvolledig": "Résolution incomplète",
+      "communicatie": "Communication",
+      "urgentie": "Urgence",
+      "automatisering": "Automatisation"
+    },
+    "trend": {
+      "structural": "Structurel",
+      "temporary": "Temporaire / indéterminé",
+      "breed": "Large — plusieurs hôpitaux",
+      "beperkt": "Limité — quelques-uns",
+      "gemengd": "Mixte"
+    },
+    "table": {
+      "period": "Période",
+      "baseline": "Baseline",
+      "current": "En cours",
+      "delta": "Delta",
+      "avg_score": "Score moy.",
+      "pct_negative": "% Négatif",
+      "hospital": "Hôpital",
+      "issue_type": "Type",
+      "priority": "Priorité",
+      "score_level": "Score",
+      "response_days": "Délai (j)",
+      "theme": "Thème",
+      "pct_comments": "% comm. nég.",
+      "status": "Statut"
+    }
   }
 }
 
