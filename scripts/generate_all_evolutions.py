@@ -2,11 +2,13 @@
 CSAT-Compass — Evolutierapporten genereren voor ALLE pijlers.
 
 Genereert in één run NL + FR evolutierapporten voor alle 5 ZORGI-pijlers.
+Optioneel ook een matplotlib-visualisatie per pijler via --chart.
 
 Gebruik:
     python scripts/generate_all_evolutions.py
     python scripts/generate_all_evolutions.py --baseline 2025-01 2025-12 --current 2026-01 2026-03
     python scripts/generate_all_evolutions.py --pillar pharma care
+    python scripts/generate_all_evolutions.py --chart
 """
 
 import argparse
@@ -20,6 +22,7 @@ from csat.config.pillars import PILLAR_REGISTRY  # noqa: E402
 from csat.config.settings import CSV_FALLBACK_PATH, DB_CONN, LOG_PATH  # noqa: E402
 from csat.core.analysers.evolution_analyser import EvolutionAnalyser  # noqa: E402
 from csat.core.exporters.evolution_exporter import EvolutionExporter  # noqa: E402
+from csat.core.exporters.evolution_visualiser import EvolutionVisualiser  # noqa: E402, F401
 from csat.core.loaders import get_loader  # noqa: E402
 from csat.utils.date_utils import parse_period, previous_period, today_period  # noqa: E402
 from csat.utils.logger import setup_logger  # noqa: E402
@@ -72,6 +75,12 @@ def main() -> None:
         default=None,
         help="Jaarlabel voor bestandsnaam (standaard: afgeleid van current_label)",
     )
+    parser.add_argument(
+        "--chart",
+        action="store_true",
+        default=False,
+        help="Genereer ook een 4-subplot PNG per pijler (evolutie-{pillar}-{jaar}.png)",
+    )
     args = parser.parse_args()
 
     setup_logger(LOG_PATH)
@@ -113,6 +122,15 @@ def main() -> None:
                 pad = exporter.export(result, year=args.year)
                 totaal += 1
                 print(f"  [OK] [{lang.upper()}] {pillar:<12} -> {pad.name}")
+
+            # Optionele visualisatie per pijler
+            if args.chart:
+                from csat.config.settings import OUTPUT_PATH  # noqa: PLC0415
+
+                vis = EvolutionVisualiser(result)
+                png_pad = vis.export(OUTPUT_PATH, year=args.year)
+                totaal += 1
+                print(f"  [OK] [PNG] {pillar:<12} -> {png_pad.name}")
 
         except Exception as exc:  # noqa: BLE001
             fouten.append(f"{pillar}: {exc}")

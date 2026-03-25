@@ -1,14 +1,14 @@
-# 📋 Plan van aanpak — ZORGI-Conventions opzetten
+# 📋 Plan van aanpak — PHARMA-Conventions opzetten
 
-**Datum:** 23/03/2026
+**Datum:** 24/03/2026
 **Auteur:** Danny Depecker
-**Status:** 🟡 In afwachting van goedkeuring
+**Status:** 🟢 Goedgekeurd — klaar om uit te voeren
 
 ---
 
 ## 🎯 Doel
 
-Centrale `ZORGI-Conventions\` map opzetten als **single source of truth** voor ZORGI-brede en PHARMA-team afspraken, zodat wijzigingen nog maar op één plaats beheerd worden.
+Centrale `PHARMA-Conventions\` map opzetten als **single source of truth** voor ZORGI-brede en PHARMA-team afspraken, zodat wijzigingen nog maar op één plaats beheerd worden.
 
 ---
 
@@ -18,7 +18,7 @@ Centrale `ZORGI-Conventions\` map opzetten als **single source of truth** voor Z
 |---|---|
 | Lopende projecten | ❌ Niet aanraken in deze sessie |
 | Scripting project | ❌ Bewust uitgesloten — apart opruimactie later |
-| CSAT-Compass | ✅ Doelproject voor sync |
+| CSAT-Compass | ❌ Bewust uitgesloten — apart opruimactie later |
 | Q&A-Lab | ✅ Doelproject voor sync |
 
 ---
@@ -26,9 +26,9 @@ Centrale `ZORGI-Conventions\` map opzetten als **single source of truth** voor Z
 ## 🗂️ Centrale mapstructuur (doelstelling)
 
 ```
-Documents\AI\ZORGI-Conventions\
+Documents\AI\PHARMA-Conventions\
 ├── zorgi\                          ← Laag 1: bedrijfsbreed
-│   ├── ZORGI_Design_System.md
+│   ├── zorgi_design_system.md
 │   ├── product-names.md            (nieuw)
 │   └── tone-of-voice.md            (nieuw, minimaal skelet)
 ├── pharma\                         ← Laag 2: Danny's team
@@ -50,7 +50,7 @@ Bronbestanden inlezen om de meest actuele versies te bevestigen:
 
 | Bestand | Locatie |
 |---|---|
-| Design System | `CSAT-Compass/docs/01-strategisch/ZORGI_Design_System.md` |
+| Design System | `CSAT-Compass/docs/01-strategisch/zorgi_design_system.md` |
 | project-conventies v2.3 | `CSAT-Compass/.github/instructions/project-conventies.instructions.md` |
 | code-formatting v2.0 | `CSAT-Compass/.github/instructions/code-formatting.instructions.md` |
 | md-style-guide v4.0 | `CSAT-Compass/.github/docs/md-style-guide.md` |
@@ -59,7 +59,7 @@ Bronbestanden inlezen om de meest actuele versies te bevestigen:
 
 ### Fase 2 — Mapstructuur aanmaken
 
-Lege mappen aanmaken onder `Documents\AI\ZORGI-Conventions\`:
+Lege mappen aanmaken onder `Documents\AI\PHARMA-Conventions\`:
 - `zorgi\`
 - `pharma\`
 - `assets\img\`
@@ -67,48 +67,53 @@ Lege mappen aanmaken onder `Documents\AI\ZORGI-Conventions\`:
 
 ---
 
-### Fase 3 — Documenten consolideren *(schrijven naar ZORGI-Conventions)*
+### Fase 3 — Documenten consolideren *(schrijven naar PHARMA-Conventions)*
 
 Elk document krijgt een versie-header (datum + herkomst) bovenaan.
 
 | Bestand | Bron | Bestemming | Actie |
 |---|---|---|---|
-| `ZORGI_Design_System.md` | `CSAT-Compass/docs/01-strategisch/` | `zorgi\` | Kopiëren |
-| `product-names.md` | Kleurregister overdracht + Design System | `zorgi\` | Nieuw aanmaken |
-| `tone-of-voice.md` | Bestaande conventies als basis | `zorgi\` | Nieuw skelet |
+| `zorgi_design_system.md` | `CSAT-Compass/docs/01-strategisch/` | `zorgi\` | Kopiëren + naamsgeving bijsturen |
+| `product-names.md` | Kleurregister overdracht + Design System | `zorgi\` | Nieuw aanmaken ✅ |
+| `tone-of-voice.md` | Bestaande conventies als basis | `zorgi\` | Nieuw skelet ✅ |
 | `project-conventies.md` | `CSAT-Compass/.github/instructions/` v2.3 | `pharma\` | Kopiëren |
 | `code-formatting.md` | `CSAT-Compass/.github/instructions/` v2.0 | `pharma\` | Kopiëren |
 | `md-style-guide.md` | `CSAT-Compass/.github/docs/` v4.0 | `pharma\` | Kopiëren |
 
 ---
 
-### Fase 4 — Sync-script schrijven
+### Fase 4 — Sync-script schrijven *(latere sessie)*
 
-`sync-conventions.ps1` — kopieert van `ZORGI-Conventions\` naar de doelprojecten:
+`sync-conventions.ps1` — kopieert van `PHARMA-Conventions\` naar de doelprojecten:
 
-- ✅ `CSAT-Compass\.github\`
+- ❌ `CSAT-Compass\.github\` — bewust uitgesloten
 - ✅ `Q&A-Lab\.github\`
-- ❌ `Scripting` — bewust uitgesloten
+- ❌ `Scripting\.github\` — bewust uitgesloten
 - ⛔ `copilot-instructions.md` per project wordt **nooit aangepast**
 
----
-
-### Fase 5 — Assets *(optioneel, aparte stap)*
-
-Logo-assets en Poppins-fonts kopiëren naar `assets\img\` en `assets\fonts\`.
-
-> ⚠️ Dit is de zwaarste stap (bestandskopieën). Doen we apart wanneer gewenst.
+> 🕐 Dit script wordt in een latere sessie uitgewerkt, nadat de inhoud van `PHARMA-Conventions\` stabiel en gevalideerd is.
 
 ---
 
-## ❓ Open vragen vóór start
+### Fase 5 — Assets *(opnemen in huidige sessie)*
 
-| # | Vraag | Keuze |
+Logo-assets en Poppins-fonts kopiëren naar `assets\img\` en `assets\fonts\`:
+
+| Bron | Bestemming |
+|---|---|
+| `CSAT-Compass/src/static/img/heartbeat_*.png` (6 stuks) | `assets\img\` |
+| `CSAT-Compass/WIP/poppins/*.ttf` | `assets\fonts\` |
+
+---
+
+## ✅ Beslissingen
+
+| # | Vraag | Beslissing |
 |---|---|---|
-| 1 | `product-names.md` en `tone-of-voice.md` aanmaken als skelet, of overslaan? | ⬜ Skelet aanmaken / ⬜ Overslaan |
-| 2 | Fase 5 (assets) meteen mee opnemen? | ⬜ Ja / ⬜ Later |
-| 3 | Sync-script (Fase 4) meteen schrijven na docs, of aparte sessie? | ⬜ Meteen / ⬜ Aparte sessie |
+| 1 | `product-names.md` en `tone-of-voice.md` aanmaken? | ✅ Beide aanmaken |
+| 2 | Fase 5 (assets) meteen mee opnemen? | ✅ Ja, in deze sessie |
+| 3 | Sync-script (Fase 4) meteen schrijven? | 🕐 Latere sessie |
 
 ---
 
-*Danny Depecker — 23/03/2026*
+*Danny Depecker — 24/03/2026*

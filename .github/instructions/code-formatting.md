@@ -5,15 +5,19 @@ applyTo: '**/*.py,**/*.ps1,**/*.sql'
 # ZORGI PHARMA - Code Formatting Instructions
 
 **Versie:** 2.0  
-**Laatst bijgewerkt:** 17/03/2026
+**Laatst bijgewerkt:** 17/03/2026  
+**Overgedragen naar PHARMA-Conventions:** 24/03/2026  
 
 **Doel:** GHC-instructies voor consistente code block opmaak in alle ZORGI PHARMA-projecten  
 **Type:** Reference  
 **Auteur:** Danny Depecker + Claude  
-**Status:** Approved
+**Status:** Approved  
 
-**Bestandsnaam:** code-formatting.instructions.md  
-**Path:** .github/instructions/
+**Bestandsnaam:** code-formatting.md  
+**Path:** pharma/  
+
+> **Golden source:** Dit bestand wordt beheerd in `PHARMA-Conventions\pharma\`.  
+> Overgenomen van: `CSAT-Compass/.github/instructions/code-formatting.instructions.md` v2.0  
 
 ---
 
@@ -49,7 +53,8 @@ When providing code files for modification or review, always use the following s
 
 ## Versiehistorie
 
-| Versie | Datum      | Wijzigingen                                                                                                                                                        | Auteur                  |
-| ------ | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------- |
-| 1.0    | 01/01/2026 | Initiële versie                                                                                                                                                    | GHC                     |
-| 2.0    | 17/03/2026 | Document header toegevoegd; applyTo beperkt tot code-extensies; absoluut pad voorbeeld; rationale bash; docstrings toegevoegd; versiehistorie sectiekop toegevoegd | Danny Depecker + Claude |
+| Versie | Datum | Wijzigingen | Auteur |
+| ------ | ---------- | ----------- | ------ |
+| 1.0 | 01/01/2026 | Initiële versie | GHC |
+| 2.0 | 17/03/2026 | Document header toegevoegd; applyTo beperkt tot code-extensies; absoluut pad voorbeeld; rationale bash; docstrings toegevoegd | Danny Depecker + Claude |
+| 2.1 | 24/03/2026 | Gecentraliseerd in PHARMA-Conventions | Danny Depecker |

@@ -2,13 +2,15 @@
 CSAT-Compass — Evolutierapport genereren.
 
 Vergelijkt een baseline-jaar met een lopende periode en exporteert
-het evolutierapport als NL en/of FR markdown.
+het evolutierapport als NL en/of FR markdown. Optioneel ook een
+matplotlib-visualisatie (PNG) via de --chart vlag.
 
 Gebruik:
     python scripts/generate_evolution.py --pillar pharma
     python scripts/generate_evolution.py --pillar care --lang both
     python scripts/generate_evolution.py --pillar zorgi --baseline 2025-01 2025-12 --current 2026-01 2026-03
     python scripts/generate_evolution.py --pillar pharma --baseline-label "Volledig 2025" --current-label "jan-mrt 2026"
+    python scripts/generate_evolution.py --pillar pharma --chart
 """
 
 import argparse
@@ -22,6 +24,7 @@ from csat.config.pillars import PILLAR_REGISTRY  # noqa: E402
 from csat.config.settings import CSV_FALLBACK_PATH, DB_CONN, LOG_PATH, OUTPUT_PATH  # noqa: E402
 from csat.core.analysers.evolution_analyser import EvolutionAnalyser  # noqa: E402
 from csat.core.exporters.evolution_exporter import EvolutionExporter  # noqa: E402
+from csat.core.exporters.evolution_visualiser import EvolutionVisualiser  # noqa: E402
 from csat.core.loaders import get_loader  # noqa: E402
 from csat.utils.date_utils import parse_period, previous_period, today_period  # noqa: E402
 from csat.utils.logger import setup_logger  # noqa: E402
@@ -94,6 +97,12 @@ def main() -> None:  # noqa: C901
         default=None,
         help=f"Uitvoermap (standaard: {OUTPUT_PATH})",
     )
+    parser.add_argument(
+        "--chart",
+        action="store_true",
+        default=False,
+        help="Genereer ook een 4-subplot PNG-visualisatie (evolutie-{pillar}-{jaar}.png)",
+    )
 
     args = parser.parse_args()
 
@@ -147,6 +156,14 @@ def main() -> None:  # noqa: C901
         print(f"[OK] [{lang.upper()}] {pad}")
 
     print(f"\n>> {len(exported)} bestand(en) gegenereerd in {exported[0].parent}")
+
+    # Optionele visualisatie
+    if args.chart:
+        vis = EvolutionVisualiser(result)
+        vis_output = Path(args.output) if args.output else OUTPUT_PATH
+        png_pad = vis.export(vis_output, year=args.year)
+        print(f"[OK] [PNG] {png_pad}")
+        print(f">> Visualisatie gegenereerd: {png_pad.name}")
 
 
 if __name__ == "__main__":
