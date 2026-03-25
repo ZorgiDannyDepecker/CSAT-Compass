@@ -38,7 +38,7 @@ baseline (2025) en huidig jaar (2026) visueel samenvat.
 
 ### 2.1 Bestandsnaamconventie output
 
-```
+```text
 evolutie-{pillar}-{jaar}.png    bv. evolutie-pharma-2026.png
 ```
 
@@ -73,7 +73,7 @@ class EvolutionVisualiser:
 
 ### 3.3 4-subplot layout
 
-```
+```text
 ┌──────────────────────────────────────────────────────────────┐
 │  CSAT-Compass — ZORGI PHARMA  |  2025 → 2026  |  Δ +0,93   │
 ├───────────────────────┬──────────────────────────────────────┤
@@ -262,7 +262,7 @@ pad = vis.export(Path("output"), year="2026")
 
 ## 8. Relatie tot andere fasen
 
-```
+```text
 Fase 3b ──► EvolutionResult ──► Fase 3d: EvolutionVisualiser
 Fase 3c ──► EvolutionExporter              │
                                            ▼
