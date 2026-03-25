@@ -24,6 +24,7 @@ from csat.core.exporters.evolution_visualiser import (
     EvolutionVisualiser,
     _extract_year,
     _fmt_delta,
+    _style_legend,
 )
 
 # ---------------------------------------------------------------------------
@@ -519,4 +520,60 @@ class TestSubplots:
         lijn_y_waarden = [lijn.get_ydata() for lijn in ax1.get_lines()]
         drempels = [y for yd in lijn_y_waarden for y in yd if hasattr(y, "__float__")]
         assert any(abs(float(y) - AVG_SCORE_MIN) < 0.01 for y in drempels)
+        plt.close(fig)
+
+
+# ---------------------------------------------------------------------------
+# 9. Randgevallen helpers — volledige branch-coverage
+# ---------------------------------------------------------------------------
+
+
+class TestRandgevallenBranchCoverage:
+    """Tests voor branches die niet door standaard fixtures geraakt worden."""
+
+    def test_style_legend_none_is_noop(self) -> None:
+        """_style_legend(None) mag geen fout geven — early return branch (regel 113)."""
+        # Geen exception = geslaagd; bevestigt de None-guard
+        _style_legend(None)
+
+    def test_subplot4_negatieve_delta_ticket_label_rechts(self) -> None:
+        """Subplot 4 plaatst ticket-label rechts van nul bij negatieve delta (regel 721)."""
+        hospitals = [
+            HospitalComparison(
+                hospital="Verslechterd_ZH",
+                baseline_score=4.5,
+                baseline_total=8,
+                current_score=3.5,  # delta < 0 → else-branch
+                current_total=6,
+            ),
+        ]
+        result = EvolutionResult(
+            pillar="pharma",
+            baseline_label="2025",
+            current_label="2026",
+            baseline_total=8,
+            current_total=6,
+            baseline_avg_score=4.5,
+            current_avg_score=3.5,
+            delta_avg_score=-1.0,
+            baseline_pct_positive=80.0,
+            current_pct_positive=50.0,
+            baseline_pct_negative=5.0,
+            current_pct_negative=20.0,
+            baseline_avg_response_days=3.0,
+            current_avg_response_days=5.0,
+            baseline_n_hospitals=1,
+            current_n_hospitals=1,
+            baseline_hc_ratio=10.0,
+            current_hc_ratio=15.0,
+            trend_is_structural=False,
+            trend_breadth="beperkt",
+            hospital_comparison=hospitals,
+        )
+        vis = EvolutionVisualiser(result)
+        fig = vis.render()
+        ax4 = fig.axes[3]
+        # Ticket-label "#8/6" moet aanwezig zijn in de ax-teksten
+        teksten = [t.get_text() for t in ax4.texts]
+        assert any("#8/6" in t for t in teksten)
         plt.close(fig)
