@@ -1,10 +1,10 @@
+# ZORGI Design System & Branding Reference
+
 > **Golden source:** Dit bestand wordt beheerd in `PHARMA-Conventions\zorgi\`.  
 > **Versie overgenomen van:** `CSAT-Compass/docs/01-strategisch/zorgi_design_system.md`  
 > **Overgedragen op:** 24/03/2026
 
 ---
-
-# ZORGI Design System & Branding Reference
 
 > **Purpose:** This document serves as the single source of truth for all ZORGI-branded design decisions when creating files, tools, presentations, documents, dashboards, and any other visual output. Always consult this reference to ensure brand consistency.
 

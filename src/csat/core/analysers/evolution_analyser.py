@@ -88,18 +88,20 @@ class EvolutionAnalyser:
     Filtert data op pijler en start-datum (cf. PillarAnalyser-logica),
     en berekent alle metrics voor EvolutionResult.
 
-    Periodegroepering (maand/jaar) gebeurt op basis van satisfaction_date:
-    de datum waarop de klant de score gaf is de CSAT-relevante tijdstempel.
-    Tickets aangemaakt in december maar gescoord in januari tellen mee
-    in de januaricijfers. Start-datumfilter blijft op 'created' (ADR-007).
+    Periodegroepering (maand/jaar) gebeurt op basis van effective_date:
+    satisfaction_date indien beschikbaar (CSAT-relevante tijdstempel), anders
+    fallback naar created. Tickets aangemaakt in december maar gescoord in januari
+    tellen mee in de januaricijfers. Ongescoorde tickets (satisfaction_date=NaT)
+    worden ingedeeld op basis van created. Start-datumfilter blijft op 'created' (ADR-007).
 
     Args:
         df:          Volledig geladen DataFrame (alle pijlers)
         pillar_key:  Pijlersleutel uit PILLAR_REGISTRY (bv. 'pharma')
     """
 
-    # Datumkolom voor periodegroepering — satisfaction_date is de CSAT-relevante datum
-    _PERIOD_DATE_COL: str = "satisfaction_date"
+    # Datumkolom voor periodegroepering — effective_date: satisfaction_date indien beschikbaar,
+    # anders fallback naar created (voor ongescoorde tickets zonder satisfaction_date)
+    _PERIOD_DATE_COL: str = "effective_date"
 
     def __init__(self, df: pd.DataFrame, pillar_key: str) -> None:
         if pillar_key not in PILLAR_REGISTRY:
@@ -111,6 +113,12 @@ class EvolutionAnalyser:
         self._pillar_config = PILLAR_REGISTRY[pillar_key]
         self._pillar_df = self._filter_pillar(df)
         self._pillar_df = self._filter_start_date(self._pillar_df)
+        # effective_date: satisfaction_date waar beschikbaar, anders fallback naar created
+        self._pillar_df = self._pillar_df.copy()
+        self._pillar_df["effective_date"] = self._pillar_df["satisfaction_date"].where(
+            self._pillar_df["satisfaction_date"].notna(),
+            other=pd.to_datetime(self._pillar_df["created"]),
+        )
 
     # ------------------------------------------------------------------
     # Publieke interface
