@@ -64,6 +64,12 @@ def parse_args() -> argparse.Namespace:
         dest="export_all",
         help="Exporteer de volledige dataset zonder datumfilter",
     )
+    parser.add_argument(
+        "--snapshot",
+        action="store_true",
+        default=False,
+        help="Kopieer exportbestand ook naar data/fallback/ als noodback-up voor CSV-fallback",
+    )
     return parser.parse_args()
 
 
@@ -110,6 +116,14 @@ def main() -> None:
 
     print(f"\n[OK] Geëxporteerd naar: {csv_pad}")
     print(f"     Open in Excel via Gegevens → Uit tekst/CSV (scheidingsteken: puntkomma)\n")
+
+    if args.snapshot:
+        import shutil  # noqa: PLC0415
+        fallback_dir = ROOT / "data" / "fallback"
+        fallback_dir.mkdir(parents=True, exist_ok=True)
+        snapshot_pad = fallback_dir / bestandsnaam
+        shutil.copy2(csv_pad, snapshot_pad)
+        print(f"[OK] Snapshot gekopieerd naar: {snapshot_pad}")
 
 
 if __name__ == "__main__":

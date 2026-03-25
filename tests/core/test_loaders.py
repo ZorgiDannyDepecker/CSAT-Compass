@@ -37,7 +37,7 @@ class TestCsvLoader:
     def test_laad_csv_retourneert_dataframe(self, tmp_path: Path, sample_df: pd.DataFrame) -> None:
         """Sla een bestand op en laad het terug."""
         bestand = tmp_path / "2026-01-export.csv"
-        sample_df.to_csv(bestand, index=False)
+        sample_df.to_csv(bestand, index=False, sep=";")
         loader = CsvLoader(tmp_path)
         result = loader.load()
         # Alle 12 rijen moeten aanwezig zijn
@@ -45,7 +45,7 @@ class TestCsvLoader:
 
     def test_pillar_filter(self, tmp_path: Path, sample_df: pd.DataFrame) -> None:
         bestand = tmp_path / "2026-01-export.csv"
-        sample_df.to_csv(bestand, index=False)
+        sample_df.to_csv(bestand, index=False, sep=";")
         loader = CsvLoader(tmp_path)
         result = loader.load(pillar="PHARMA")
         assert all(result["product"].str.upper() == "PHARMA")
@@ -58,12 +58,22 @@ class TestCsvLoader:
     def test_meest_recente_bestand_wordt_geladen(
         self, tmp_path: Path, sample_df: pd.DataFrame
     ) -> None:
-        """Wanneer meerdere bestanden aanwezig zijn, wordt het laatste (alfabetisch) geladen."""
-        for naam in ["2026-01-export.csv", "2026-02-export.csv"]:
-            sample_df.to_csv(tmp_path / naam, index=False)
+        """Meest recent gewijzigd bestand wordt geselecteerd (mtime, niet naam)."""
+        import time
+
+        # Oud bestand — kleinere mtime
+        oud = tmp_path / "2026-02-export.csv"
+        sample_df.to_csv(oud, index=False, sep=";")
+        time.sleep(0.05)  # zorg voor meetbaar tijdsverschil
+
+        # Recent bestand met slechts 1 rij — naam is ouder alfabetisch maar nieuwer qua mtime
+        recent = tmp_path / "2026-01-recent.csv"
+        sample_df.head(1).to_csv(recent, index=False, sep=";")
+
         loader = CsvLoader(tmp_path)
         result = loader.load()
-        assert len(result) == 12  # eerste bestand heeft 12 rijen
+        # Meest recente bestand (2026-01-recent.csv) heeft 1 rij
+        assert len(result) == 1
 
 
 # ------------------------------------------------------------------
@@ -140,14 +150,52 @@ class TestGetLoader:
                 force_csv=False,
             )
 
-    def test_sql_loader_wanneer_beschikbaar(self, tmp_path: Path) -> None:
-        with patch("csat.core.loaders.sql_loader.SqlLoader.is_available", return_value=True):
+    def test_sql_loader_wanneer_beschikbaar(self, tmp_path: Path, sample_df: pd.DataFrame) -> None:
+        """SQL bereikbaar + data aanwezig → SqlLoader teruggeven."""
+        with (
+            patch("csat.core.loaders.sql_loader.SqlLoader.is_available", return_value=True),
+            patch("csat.core.loaders.sql_loader.SqlLoader.load", return_value=sample_df),
+        ):
             loader = get_loader(
                 db_conn="mssql+pyodbc://test",
                 csv_path=tmp_path,
                 force_csv=False,
             )
             assert isinstance(loader, SqlLoader)
+
+    def test_sql_nul_rijen_valt_terug_op_csv(self, tmp_path: Path, sample_df: pd.DataFrame) -> None:
+        """SQL bereikbaar maar 0 rijen → automatisch fallback naar CsvLoader."""
+        (tmp_path / "export.csv").write_text(sample_df.to_csv(index=False))
+        leeg_df = pd.DataFrame()
+        with (
+            patch("csat.core.loaders.sql_loader.SqlLoader.is_available", return_value=True),
+            patch("csat.core.loaders.sql_loader.SqlLoader.load", return_value=leeg_df),
+        ):
+            loader = get_loader(
+                db_conn="mssql+pyodbc://test",
+                csv_path=tmp_path,
+                force_csv=False,
+            )
+            assert isinstance(loader, CsvLoader)
+
+    def test_sql_load_exception_valt_terug_op_csv(
+        self, tmp_path: Path, sample_df: pd.DataFrame
+    ) -> None:
+        """SQL bereikbaar maar load() gooit exception → fallback naar CsvLoader."""
+        (tmp_path / "export.csv").write_text(sample_df.to_csv(index=False))
+        with (
+            patch("csat.core.loaders.sql_loader.SqlLoader.is_available", return_value=True),
+            patch(
+                "csat.core.loaders.sql_loader.SqlLoader.load",
+                side_effect=RuntimeError("timeout"),
+            ),
+        ):
+            loader = get_loader(
+                db_conn="mssql+pyodbc://test",
+                csv_path=tmp_path,
+                force_csv=False,
+            )
+            assert isinstance(loader, CsvLoader)
 
 
 # ------------------------------------------------------------------
@@ -168,7 +216,7 @@ class TestCsvLoaderExtra:
 
     def test_period_filter_csv(self, tmp_path: Path, sample_df: pd.DataFrame) -> None:
         """Regel 73 — period-filter op created-kolom."""
-        sample_df.to_csv(tmp_path / "2026-01-export.csv", index=False)
+        sample_df.to_csv(tmp_path / "2026-01-export.csv", index=False, sep=";")
         loader = CsvLoader(tmp_path)
         result = loader.load(period="2026-01")
         assert len(result) == 10  # jan 2026: 6 PHARMA + 4 CARE
@@ -213,7 +261,7 @@ class TestBaseLoaderValidatie:
         """Regel 61 — logger.warning bij ontbrekende kolommen."""
 
         # CSV met datumkolommen aanwezig maar andere REQUIRED_COLUMNS ontbreken
-        csv_inhoud = "key,score,created,satisfaction_date\nSD-001,4.0,2026-01-05,2026-01-10\n"
+        csv_inhoud = "key;score;created;satisfaction_date\nSD-001;4.0;2026-01-05;2026-01-10\n"
         (tmp_path / "onvolledig.csv").write_text(csv_inhoud)
         loader = CsvLoader(tmp_path)
         # _validate_dataframe logt warning over ontbrekende kolommen (issue_type, priority, ...)

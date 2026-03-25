@@ -4,8 +4,8 @@ applyTo: '**/*'
 
 # ZORGI PHARMA - Copilot Base Instructions
 
-**Versie:** 1.0
-**Laatst bijgewerkt:** 24/03/2026
+**Versie:** 1.1
+**Laatst bijgewerkt:** 25/03/2026
 
 **Doel:** Gedeelde GHC-basisinstructies voor alle ZORGI PHARMA-projecten
 **Type:** Reference
@@ -235,27 +235,18 @@ When adding entries to version history tables in documentation:
 
 The following shortcuts trigger a specific action immediately — geen bevestigingsvraag, geen uitleg vooraf.
 
-| Commando | Beschrijving | Projecten |
+> **Architectuurprincipe:** Alleen `/advies` is generiek genoeg voor de base.
+> Alle overige commands zijn project-specifiek en worden gedefinieerd
+> in het eigen `copilot-instructions.md` van elk project.
+
+| Commando | Beschrijving | Waar gedefinieerd |
 |---|---|---|
-| `/pdf` | Batch conversie .md → PDF via Convertiemap | Alle projecten |
-| `/advies` | Gestructureerd advies met MCQ-begeleiding | Alle projecten |
-| `/GIT` | Stage + commit message genereren + committen | Alle projecten |
-| `/cve` | CVE-scan geïnstalleerde packages | Alle projecten |
-| `/smd` | Schema Monitor Diagnose (Scripting-specifiek) | Scripting only |
-
----
-
-## /pdf
-
-When the user types `/pdf` as the entire message, immediately run this command in the terminal:
-
-```powershell
-python "C:\Users\danndepe\Documents\AI\Q&A-Lab\code\md_to_pdf.py" --batch "C:\Users\danndepe\Documents\Convertiemap\IN" "C:\Users\danndepe\Documents\Convertiemap\OUT" -p -d
-```
-
-- Execute autonomously, no confirmation needed
-- Show the terminal output to the user
-- Report how many files were converted
+| `/advies` | Gestructureerd advies met MCQ-begeleiding | ✅ Base (hier) |
+| `/pdf` | Batch conversie .md → PDF via Convertiemap | Project-specifiek |
+| `/email` | Email → Markdown conversie | Project-specifiek |
+| `/GIT` | Stage + commit message genereren + committen | Project-specifiek |
+| `/cve` | CVE-scan geïnstalleerde packages | Project-specifiek |
+| `/smd` | Schema Monitor Diagnose | Project-specifiek (Scripting) |
 
 ---
 
@@ -275,74 +266,9 @@ waarbij telkens de beste numerieke optie expliciet als **(advies)** wordt voorop
 
 ---
 
-## /GIT
-
-When the user types `/GIT` as the entire message, immediately ask this single question first:
-
-> **Wil je vooraf de lint-checks uitvoeren?**
->
-> - **1** — direct committen, geen lint
-> - **2** — alleen `.\tools\lint.ps1` uitvoeren, geen commit
-> - **3** — eerst lint, daarna committen als lint slaagt
-
-Wait for the user's answer (1, 2 or 3), then execute the matching flow below.
-
-### Flow 1 — direct committen
-
-1. **Stage** alle wijzigingen: `git add -A`
-2. **Analyseer** de diff: `git --no-pager diff --staged --stat`
-3. **Genereer** een beschrijvende commit message op basis van de diff:
-   - Eerste regel: `type: korte samenvatting` (max 72 tekens)
-   - Types: `feat` / `fix` / `docs` / `refactor` / `chore`
-   - Bullet-lijst met de belangrijkste wijzigingen per categorie
-4. **Commit:** `git commit -m "..."`
-5. **Toon** de commit hash + samenvatting
-
-### Flow 2 — alleen lint
-
-1. **Voer uit:** `.\tools\lint.ps1`
-2. **Toon** de volledige output
-3. Geen git-operaties — stop hier
-
-### Flow 3 — lint gevolgd door commit
-
-1. **Voer uit:** `.\tools\lint.ps1`
-2. **Toon** de lint-output
-3. Als lint **slaagt** (exit code 0): voer Flow 1 volledig uit
-4. Als lint **faalt:** stop — vermeld welke checks gefaald hebben en commit **niet**
-
-**Gedragsregels:**
-
-- De keuzevraag is de enige vraag — geen verdere bevestigingen
-- Commit message altijd in het **Engels** (Git conventie)
-- Nooit credentials, patiëntdata of PII in de commit message
-- Geen automatische push — branch blijft lokaal tenzij de user expliciet vraagt te pushen
-
----
-
-## /cve
-
-When the user types `/cve` as the entire message, immediately execute this sequence autonomously:
-
-1. **Lees** de geïnstalleerde packages: `python -m pip list --format=freeze`
-2. **Groepeer** de packages in batches (max 20 per aanroep)
-3. **Scan** elke batch via de ingebouwde CVE-tooling (OSV/GitHub Advisory Database)
-4. **Rapporteer** de resultaten in een overzichtstabel:
-   - Kolommen: Package | Versie | CVE | Ernst | Actie
-   - Alleen packages met CVE's worden getoond
-   - Als geen CVE's gevonden: één bevestigingsregel
-
-**Gedragsregels:**
-
-- Execute autonomously — geen bevestigingsvraag, geen uitleg vooraf
-- Werkt volledig zonder externe netwerkverbinding — geen SSL-fout op ZORGI-netwerk
-- Geeft de minimale versie aan die alle CVE's voor een package oplost
-- Na de scan: vermeld expliciet hoeveel packages gecontroleerd zijn
-
----
-
 ## Versiehistorie
 
 | Versie | Datum | Wijzigingen | Auteur |
 | ------ | ---------- | ----------- | ------ |
 | 1.0 | 24/03/2026 | Initiële versie — samengesteld vanuit Q&A-Lab + Scripting + CSAT-Compass | Danny Depecker |
+| 1.1 | 25/03/2026 | Architectuurrefactor: /pdf, /GIT, /cve, /smd verwijderd uit base — enkel /advies behouden; command-tabel herwerkt naar project-specifiek principe | Danny Depecker |

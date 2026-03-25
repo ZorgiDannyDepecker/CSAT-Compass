@@ -81,6 +81,12 @@ def main() -> None:
         default=False,
         help="Genereer ook een 4-subplot PNG per pijler (evolutie-{pillar}-{jaar}.png)",
     )
+    parser.add_argument(
+        "--force-csv",
+        action="store_true",
+        default=False,
+        help="Forceer CSV-loader (omzeilt SQL — voor onderhoud of reproduceerbare runs)",
+    )
     args = parser.parse_args()
 
     setup_logger(LOG_PATH)
@@ -105,7 +111,7 @@ def main() -> None:
     print(f"Pijlers  : {', '.join(args.pillar)}\n")
 
     # Data eenmalig laden
-    loader = get_loader(DB_CONN, CSV_FALLBACK_PATH)
+    loader = get_loader(DB_CONN, CSV_FALLBACK_PATH, force_csv=args.force_csv)
     df = loader.load()
 
     # Loop over pijlers

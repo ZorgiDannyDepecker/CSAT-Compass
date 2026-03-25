@@ -69,7 +69,13 @@ evolutie-YYYY-nl.md + fr.md
 
 **Geen reactiegraad (ADR-006).** V_CSAT_1 bevat enkel gescoorde tickets — reactiegraad is niet berekend in EvolutionAnalyser.
 
-**Baseline start 01/01/2025 (ADR-007).** `_filter_start_date` past `ANALYSE_START_DATE` toe.
+**Baseline start 01/01/2025 (ADR-007).** `_filter_start_date` past `ANALYSE_START_DATE` toe op `created`.
+
+**`satisfaction_date` als periodegroepering (ADR-011).** Alle periodefiltering (maand/jaar) gebruikt `satisfaction_date` — de datum waarop de klant zijn score gaf. `created` wordt uitsluitend gebruikt als poortwachter in `_filter_start_date()`. Dit betekent dat een ticket aangemaakt in december maar gescoord in januari meetelt in de **januari**-cijfers. Een lege maand in de grafiek is correct gedrag: geen klanten hebben die maand een score ingediend.
+
+```python
+_PERIOD_DATE_COL: str = "satisfaction_date"  # ADR-011
+```
 
 **KPI OK = score ≥ 4,00 (ADR-009).** `_calc_kpi_status` gebruikt `AVG_SCORE_MIN` uit settings.
 
@@ -174,8 +180,9 @@ De configuratie staat in `THEME_KEYWORDS` in `evolution_analyser.py`:
 | ADR | Beslissing | Implementatie |
 |---|---|---|
 | ADR-006 | Reactiegraad N/A | Niet berekend in EvolutionAnalyser |
-| ADR-007 | Baseline start 01/01/2025 | `_filter_start_date` past `ANALYSE_START_DATE` toe |
+| ADR-007 | Baseline start 01/01/2025 | `_filter_start_date` past `ANALYSE_START_DATE` toe op `created` |
 | ADR-009 | KPI OK = score ≥ 4,00 | `_calc_kpi_status` gebruikt `AVG_SCORE_MIN` (4,0) |
+| ADR-011 | `satisfaction_date` als periodegroepering | `_PERIOD_DATE_COL = "satisfaction_date"` — `created` enkel als start-datumfilter |
 
 ---
 
@@ -207,3 +214,4 @@ De configuratie staat in `THEME_KEYWORDS` in `evolution_analyser.py`:
 | Versie | Datum | Wijzigingen | Auteur |
 | ------ | ---------- | --------------- | ------ |
 | 1.0 | 23/03/2026 | Initiële versie — Fase 3b volledig geïmplementeerd | Danny Depecker + GHC |
+| 1.1 | 25/03/2026 | ADR-011 toegevoegd: satisfaction_date als periodegroepering; designkeuze gedocumenteerd in §3.2 | Danny Depecker + GHC |

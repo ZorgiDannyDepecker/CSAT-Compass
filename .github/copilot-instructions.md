@@ -4,8 +4,8 @@ applyTo: '**/*'
 
 # CSAT-Compass - Copilot Instructions
 
-**Versie:** 3.0
-**Laatst bijgewerkt:** 24/03/2026
+**Versie:** 3.2
+**Laatst bijgewerkt:** 25/03/2026
 
 **Doel:** CSAT-Compass projectspecifieke GHC-instructies
 **Type:** Reference
@@ -154,15 +154,99 @@ in `zorgi_design_system.md § 12` raadplegen.
 
 ---
 
-## Custom Commands — Overzicht
+## Custom Commands — Actief in dit project
 
-| Commando | Scripting | Q&A-Lab | CSAT-Compass | Opmerking |
-|---|:---:|:---:|:---:|---|
-| `/pdf` | ✅ | ✅ | ✅ | Alle projecten |
-| `/advies` | ✅ | ✅ | ✅ | Alle projecten |
-| `/GIT` | ✅ | ✅ | ✅ | Alle projecten |
-| `/cve` | ✅ | ✅ | ✅ | Alle projecten |
-| `/smd` | ✅ | ❌ | ❌ | Scripting-specifiek |
+> Implementatie van `/advies` staat in `.github/instructions/copilot-base.instructions.md`.
+> Alle overige commands zijn project-specifiek en staan in dit bestand.
+
+| Commando | Actief | Implementatie |
+|---|:---:|---|
+| `/advies` | ✅ | copilot-base.instructions.md |
+| `/pdf` | ✅ | Dit bestand |
+| `/email` | ❌ | — |
+| `/git` | ✅ | Dit bestand |
+| `/cve` | ✅ | Dit bestand |
+| `/smd` | ❌ | — |
+
+---
+
+## /pdf
+
+When the user types `/pdf` as the entire message, immediately run this command in the terminal:
+
+```powershell
+python "C:\Users\danndepe\Documents\AI\Q&A-Lab\code\md_to_pdf.py" --batch "C:\Users\danndepe\Documents\Convertiemap\IN" "C:\Users\danndepe\Documents\Convertiemap\OUT" -p -d
+```
+
+- Execute autonomously, no confirmation needed
+- Show the terminal output to the user
+- Report how many files were converted
+
+---
+
+## /git
+
+When the user types `/git` as the entire message, immediately ask this single question first:
+
+> **Wil je vooraf de lint-checks uitvoeren?**
+>
+> - **1** — direct committen, geen lint
+> - **2** — alleen `.\tools\lint.ps1` uitvoeren, geen commit
+> - **3** — eerst lint, daarna committen als lint slaagt
+
+Wait for the user's answer (1, 2 or 3), then execute the matching flow below.
+
+### Flow 1 — direct committen
+
+1. **Stage** alle wijzigingen: `git add -A`
+2. **Analyseer** de diff: `git --no-pager diff --staged --stat`
+3. **Genereer** een beschrijvende commit message op basis van de diff:
+   - Eerste regel: `type: korte samenvatting` (max 72 tekens)
+   - Types: `feat` / `fix` / `docs` / `refactor` / `chore`
+   - Bullet-lijst met de belangrijkste wijzigingen per categorie
+4. **Commit:** `git commit -m "..."`
+5. **Toon** de commit hash + samenvatting
+
+### Flow 2 — alleen lint
+
+1. **Voer uit:** `.\tools\lint.ps1`
+2. **Toon** de volledige output
+3. Geen git-operaties — stop hier
+
+### Flow 3 — lint gevolgd door commit
+
+1. **Voer uit:** `.\tools\lint.ps1`
+2. **Toon** de lint-output
+3. Als lint **slaagt** (exit code 0): voer Flow 1 volledig uit
+4. Als lint **faalt:** stop — vermeld welke checks gefaald hebben en commit **niet**
+
+**Gedragsregels:**
+
+- De keuzevraag is de enige vraag — geen verdere bevestigingen
+- Commit message altijd in het **Engels** (Git conventie)
+- Nooit credentials, patiëntdata of PII in de commit message
+- Geen automatische push — branch blijft lokaal tenzij de user expliciet vraagt te pushen
+
+---
+
+## /cve
+
+When the user types `/cve` as the entire message, immediately execute this sequence autonomously:
+
+1. **Lees** de geïnstalleerde packages: `python -m pip list --format=freeze`
+2. **Groepeer** de packages in batches (max 20 per aanroep)
+3. **Scan** elke batch via de ingebouwde CVE-tooling (OSV/GitHub Advisory Database)
+4. **Rapporteer** de resultaten in een overzichtstabel:
+   - Kolommen: Package | Versie | CVE | Ernst | Actie
+   - Alleen packages met CVE's worden getoond
+   - Als geen CVE's gevonden: één bevestigingsregel
+
+**Gedragsregels:**
+
+- Execute autonomously — geen bevestigingsvraag, geen uitleg vooraf
+- Werkt volledig zonder externe netwerkverbinding — geen SSL-fout op ZORGI-netwerk
+- Geeft de minimale versie aan die alle CVE's voor een package oplost
+- Na de scan: vermeld expliciet hoeveel packages gecontroleerd zijn
 
 ---
 
@@ -174,3 +258,5 @@ in `zorgi_design_system.md § 12` raadplegen.
 | 2.0 | 17/03/2026 | Herstructurering en uitbreiding | Danny Depecker + Claude |
 | 2.7 | 19/03/2026 | /GIT flows, /cve, branding sectie | Danny Depecker + GHC |
 | 3.0 | 24/03/2026 | Afgeslankt — gedeelde instructies verplaatst naar copilot-base.instructions.md | Danny Depecker |
+| 3.1 | 25/03/2026 | Architectuurrefactor: /pdf, /GIT, /cve implementaties teruggeplaatst vanuit base naar project; command-tabel herwerkt naar project-centric formaat; /email expliciet als ❌ gedocumenteerd | Danny Depecker |
+| 3.2 | 25/03/2026 | /GIT hernoemd naar /git | Danny Depecker |

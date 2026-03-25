@@ -88,10 +88,18 @@ class EvolutionAnalyser:
     Filtert data op pijler en start-datum (cf. PillarAnalyser-logica),
     en berekent alle metrics voor EvolutionResult.
 
+    Periodegroepering (maand/jaar) gebeurt op basis van satisfaction_date:
+    de datum waarop de klant de score gaf is de CSAT-relevante tijdstempel.
+    Tickets aangemaakt in december maar gescoord in januari tellen mee
+    in de januaricijfers. Start-datumfilter blijft op 'created' (ADR-007).
+
     Args:
         df:          Volledig geladen DataFrame (alle pijlers)
         pillar_key:  Pijlersleutel uit PILLAR_REGISTRY (bv. 'pharma')
     """
+
+    # Datumkolom voor periodegroepering — satisfaction_date is de CSAT-relevante datum
+    _PERIOD_DATE_COL: str = "satisfaction_date"
 
     def __init__(self, df: pd.DataFrame, pillar_key: str) -> None:
         if pillar_key not in PILLAR_REGISTRY:
@@ -258,10 +266,12 @@ class EvolutionAnalyser:
         return filtered
 
     def _get_df_for_periods(self, periods: list[str]) -> pd.DataFrame:
-        """Combineer DataFrames voor een lijst van periodes."""
+        """Combineer DataFrames voor een lijst van periodes (gefilterd op satisfaction_date)."""
         if not periods:
             return self._pillar_df.iloc[0:0].copy()
-        frames = [filter_period(self._pillar_df, p) for p in periods]
+        frames = [
+            filter_period(self._pillar_df, p, date_col=self._PERIOD_DATE_COL) for p in periods
+        ]
         non_empty = [f for f in frames if not f.empty]
         if not non_empty:
             return self._pillar_df.iloc[0:0].copy()
@@ -316,8 +326,8 @@ class EvolutionAnalyser:
     # ------------------------------------------------------------------
 
     def _make_monthly_datapoint(self, period: str) -> MonthlyDataPoint:
-        """Maak een MonthlyDataPoint voor één periode op basis van pillar_df."""
-        df = filter_period(self._pillar_df, period)
+        """Maak een MonthlyDataPoint voor één periode op basis van satisfaction_date."""
+        df = filter_period(self._pillar_df, period, date_col=self._PERIOD_DATE_COL)
         year, month = parse_period(period)
         fase = f"H1 {year}" if month <= 6 else f"H2 {year}"
         return MonthlyDataPoint(

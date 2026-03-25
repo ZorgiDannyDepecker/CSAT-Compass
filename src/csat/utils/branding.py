@@ -1,34 +1,46 @@
 """
 ZORGI brand-constanten voor CSAT-Compass.
 
-Gebaseerd op docs/01-strategisch/ZORGI_Design_System.md — single source of truth.
-Gebruik deze module in Streamlit (dashboard), Plotly (grafieken) en
-weasyprint (PDF-rapporten) om brandconsistentie te garanderen.
+Kleuren en typografie komen uit csat.utils.zorgi_theme (single source of truth).
+Dit bestand voegt framework-specifieke theming toe voor Streamlit, Plotly en matplotlib.
+
+Golden source: PHARMA-Conventions/zorgi/zorgi_design_system.md
 """
 
 from pathlib import Path
 
+from csat.utils.zorgi_theme import (
+    ZORGI_BODY_TEXT,
+    ZORGI_DARK_BLUE,
+    ZORGI_FONT_FALLBACK,
+    ZORGI_FONT_PRIMARY,
+    ZORGI_GRADIENT_CSS,
+    ZORGI_GREY_BLUE,
+    ZORGI_LIGHT_BLUE,
+    ZORGI_PILLAR_COLORS,
+    ZORGI_PURPLE,
+    ZORGI_RED,
+    ZORGI_ULTRA_LIGHT,
+    ZORGI_WHITE,
+)
+
 # =============================================================================
-# Kleuren
+# Backward-compatible aliases
+# Bestaande code die COLORS["dark_blue"] of PILLAR_COLORS gebruikt blijft werken.
 # =============================================================================
 
 COLORS: dict[str, str] = {
-    # Primaire kleuren
-    "dark_blue": "#003a70",
-    "red": "#dc2b26",
-    "purple": "#7f4267",
-    # Secundaire kleuren
-    "grey_blue": "#5f8495",
-    "light_blue": "#609fce",
-    "ultra_light_blue": "#d7e7f3",
-    # Basiskleuren
-    "white": "#ffffff",
-    "text": "#1a1a1a",
+    "dark_blue": ZORGI_DARK_BLUE,
+    "red": ZORGI_RED,
+    "purple": ZORGI_PURPLE,
+    "grey_blue": ZORGI_GREY_BLUE,
+    "light_blue": ZORGI_LIGHT_BLUE,
+    "ultra_light_blue": ZORGI_ULTRA_LIGHT,
+    "white": ZORGI_WHITE,
+    "text": ZORGI_BODY_TEXT,
 }
 
-
-# Gradient
-GRADIENT_CSS = "linear-gradient(to right, #003a70, #7f4267, #dc2b26)"
+GRADIENT_CSS = ZORGI_GRADIENT_CSS
 
 # =============================================================================
 # Paden — statische assets
@@ -52,17 +64,10 @@ LOGO_ASSETS: dict[str, Path] = {
 }
 
 # =============================================================================
-# Pijlerkleuren
+# Pijlerkleuren — re-export vanuit zorgi_theme (backward-compatible)
 # =============================================================================
 
-# Kleur per pijler (conform kompasmetafoor en Design System §3.1)
-PILLAR_COLORS: dict[str, str] = {
-    "zorgi": "#003a70",  # Dark Blue — centrum
-    "pharma": "#609fce",  # Light Blue — noord
-    "care": "#5f8495",  # Grey Blue — oost
-    "care_admin": "#a06b8a",  # Light Purple — west (afgeleide gradient)
-    "erp4hc": "#7f4267",  # Purple — zuid
-}
+PILLAR_COLORS: dict[str, str] = ZORGI_PILLAR_COLORS
 
 # =============================================================================
 # Plotly theme
@@ -70,27 +75,27 @@ PILLAR_COLORS: dict[str, str] = {
 
 PLOTLY_LAYOUT: dict = {
     "font": {
-        "family": "Poppins, Verdana, sans-serif",
-        "color": COLORS["text"],
+        "family": f"{ZORGI_FONT_PRIMARY}, {ZORGI_FONT_FALLBACK}, sans-serif",
+        "color": ZORGI_BODY_TEXT,
     },
-    "paper_bgcolor": COLORS["white"],
-    "plot_bgcolor": COLORS["ultra_light_blue"],
+    "paper_bgcolor": ZORGI_WHITE,
+    "plot_bgcolor": ZORGI_ULTRA_LIGHT,
     "colorway": [
-        COLORS["dark_blue"],
-        COLORS["light_blue"],
-        COLORS["grey_blue"],
+        ZORGI_DARK_BLUE,
+        ZORGI_LIGHT_BLUE,
+        ZORGI_GREY_BLUE,
         "#a06b8a",  # Light Purple — OAZIS
-        COLORS["purple"],
+        ZORGI_PURPLE,
     ],
     "title": {
         "font": {
-            "color": COLORS["dark_blue"],
+            "color": ZORGI_DARK_BLUE,
             "size": 16,
         }
     },
     "legend": {
-        "bgcolor": COLORS["ultra_light_blue"],
-        "bordercolor": COLORS["light_blue"],
+        "bgcolor": ZORGI_ULTRA_LIGHT,
+        "bordercolor": ZORGI_LIGHT_BLUE,
         "borderwidth": 1,
     },
 }
@@ -122,17 +127,17 @@ STREAMLIT_CSS: str = f"""
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;800&display=swap');
 
     html, body, [class*="css"] {{
-        font-family: 'Poppins', 'Verdana', sans-serif;
+        font-family: '{ZORGI_FONT_PRIMARY}', '{ZORGI_FONT_FALLBACK}', sans-serif;
     }}
 
     /* Headers conform Design System sectie 3 */
-    h1 {{ color: {COLORS["dark_blue"]}; font-weight: 800; }}
-    h2 {{ color: {COLORS["grey_blue"]}; font-weight: 800; }}
-    h3 {{ color: {COLORS["light_blue"]}; font-weight: 800; }}
+    h1 {{ color: {ZORGI_DARK_BLUE}; font-weight: 800; }}
+    h2 {{ color: {ZORGI_GREY_BLUE}; font-weight: 800; }}
+    h3 {{ color: {ZORGI_LIGHT_BLUE}; font-weight: 800; }}
 
     /* Gradient header-blok */
     .zorgi-header {{
-        background: {GRADIENT_CSS};
+        background: {ZORGI_GRADIENT_CSS};
         color: white;
         padding: 1.5rem 2rem;
         border-radius: 16px;
@@ -141,7 +146,7 @@ STREAMLIT_CSS: str = f"""
 
     /* Kaartcomponent */
     .zorgi-card {{
-        background: {COLORS["ultra_light_blue"]};
+        background: {ZORGI_ULTRA_LIGHT};
         border-radius: 16px;
         padding: 1.25rem;
         margin-bottom: 1rem;
@@ -149,27 +154,27 @@ STREAMLIT_CSS: str = f"""
 
     /* KPI-blok */
     .zorgi-kpi {{
-        background: {COLORS["white"]};
-        border-left: 4px solid {COLORS["dark_blue"]};
+        background: {ZORGI_WHITE};
+        border-left: 4px solid {ZORGI_DARK_BLUE};
         border-radius: 8px;
         padding: 1rem;
     }}
 
     /* Streamlit metric-widget */
     [data-testid="stMetric"] {{
-        background: {COLORS["ultra_light_blue"]};
+        background: {ZORGI_ULTRA_LIGHT};
         border-radius: 12px;
         padding: 0.75rem;
     }}
 
     /* Trend-indicatoren */
     .trend-up     {{ color: #00aa44; font-weight: 800; }}
-    .trend-down   {{ color: {COLORS["red"]}; font-weight: 800; }}
-    .trend-stable {{ color: {COLORS["grey_blue"]}; font-weight: 800; }}
+    .trend-down   {{ color: {ZORGI_RED}; font-weight: 800; }}
+    .trend-stable {{ color: {ZORGI_GREY_BLUE}; font-weight: 800; }}
 
     /* Sidebar branding */
     [data-testid="stSidebar"] {{
-        background: {COLORS["ultra_light_blue"]};
+        background: {ZORGI_ULTRA_LIGHT};
     }}
 </style>
 """
@@ -234,17 +239,17 @@ def apply_matplotlib_theme() -> None:
 
     plt.rcParams.update(
         {
-            "font.family": [font_name, "Verdana", "sans-serif"],
+            "font.family": [font_name, ZORGI_FONT_FALLBACK, "sans-serif"],
             "font.weight": "light",
             "axes.titleweight": "800",
-            "axes.prop_cycle": plt.cycler(color=list(PILLAR_COLORS.values())),
-            "axes.facecolor": COLORS["ultra_light_blue"],
-            "figure.facecolor": COLORS["white"],
-            "axes.edgecolor": COLORS["grey_blue"],
-            "axes.labelcolor": COLORS["dark_blue"],
-            "text.color": COLORS["text"],
-            "xtick.color": COLORS["grey_blue"],
-            "ytick.color": COLORS["grey_blue"],
+            "axes.prop_cycle": plt.cycler(color=list(ZORGI_PILLAR_COLORS.values())),
+            "axes.facecolor": ZORGI_ULTRA_LIGHT,
+            "figure.facecolor": ZORGI_WHITE,
+            "axes.edgecolor": ZORGI_GREY_BLUE,
+            "axes.labelcolor": ZORGI_DARK_BLUE,
+            "text.color": ZORGI_BODY_TEXT,
+            "xtick.color": ZORGI_GREY_BLUE,
+            "ytick.color": ZORGI_GREY_BLUE,
         }
     )
 

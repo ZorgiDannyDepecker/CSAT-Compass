@@ -25,6 +25,8 @@
 8. [ADR-008 — Mapstructuur en mapfilosofie](#8-adr-008--mapstructuur-en-mapfilosofie)
 9. [ADR-009 — AVG_SCORE_MIN drempelwaarde](#9-adr-009--avg_score_min-drempelwaarde)
 10. [ADR-010 — ZORGI Design System integratie en kleurbeleid](#10-adr-010--zorgi-design-system-integratie-en-kleurbeleid)
+11. [ADR-011 — satisfaction_date als CSAT-periodegroepering](#11-adr-011--satisfaction_date-als-csat-periodegroepering)
+12. [ADR-012 — Nieuwe instappers uitsluiten uit delta-ranking (subplot 4)](#12-adr-012--nieuwe-instappers-uitsluiten-uit-delta-ranking-subplot-4)
 
 ---
 
@@ -523,6 +525,130 @@ gebruiken Google Fonts `@import`.
 
 ---
 
+## 11. ADR-011 — satisfaction_date als CSAT-periodegroepering
+
+**Datum:** 25/03/2026
+**Status:** ✅ Approved
+**Beslissing:** Periodegroepering (maand/jaar) in alle CSAT-analyses gebeurt op basis van
+`satisfaction_date` — de datum waarop de klant zijn score gaf. `created` wordt uitsluitend
+gebruikt als poortwachter voor ADR-007 (tickets vóór 01/01/2025 uitsluiten).
+
+### Context
+
+V_CSAT_1 bevat twee datumvelden met een verschillende semantiek:
+
+| Veld | Betekenis |
+|---|---|
+| `created` | Datum waarop het ticket aangemaakt werd in het ticketingsysteem |
+| `satisfaction_date` | Datum waarop de klant effectief zijn tevredenheidsscore invulde |
+
+Beide velden komen in de meeste gevallen overeen, maar kunnen afwijken:
+een ticket aangemaakt op 28 december kan pas gescoord worden op 5 januari van het
+volgende jaar. Voor maandelijkse CSAT-rapportage is het essentieel om te kiezen welk
+veld de maatstaf is.
+
+### Beslissing
+
+`satisfaction_date` is de CSAT-relevante tijdstempel voor alle periodegroepering:
+
+- `_PERIOD_DATE_COL = "satisfaction_date"` in `EvolutionAnalyser`
+- `filter_period(..., date_col="satisfaction_date")` in alle maandelijkse breakdowns
+- `created` wordt enkel gebruikt in `_filter_start_date()` (ADR-007-filter)
+
+### Alternatieven overwogen
+
+| Optie | Omschrijving | Reden verworpen |
+|---|---|---|
+| A | `created` als periodegroepering | ❌ Meet wanneer het ticket aangemaakt werd, niet wanneer de klant reageerde — irrelevant voor CSAT |
+| **B** | **`satisfaction_date` als periodegroepering** | **✅ Gekozen — meet de klanttevredenheid op het moment van feedback** |
+| C | Gemiddelde van `created` en `satisfaction_date` | ❌ Zinloos — geen statistisch voordeel, verhoogt complexiteit |
+
+### Consequenties
+
+- Een ticket aangemaakt in december maar gescoord in januari telt in de **januari**-cijfers
+- Maanden zonder `satisfaction_date`-data tonen als lege of nul-bars in de visualisatie —
+  dit is correct gedrag, geen data-fout
+- `created` dient uitsluitend als poortwachter (ADR-007): tickets aangemaakt vóór
+  `ANALYSE_START_DATE` worden volledig uitgesloten, ongeacht hun `satisfaction_date`
+- Gevolg voor interpretatie: een lege maand in de grafiek betekent dat er in die maand
+  geen klanten hun score hebben ingediend — niet dat er geen tickets waren
+
+---
+
+## 12. ADR-012 — Nieuwe instappers uitsluiten uit delta-ranking (subplot 4)
+
+**Datum:** 25/03/2026
+**Status:** ✅ Approved
+
+### Context
+
+Subplot 4 van de CSAT-evolutievisualisatie toont een delta (Δ = current_score −
+baseline_score) per ziekenhuis. De `_hospital_comparison()`-methode in `EvolutionAnalyser`
+stelt `baseline_score = 0.0` in wanneer een ziekenhuis **geen tickets** had in de
+baseline-periode (`b_sub.empty`). Dit is een technische default, geen meetwaarde.
+
+Concreet geval (25/03/2026 gedetecteerd): **BONHEIDEN_IMELDA** had 0 PHARMA-tickets in
+2025 en 1 PHARMA-ticket (score 5) in januari 2026. De delta werd berekend als
+5,0 − 0,0 = **+5,00**, waardoor dit ziekenhuis als absolute topper in het quadrant
+verscheen — statistisch misleidend.
+
+### Beslissing
+
+Ziekenhuizen met `baseline_total == 0` worden **uitgesloten uit de delta-ranking**
+in subplot 4. De selectiefunnel in `_draw_subplot4_hospitals()` bevat nu drie
+voorwaarden:
+
+```python
+vergelijkbaar = [
+    h for h in r.hospital_comparison
+    if h.current_score is not None
+    and h.baseline_score is not None
+    and h.baseline_total > 0          # ← ADR-012
+]
+```
+
+Uitgesloten ziekenhuizen worden gelogd via `logger.info` als "nieuwe instappers".
+
+### Alternatieven overwogen
+
+| Optie | Omschrijving | Reden verworpen/gekozen |
+|---|---|---|
+| A | Uitsluiten + loggen | ✅ **Gekozen** — eerlijk en transparant; geen vals beeld |
+| B | Drempelwaarde: min. 3 baseline-tickets vereist | ❌ Arbitrair getal, moeilijk te onderbouwen |
+| C | Delta tonen maar markeren met `*` (nieuw) | ❌ Verhoogt complexiteit rendering; misleidend voor lezers die noten missen |
+| D | Niets doen | ❌ Leidt tot foutieve interpretaties in managementrapportage |
+
+### Consequenties
+
+- **Visueel:** ziekenhuizen die nieuw zijn in 2026 (voor een bepaalde pijler) verschijnen
+  niet in de delta-ranking — dit is correct en eerlijk
+- **Log:** bij elke render wordt een `logger.info`-regel aangemaakt met de namen van
+  uitgesloten nieuwe instappers
+- **Backlog:** een toekomstige verbetering kan nieuwe instappers **apart visualiseren**
+  als een extra sectie of tabel (met huidige score, zonder delta-vergelijking).
+  Zie `docs/02-tactisch/fasen/fase3d-evolutie-visualisatie.md §4.4` voor de backlog-noot.
+
+### Betrokken bestanden
+
+| Bestand | Wijziging |
+|---|---|
+| `src/csat/utils/zorgi_theme.py` | `ZORGI_BORDEAUX = "#722F37"` gedefinieerd als functionele uitbreiding |
+| `src/csat/core/exporters/evolution_visualiser.py` | `_draw_subplot4_hospitals()` — filter uitgebreid met `baseline_total > 0`; importeert `ZORGI_BORDEAUX` uit `zorgi_theme` |
+| `tests/core/test_evolution_visualiser.py` | Test `test_subplot4_nieuwe_instappers_uitgesloten` toegevoegd |
+| `docs/02-tactisch/fasen/fase3d-evolutie-visualisatie.md` | §4.4 bijgewerkt; backlog-noot toegevoegd |
+
+### Kleurverantwoording `ZORGI_BORDEAUX`
+
+`ZORGI_BORDEAUX = "#722F37"` is een functionele uitbreiding op het officiële ZORGI Design System:
+
+- **Niet** in `PHARMA-Conventions/zorgi/zorgi_design_system.md` opgenomen
+- Bewust gekozen als visueel neutraal tussenpunt op de ZORGI-gradient
+  (Dark Blue `#003a70` → Purple `#7f4267` → Red `#dc2b26`)
+- Voldoende contrast op `ZORGI_ULTRA_LIGHT` (`#d7e7f3`) achtergrond
+- Gedocumenteerd in `src/csat/utils/zorgi_theme.py` onder "Functionele uitbreidingen"
+
+---
+
 ## Versiehistorie
 
 | Versie | Datum | Wijzigingen | Auteur |
@@ -533,3 +659,6 @@ gebruiken Google Fonts `@import`.
 | 1.3 | 22/03/2026 | ADR-008 toegevoegd: mapstructuur en mapfilosofie | Danny Depecker + GHC |
 | 1.4 | 22/03/2026 | ADR-009 toegevoegd: AVG_SCORE_MIN drempelwaarde = 4,00 | Danny Depecker + GHC |
 | 1.5 | 23/03/2026 | ADR-010 toegevoegd: ZORGI Design System integratie en kleurbeleid | Danny Depecker + Claude |
+| 1.6 | 25/03/2026 | ADR-011 toegevoegd: satisfaction_date als CSAT-periodegroepering | Danny Depecker + GHC |
+| 1.7 | 25/03/2026 | ADR-012 toegevoegd: nieuwe instappers uitsluiten uit delta-ranking subplot 4 | Danny Depecker + GHC |
+| 1.8 | 25/03/2026 | ADR-012 uitgebreid: ZORGI_BORDEAUX kleurverantwoording + zorgi_theme.py als betrokken bestand | Danny Depecker + GHC |

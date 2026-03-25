@@ -39,8 +39,8 @@ class CsvLoader(BaseLoader):
         """
         Laad data vanuit het meest recente CSV of Excel bestand.
 
-        Bestanden worden gesorteerd op naam (ISO-datumnotatie in bestandsnaam
-        zorgt voor correcte chronologische volgorde).
+        Bestanden worden gesorteerd op wijzigingsdatum (mtime) zodat altijd
+        de meest recente snapshot gebruikt wordt, ongeacht de bestandsnaam.
 
         Args:
             pillar: Filter op product-kolom (bv. 'PHARMA') of None voor alles
@@ -49,18 +49,28 @@ class CsvLoader(BaseLoader):
         Returns:
             Gefilterd DataFrame
         """
-        csv_files = sorted(self.path.glob("*.csv"), reverse=True)
-        xlsx_files = sorted(self.path.glob("*.xlsx"), reverse=True)
-        all_files = list(csv_files) + list(xlsx_files)
+        all_files = sorted(
+            list(self.path.glob("*.csv")) + list(self.path.glob("*.xlsx")),
+            key=lambda f: f.stat().st_mtime,
+            reverse=True,  # meest recent eerst
+        )
 
         if not all_files:
             raise FileNotFoundError(f"Geen CSV/Excel bestanden gevonden in {self.path}")
 
         bestand = all_files[0]
-        logger.info(f"[CsvLoader] Bestand geladen: {bestand.name}")
+        from datetime import UTC, datetime  # noqa: PLC0415
+
+        mtime = datetime.fromtimestamp(bestand.stat().st_mtime, tz=UTC).strftime("%Y-%m-%d %H:%M")
+        logger.info(f"[CsvLoader] Bestand geladen: {bestand.name} (gewijzigd: {mtime})")
 
         if bestand.suffix == ".csv":
-            df = pd.read_csv(bestand, parse_dates=DATE_COLUMNS)
+            df = pd.read_csv(
+                bestand,
+                sep=";",
+                encoding="utf-8-sig",
+                parse_dates=DATE_COLUMNS,
+            )
         else:
             df = pd.read_excel(bestand, parse_dates=DATE_COLUMNS)
 

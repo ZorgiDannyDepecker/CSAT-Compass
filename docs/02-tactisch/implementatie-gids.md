@@ -22,7 +22,7 @@
 | Fase 3a | [fase3a-matrix.md](fasen/fase3a-matrix.md) | MatrixExporter — maand/kwartaal/jaar | S | ✅ Compleet |
 | Fase 3b | [fase3b-evolutie-analyser.md](fasen/fase3b-evolutie-analyser.md) | EvolutionResult + EvolutionAnalyser | M | ✅ Compleet |
 | Fase 3c | [fase3c-evolutie-exporter.md](fasen/fase3c-evolutie-exporter.md) | EvolutionExporter + templates NL/FR | M | ✅ Compleet |
-| Fase 3d | [fase3d-evolutie-visualisatie.md](fasen/fase3d-evolutie-visualisatie.md) | Matplotlib 4-subplot + CLI runner | M | ⏳ Gepland |
+| Fase 3d | [fase3d-evolutie-visualisatie.md](fasen/fase3d-evolutie-visualisatie.md) | Matplotlib 4-subplot + CLI runner | M | ✅ Compleet |
 | Fase 4 | [fase4-pijlers.md](fasen/fase4-pijlers.md) | CARE / CARE ADMIN / ERP4HC | M | ⏳ Gepland |
 | Fase 5 | [fase5-dashboard.md](fasen/fase5-dashboard.md) | Streamlit dashboard NL/FR | L | ⏳ Gepland |
 | Fase 6 | [fase6-zorgi-overall.md](fasen/fase6-zorgi-overall.md) | ZORGI-aggregatie | S | ⏳ Gepland |
@@ -97,6 +97,28 @@ graph TD
 
 ---
 
+## Kleurarchitectuur — ZORGI Theme-laag
+
+Alle kleuren in CSAT-Compass worden beheerd via een **3-laagse architectuur**.
+Dit garandeert dat de golden source (PHARMA-Conventions) nooit rechtstreeks
+gewijzigd hoeft te worden en dat hex-waarden op exact één plek gedefinieerd staan.
+
+```text
+PHARMA-Conventions/zorgi/zorgi_design_system.md    ← golden source (read-only)
+         │
+         ▼  (Python-representatie)
+src/csat/utils/zorgi_theme.py                      ← pure constanten, geen framework-deps
+         │
+         ├──► src/csat/utils/branding.py            ← Plotly / Streamlit / matplotlib
+         └──► src/csat/core/exporters/              ← visualisatie-modules
+                  evolution_visualiser.py              (+ toekomstige dashboards)
+```
+
+> Volledige toelichting, regels en tabel met functionele uitbreidingen:
+> [`fase3d-evolutie-visualisatie.md §9`](fasen/fase3d-evolutie-visualisatie.md)
+
+---
+
 ## Referentiedocumenten
 
 - [Projectplan high-level](../01-strategisch/projectplan-highlevel.md)
@@ -115,3 +137,4 @@ graph TD
 | 1.3 | 22/03/2026 | Fase 2 status bijgewerkt naar Compleet | GHC |
 | 1.4 | 23/03/2026 | Fase 3 hernoemd naar 3a; sub-fasen 3b/3c/3d toegevoegd (Option C — EvolutionExporter); Mermaid diagram uitgebreid | Danny Depecker + GHC |
 | 1.5 | 23/03/2026 | Fase 3b + 3c status bijgewerkt naar Compleet (472 tests, 100% coverage) | GHC |
+| 1.6 | 25/03/2026 | Fase 3d status Compleet; kleurarchitectuur sectie toegevoegd (zorgi_theme.py 3-laags) | Danny Depecker + GHC |

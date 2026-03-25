@@ -339,6 +339,57 @@ Bij verplaatsing naar `archive/` blijven **Bestandsnaam** en **Path** ongewijzig
 
 ---
 
+### 12.3 Design System — beheer en synchronisatie
+
+#### Golden source
+
+```text
+PHARMA-Conventions\zorgi\zorgi_design_system.md   ← ENIGE bewerkbare versie
+```
+
+- Wijzigingen aan kleuren, typografie of branding **altijd** hier doorvoeren
+- Elk project beheert een **read-only kopie** in `.github/docs/zorgi_design_system.md`
+- Die kopie **nooit rechtstreeks bewerken** — aanpassingen gaan verloren bij volgende sync
+
+#### Kopieën per project
+
+| Project | Pad read-only kopie |
+|---|---|
+| CSAT-Compass | `.github/docs/zorgi_design_system.md` |
+| *(toekomstige projecten)* | `.github/docs/zorgi_design_system.md` |
+
+#### Sync-workflow
+
+Wanneer de golden source gewijzigd wordt:
+
+1. Pas `PHARMA-Conventions\zorgi\zorgi_design_system.md` aan
+2. Voer het sync-script uit in elk betrokken project:
+
+   ```powershell
+   # Vanuit de projectroot (bv. CSAT-Compass):
+   .\tools\sync-design-system.ps1
+   ```
+
+3. Commit de bijgewerkte kopie via `/git`
+
+#### Sync-script — minimale implementatie
+
+Elk project levert een `tools/sync-design-system.ps1` met deze structuur:
+
+```powershell
+# sync-design-system.ps1
+# Kopieert de golden source naar de lokale read-only kopie.
+$bron  = "C:\Users\danndepe\Documents\AI\PHARMA-Conventions\zorgi\zorgi_design_system.md"
+$doel  = "$PSScriptRoot\..\github\docs\zorgi_design_system.md"
+Copy-Item -Path $bron -Destination $doel -Force
+Write-Host "[OK] zorgi_design_system.md gesynchroniseerd vanuit PHARMA-Conventions"
+```
+
+> **Waarom geen symlink?** Symlinks werken niet over machines en werken niet offline.
+> Het sync-script is bewust manueel — zo is elke update een bewuste, gedocumenteerde actie.
+
+---
+
 ## Versiehistorie
 
 | Versie | Datum | Wijzigingen | Auteur |
@@ -349,3 +400,4 @@ Bij verplaatsing naar `archive/` blijven **Bestandsnaam** en **Path** ongewijzig
 | 2.2 | 19/03/2026 | T-shirt schaal herzien | Danny Depecker + GHC |
 | 2.3 | 19/03/2026 | Branding sectie toegevoegd | Danny Depecker + GHC |
 | 2.4 | 24/03/2026 | Gecentraliseerd in PHARMA-Conventions; referentie naar zorgi_design_system bijgewerkt | Danny Depecker |
+| 2.5 | 25/03/2026 | §12.3 toegevoegd: Design System sync-conventie (golden source, read-only kopie, sync-script) | Danny Depecker + GHC |

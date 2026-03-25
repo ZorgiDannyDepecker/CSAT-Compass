@@ -4,7 +4,7 @@ EvolutionVisualiser voor CSAT-Compass.
 Genereert een 4-subplot matplotlib PNG-visualisatie vanuit een EvolutionResult.
 
 Subplots:
-    1. Maandelijkse gem. CSAT-score — lijndiagram
+    1. Maandelijkse gemiddelde CSAT-score — lijndiagram
     2. % Negatief per maand — staafdiagram
     3. HC-ratio: baseline vs huidig — staafdiagram
     4. Delta per ziekenhuis — horizontaal staafdiagram (top/bottom, max 15)
@@ -22,24 +22,21 @@ from csat.config.pillars import PILLAR_REGISTRY
 from csat.config.settings import AVG_SCORE_MIN, HIGH_CRITICAL_MAX
 from csat.core.analysers.evolution_result import EvolutionResult
 from csat.utils.branding import COLORS, apply_matplotlib_theme
+from csat.utils.zorgi_theme import (
+    ZORGI_BODY_TEXT,
+    ZORGI_BORDEAUX,
+    ZORGI_DARK_BLUE,
+    ZORGI_FUNC_POSITIVE,
+    ZORGI_GREY_BLUE,
+    ZORGI_LIGHT_BLUE,
+    ZORGI_RED,
+    ZORGI_ULTRA_LIGHT,
+)
 
-# ── ZORGI Design System — kleurconstanten ─────────────────────────────────────
-# Bron: .github/docs/zorgi_design_system.md
-ZORGI_DARK_BLUE = "#003a70"  # Primair — titels, assen, nullijn
-ZORGI_RED = "#dc2b26"  # Accent — negatief, drempellijnen
-ZORGI_PURPLE = "#7f4267"  # Secundair — HC-drempellijn
-ZORGI_GREY_BLUE = "#5f8495"  # Subplot-titels, jaargrens, secundaire tekst
-ZORGI_LIGHT_BLUE = "#609fce"  # Baseline-lijn, herstel-bars
-ZORGI_ULTRA_LIGHT = "#d7e7f3"  # Achtergrond, gridlines
-ZORGI_BODY_TEXT = "#1a1a1a"  # As-labels, tick-tekst, annotaties
-
-# Functionele kleuren — bewuste uitzondering op huisstijl (Optie B)
-# Groen heeft semantische waarde (verbetering) en wordt behouden
-# als visuele taal voor de lezer. Gedocumenteerd als Optie B.
-FUNC_POSITIVE = "#2e7d32"  # Groen — positieve delta bars
+# Functionele aliassen — lokale namen voor leesbaarheid in deze module
+FUNC_POSITIVE = ZORGI_FUNC_POSITIVE  # Groen — positieve delta bars (Optie B)
 FUNC_NEGATIVE = ZORGI_RED  # Rood — negatieve delta bars
 FUNC_CRISIS = ZORGI_RED  # Rood — hoge % negatief bars
-# ──────────────────────────────────────────────────────────────────────────────
 
 # --- Technische constanten ---
 _DPI_SCREEN: int = 150
@@ -257,26 +254,32 @@ class EvolutionVisualiser:
         fig.subplots_adjust(top=0.93, bottom=0.08, left=0.08, right=0.97, hspace=0.50, wspace=0.40)
         return fig
 
-    def export(self, output_path: Path, year: str | None = None) -> Path:
+    def export(self, output_path: Path, year: str | None = None, timestamp: bool = True) -> Path:
         """
-        Render de figuur en schrijf naar output_path/evolutie-{pillar}-{jaar}.png.
+        Render de figuur en schrijf naar output_path/evolutie-{pillar}-{jaar}[_{ts}].png.
 
         Args:
             output_path: Map waar het PNG-bestand geschreven wordt
             year:        Jaarlabel voor bestandsnaam (standaard: afgeleid van current_label)
+            timestamp:   Voeg datum/tijd toe aan bestandsnaam (standaard: True)
+                         Formaat: _YYYYMMDD-HHMM  bv. _20260325-1238
 
         Returns:
             Absoluut pad naar het gegenereerde PNG-bestand
         """
+        from datetime import UTC, datetime  # noqa: PLC0415
+
         import matplotlib.pyplot as plt
 
         fig = self.render()
         jaar = year or _extract_year(self._result.current_label) or "2026"
         jaar_safe = jaar.replace(" ", "-").replace("/", "-")
 
+        ts = f"_{datetime.now(tz=UTC).strftime('%Y%m%d-%H%M')}" if timestamp else ""
+
         output_path = Path(output_path)
         output_path.mkdir(parents=True, exist_ok=True)
-        pad = output_path / f"evolutie-{self._result.pillar}-{jaar_safe}.png"
+        pad = output_path / f"evolutie-{self._result.pillar}-{jaar_safe}{ts}.png"
 
         fig.savefig(pad, dpi=_DPI_SCREEN, bbox_inches="tight", facecolor=fig.get_facecolor())
         plt.close(fig)
@@ -288,11 +291,13 @@ class EvolutionVisualiser:
     # ------------------------------------------------------------------
 
     def _draw_subplot1_score(self, ax, r: EvolutionResult) -> None:
-        """Subplot 1: lijndiagram met maandelijkse gem. CSAT-score baseline vs huidig."""
+        """Subplot 1: lijndiagram met maandelijkse gemiddelde CSAT-score baseline vs huidig."""
         timeline = sorted(r.monthly_timeline, key=lambda p: p.period)
 
         if not timeline:
-            ax.set_title("Gem. CSAT-score per maand", color=ZORGI_GREY_BLUE, fontweight="bold")
+            ax.set_title(
+                "Gemiddelde CSAT-score per maand", color=ZORGI_GREY_BLUE, fontweight="bold"
+            )
             ax.text(
                 0.5,
                 0.5,
@@ -315,7 +320,7 @@ class EvolutionVisualiser:
             current_pts = timeline[mid:]
 
         x_b = list(range(len(baseline_pts)))
-        offset = len(x_b) + 1
+        offset = len(x_b)  # direct aansluitend — geen lege positie
         x_c = list(range(offset, offset + len(current_pts)))
 
         scores_b = [p.avg_score for p in baseline_pts]
@@ -351,10 +356,22 @@ class EvolutionVisualiser:
                 zorder=3,
             )
 
-        # Drempellijn Min. 4.0 -> ZORGI Grey Blue gestippeld
+        # Verbindingssegment baseline -> current voor één doorgaande lijn
+        if x_b and x_c and scores_b and scores_c:
+            ax.plot(
+                [x_b[-1], x_c[0]],
+                [scores_b[-1], scores_c[0]],
+                color=ZORGI_GREY_BLUE,
+                linestyle="-",
+                linewidth=1.2,
+                alpha=0.5,
+                zorder=2,
+            )
+
+        # Drempellijn Min. 4.0 -> ZORGI Bordeaux (functionele kleur, alle 4 subplots)
         ax.axhline(
             AVG_SCORE_MIN,
-            color=ZORGI_GREY_BLUE,
+            color=ZORGI_BORDEAUX,
             linestyle="--",
             linewidth=1.0,
             alpha=0.7,
@@ -362,15 +379,15 @@ class EvolutionVisualiser:
             zorder=4,
         )
 
-        # Jaargrens-lijn -> ZORGI Grey Blue
+        # Jaargrens-lijn -> vlak voor eerste maand van het nieuwe jaar, donkerder
         if x_b and x_c:
-            scheiding = (x_b[-1] + x_c[0]) / 2
+            scheiding = x_c[0] - 0.5  # direct naast de eerste nieuwe-jaar positie
             ax.axvline(
                 scheiding,
-                color=ZORGI_GREY_BLUE,
+                color=ZORGI_DARK_BLUE,
                 linestyle=":",
-                linewidth=1.0,
-                alpha=0.8,
+                linewidth=1.4,
+                alpha=0.6,
                 zorder=1,
             )
 
@@ -389,7 +406,7 @@ class EvolutionVisualiser:
         ax.set_ylim(0, 5.5)
         ax.set_xlim(left=x_b[0] - 0.5, right=x_c[-1] + 0.5)
         ax.set_title(
-            "Gem. CSAT-score per maand", color=ZORGI_GREY_BLUE, fontsize=11, fontweight="bold"
+            "Gemiddelde CSAT-score per maand", color=ZORGI_GREY_BLUE, fontsize=11, fontweight="bold"
         )
         ax.set_ylabel("Score (1-5)", fontsize=9, color=ZORGI_BODY_TEXT)
         leg = ax.legend(
@@ -437,7 +454,7 @@ class EvolutionVisualiser:
             current_pts = timeline[mid:]
 
         n_b = len(baseline_pts)
-        gap = 1
+        gap = 0  # direct aansluitend — geen lege positie
         x_b = list(range(n_b))
         x_c = list(range(n_b + gap, n_b + gap + len(current_pts)))
 
@@ -465,33 +482,38 @@ class EvolutionVisualiser:
                 zorder=2,
             )
 
-        # Drempellijn 15% -> ZORGI Red
+        # Drempellijn 15% -> ZORGI Bordeaux (identiek aan subplot 1)
         all_x = x_b + x_c
         if all_x:
             ax.axhline(
                 HIGH_CRITICAL_MAX,
-                color=ZORGI_RED,
+                color=ZORGI_BORDEAUX,
                 linestyle="--",
-                linewidth=1.2,
-                alpha=0.9,
+                linewidth=1.0,
+                alpha=0.7,
                 label=f"{HIGH_CRITICAL_MAX:.0f}% drempel",
                 zorder=5,
             )
 
-        # Jaargrens-lijn -> ZORGI Grey Blue (identiek aan subplot 1)
+        # Jaargrens-lijn -> vlak voor eerste maand van het nieuwe jaar, donkerder
         if x_b and x_c:
-            scheiding = (x_b[-1] + x_c[0]) / 2
+            scheiding = x_c[0] - 0.5  # direct naast de eerste nieuwe-jaar positie
             ax.axvline(
                 scheiding,
-                color=ZORGI_GREY_BLUE,
+                color=ZORGI_DARK_BLUE,
                 linestyle=":",
-                linewidth=1.0,
-                alpha=0.8,
+                linewidth=1.4,
+                alpha=0.6,
                 zorder=1,
             )
 
         max_pct = max(pt.pct_negative for pt in timeline) if timeline else HIGH_CRITICAL_MAX
-        ax.set_ylim(0, max(100, max_pct + 15))
+        # Schaal y-as dynamisch op de data — niet altijd tot 100.
+        # Minimum: 2x drempel zodat de drempellijn altijd goed zichtbaar is.
+        # Maximum: 100 (percentage kan niet hoger).
+        # Effect: bij lage waarden (< 20%) worden bars proportioneel leesbaar.
+        y_top = max(HIGH_CRITICAL_MAX * 2, min(100, max_pct + 15))
+        ax.set_ylim(0, y_top)
 
         all_labels = _build_tick_labels(baseline_pts) + [""] * gap + _build_tick_labels(current_pts)
         tick_x = list(range(n_b + gap + len(current_pts)))
@@ -537,13 +559,13 @@ class EvolutionVisualiser:
                 fontweight="bold",
             )
 
-        # Drempellijn -> ZORGI Purple
+        # Drempellijn -> ZORGI Bordeaux (identiek aan subplot 1)
         ax.axhline(
             HIGH_CRITICAL_MAX,
-            color=ZORGI_PURPLE,
+            color=ZORGI_BORDEAUX,
             linestyle="--",
-            linewidth=1.2,
-            alpha=1.0,
+            linewidth=1.0,
+            alpha=0.7,
             label=f"Drempel {HIGH_CRITICAL_MAX:.0f}%",
             zorder=5,
         )
@@ -566,12 +588,31 @@ class EvolutionVisualiser:
     # ------------------------------------------------------------------
 
     def _draw_subplot4_hospitals(self, ax, r: EvolutionResult) -> None:
-        """Subplot 4: horizontaal staafdiagram delta per ziekenhuis (beste -> slechtste)."""
+        """Subplot 4: horizontaal staafdiagram delta per ziekenhuis (beste -> slechtste).
+
+        Ziekenhuizen zonder baseline-data (baseline_total == 0) worden uitgesloten
+        van de delta-ranking. Hun delta zou vergeleken worden met de default 0.0-score,
+        wat statistisch misleidend is. Ze worden gelogd als 'nieuwe instappers'.
+        Toekomstige verbetering: apart tonen als 'nieuwe instappers'-sectie (backlog).
+        """
+        # Stap 1: beide periodes aanwezig én baseline heeft effectieve data
         vergelijkbaar = [
             h
             for h in r.hospital_comparison
-            if h.current_score is not None and h.baseline_score is not None
+            if h.current_score is not None and h.baseline_score is not None and h.baseline_total > 0
         ]
+
+        # Nieuwe instappers (2026-data maar geen 2025-baseline) apart loggen
+        nieuwe_instappers = [
+            h.hospital
+            for h in r.hospital_comparison
+            if h.current_score is not None and h.baseline_total == 0
+        ]
+        if nieuwe_instappers:
+            logger.info(
+                f"[Subplot 4] {len(nieuwe_instappers)} nieuwe instapper(s) uitgesloten "
+                f"uit delta-ranking (geen baseline-data): {nieuwe_instappers}"
+            )
 
         if not vergelijkbaar:
             ax.set_title("\u0394 score per ziekenhuis", color=ZORGI_GREY_BLUE, fontweight="bold")
@@ -588,8 +629,14 @@ class EvolutionVisualiser:
             return
 
         # current_score is gegarandeerd niet-None door vergelijkbaar-filter hierboven
+        # 4-tuple: (hospital, delta, baseline_total, current_total)
         met_delta = [
-            (h.hospital, round(h.current_score - h.baseline_score, 2))  # type: ignore[operator]
+            (
+                h.hospital,
+                round(h.current_score - h.baseline_score, 2),  # type: ignore[operator]
+                h.baseline_total,
+                h.current_total,
+            )
             for h in vergelijkbaar
         ]
         met_delta.sort(key=lambda x: x[1], reverse=True)
@@ -599,7 +646,7 @@ class EvolutionVisualiser:
             top = met_delta[:half]
             bottom = met_delta[-half:]
             seen: set[str] = set()
-            gefilterd: list[tuple[str, float]] = []
+            gefilterd: list[tuple[str, float, int, int]] = []
             for item in top + bottom:
                 if item[0] not in seen:
                     seen.add(item[0])
@@ -608,13 +655,16 @@ class EvolutionVisualiser:
 
         ziekenhuizen = [item[0] for item in met_delta]
         deltas = [item[1] for item in met_delta]
+        baseline_totals = [item[2] for item in met_delta]
+        current_totals = [item[3] for item in met_delta]
+
         # Optie B: FUNC_POSITIVE (groen) voor verbetering, FUNC_NEGATIVE (rood) voor verslechtering
         kleuren = [FUNC_POSITIVE if d > 0 else FUNC_NEGATIVE for d in deltas]
         y_pos = list(range(len(ziekenhuizen)))
 
         ax.barh(y_pos, deltas, color=kleuren, alpha=0.85, height=0.6, zorder=2)
-        # Nul-lijn -> ZORGI Dark Blue
-        ax.axvline(0, color=ZORGI_DARK_BLUE, linewidth=1.0, alpha=1.0, zorder=5)
+        # Nul-lijn -> ZORGI Bordeaux (identiek aan drempellijnen subplot 1-3)
+        ax.axvline(0, color=ZORGI_BORDEAUX, linestyle="--", linewidth=1.0, alpha=0.7, zorder=5)
 
         ax.set_yticks(y_pos)
         ax.set_yticklabels(ziekenhuizen, fontsize=7.5, color=ZORGI_BODY_TEXT, fontweight="normal")
@@ -630,17 +680,20 @@ class EvolutionVisualiser:
             fontsize=11,
             fontweight="bold",
         )
-        ax.set_xlabel("\u0394 gem. score", fontsize=9, color=ZORGI_BODY_TEXT)
+        ax.set_xlabel("\u0394 gemiddelde score", fontsize=9, color=ZORGI_BODY_TEXT)
 
-        for yi, delta in zip(y_pos, deltas, strict=False):
-            label = _fmt_delta(delta)
+        for yi, delta, b_tot, c_tot in zip(
+            y_pos, deltas, baseline_totals, current_totals, strict=False
+        ):
+            # Delta-waarde aan het einde van de bar
+            delta_label = _fmt_delta(delta)
             offset = 0.03 if delta >= 0 else -0.03
-            ha = "left" if delta >= 0 else "right"
+            ha_delta = "left" if delta >= 0 else "right"
             ax.text(
                 delta + offset,
                 yi,
-                label,
-                ha=ha,
+                delta_label,
+                ha=ha_delta,
                 va="center",
                 fontsize=8,
                 color=ZORGI_BODY_TEXT,
@@ -648,8 +701,60 @@ class EvolutionVisualiser:
                 clip_on=False,
             )
 
+            # Ticket-count naast de nul-lijn: #{baseline}/{current}
+            # Positieve of nul bar (>= 0) → tekst links van nul (vrij vlak)
+            # Negatieve bar (< 0)          → tekst rechts van nul (vrij vlak)
+            ticket_label = f"#{b_tot}/{c_tot}"
+            if delta >= 0:
+                ax.text(
+                    -0.06,
+                    yi,
+                    ticket_label,
+                    ha="right",
+                    va="center",
+                    fontsize=7.5,
+                    color=ZORGI_GREY_BLUE,
+                    fontweight="normal",
+                    clip_on=False,
+                )
+            else:
+                ax.text(
+                    0.06,
+                    yi,
+                    ticket_label,
+                    ha="left",
+                    va="center",
+                    fontsize=7.5,
+                    color=ZORGI_GREY_BLUE,
+                    fontweight="normal",
+                    clip_on=False,
+                )
+
         min_delta = min(deltas) if deltas else -1.0
         max_delta = max(deltas) if deltas else 1.0
         ax.set_xlim(left=min_delta - 0.5, right=max_delta + 0.8)
+
+        # Legenda rechtsboven — zelfde stijl als de andere kwadranten
+        # Dummy invisible handle zodat ax.legend() enkel de tekstlabel toont
+        from matplotlib.lines import Line2D  # noqa: PLC0415
+
+        dummy = Line2D(
+            [0], [0], color="none", label=f"# tickets {r.baseline_label}/{r.current_label}"
+        )
+        leg = ax.legend(
+            handles=[dummy],
+            loc="upper right",
+            framealpha=0.92,
+            facecolor="white",
+            edgecolor=ZORGI_GREY_BLUE,
+            fontsize=8.5,
+            labelcolor=ZORGI_BODY_TEXT,
+            handlelength=0,
+            handletextpad=0,
+        )
+        _style_legend(leg)
+        # labelcolor na _style_legend bewust op ZORGI_BODY_TEXT — zwart leest duidelijker
+        for text in leg.get_texts():
+            text.set_color(ZORGI_BODY_TEXT)
 
         _style_ax(ax)

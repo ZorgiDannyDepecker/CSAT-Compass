@@ -275,7 +275,7 @@ class TestExport:
         self, evolution_result: EvolutionResult, tmp_path: Path
     ) -> None:
         vis = EvolutionVisualiser(evolution_result)
-        pad = vis.export(tmp_path, year="2026")
+        pad = vis.export(tmp_path, year="2026", timestamp=False)
         assert pad.name == "evolutie-pharma-2026.png"
 
     def test_export_bestandsnaam_zonder_year_param(
@@ -323,7 +323,7 @@ class TestExport:
 
     def test_export_zorgi_pijler(self, zorgi_result: EvolutionResult, tmp_path: Path) -> None:
         vis = EvolutionVisualiser(zorgi_result)
-        pad = vis.export(tmp_path, year="2026")
+        pad = vis.export(tmp_path, year="2026", timestamp=False)
         assert pad.name == "evolutie-zorgi-2026.png"
 
     def test_export_jaar_met_spaties(
@@ -402,6 +402,58 @@ class TestSubplots:
         ax4 = fig.axes[3]
         teksten = [t.get_text() for t in ax4.texts]
         assert any("Geen" in t for t in teksten)
+        plt.close(fig)
+
+    def test_subplot4_nieuwe_instappers_uitgesloten(self) -> None:
+        """Subplot 4 sluit ziekenhuizen met baseline_total=0 uit (nieuwe instappers)."""
+        hospitals = [
+            HospitalComparison(
+                hospital="Bestaand_ZH",
+                baseline_score=4.0,
+                baseline_total=10,
+                current_score=4.5,
+                current_total=5,
+            ),
+            HospitalComparison(
+                hospital="Nieuw_ZH",
+                baseline_score=0.0,  # default bij geen data
+                baseline_total=0,  # ← nieuwe instapper
+                current_score=5.0,
+                current_total=2,
+            ),
+        ]
+        result = EvolutionResult(
+            pillar="pharma",
+            baseline_label="2025",
+            current_label="2026",
+            baseline_total=10,
+            current_total=7,
+            baseline_avg_score=4.0,
+            current_avg_score=4.5,
+            delta_avg_score=0.5,
+            baseline_pct_positive=70.0,
+            current_pct_positive=80.0,
+            baseline_pct_negative=10.0,
+            current_pct_negative=5.0,
+            baseline_avg_response_days=5.0,
+            current_avg_response_days=3.0,
+            baseline_n_hospitals=1,
+            current_n_hospitals=2,
+            baseline_hc_ratio=10.0,
+            current_hc_ratio=5.0,
+            trend_is_structural=True,
+            trend_breadth="breed",
+            hospital_comparison=hospitals,
+        )
+        vis = EvolutionVisualiser(result)
+        fig = vis.render()
+        ax4 = fig.axes[3]
+        # Enkel Bestaand_ZH mag een label hebben — Nieuw_ZH is uitgesloten
+        y_labels = [lbl.get_text() for lbl in ax4.get_yticklabels()]
+        assert "Bestaand_ZH" in y_labels
+        assert "Nieuw_ZH" not in y_labels
+        # Precies 1 staaf
+        assert len(ax4.patches) == 1
         plt.close(fig)
 
     def test_subplot4_max_15_ziekenhuizen(self) -> None:
