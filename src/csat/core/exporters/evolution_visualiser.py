@@ -45,6 +45,45 @@ _FIG_WIDTH: float = 15.0
 _FIG_HEIGHT: float = 10.0
 _MAX_HOSPITALS: int = 15
 
+# ── i18n vertalingstabel NL / FR ──────────────────────────────────────────────
+_TRANSLATIONS: dict[str, dict[str, str]] = {
+    "nl": {
+        "trend_structural": "Structureel",
+        "trend_not_structural": "Niet structureel",
+        "sub1_title": "Gemiddelde CSAT-score per maand",
+        "sub1_ylabel": "Score (1-5)",
+        "sub1_min_label": "Min. {val}",
+        "sub2_title": "% Negatief per maand",
+        "sub2_ylabel": "% negatief",
+        "sub2_threshold": "{val}% drempel",
+        "sub2_no_data": "Geen data",
+        "sub3_title": "HC-ratio: baseline vs huidig",
+        "sub3_ylabel": "% High/Critical",
+        "sub3_threshold": "Drempel {val}%",
+        "sub4_title": "\u0394 Score per ziekenhuis (beste \u2192 slechtste)",
+        "sub4_xlabel": "\u0394 gemiddelde score",
+        "sub4_no_data": "Geen vergelijkbare data",
+    },
+    "fr": {
+        "trend_structural": "Structurel",
+        "trend_not_structural": "Non structurel",
+        "sub1_title": "Score CSAT moyen par mois",
+        "sub1_ylabel": "Score (1-5)",
+        "sub1_min_label": "Min. {val}",
+        "sub2_title": "% N\u00e9gatif par mois",
+        "sub2_ylabel": "% n\u00e9gatif",
+        "sub2_threshold": "Seuil {val}%",
+        "sub2_no_data": "Pas de donn\u00e9es",
+        "sub3_title": "Ratio HC : r\u00e9f\u00e9rence vs actuel",
+        "sub3_ylabel": "% \u00c9lev\u00e9/Critique",
+        "sub3_threshold": "Seuil {val}%",
+        "sub4_title": "\u0394 Score par h\u00f4pital (meilleur \u2192 moins bon)",
+        "sub4_xlabel": "\u0394 score moyen",
+        "sub4_no_data": "Pas de donn\u00e9es comparables",
+    },
+}
+# ─────────────────────────────────────────────────────────────────────────────
+
 
 def _fmt_delta(value: float, decimals: int = 2) -> str:
     """
@@ -152,13 +191,20 @@ class EvolutionVisualiser:
 
     Args:
         result: EvolutionResult van een EvolutionAnalyser.analyse() aanroep
+        lang:   Taalcode 'nl' (standaard) of 'fr' — bepaalt alle teksten in de figuur
     """
 
-    def __init__(self, result: EvolutionResult) -> None:
+    def __init__(self, result: EvolutionResult, lang: str = "nl") -> None:
         self._result = result
+        self._lang = lang if lang in _TRANSLATIONS else "nl"
         pillar_info = PILLAR_REGISTRY.get(result.pillar, {})
         self._pillar_color: str = pillar_info.get("color", COLORS["dark_blue"])
         self._pillar_name: str = pillar_info.get("report_name", result.pillar.upper())
+
+    def _t(self, key: str, **kwargs) -> str:
+        """Geef de vertaling voor key in de ingestelde taal, met optionele format-args."""
+        tekst = _TRANSLATIONS[self._lang].get(key, key)
+        return tekst.format(**kwargs) if kwargs else tekst
 
     # ------------------------------------------------------------------
     # Publieke methoden
@@ -234,7 +280,11 @@ class EvolutionVisualiser:
             ax.xaxis.grid(False)
 
         # Supertitel — ZORGI Dark Blue conform Design System §3
-        trend_label = "Structureel" if r.trend_is_structural else "Niet structureel"
+        trend_label = (
+            self._t("trend_structural")
+            if r.trend_is_structural
+            else self._t("trend_not_structural")
+        )
         delta_str = _fmt_delta(r.delta_avg_score)
         fig.suptitle(
             f"CSAT-Compass \u2014 {self._pillar_name}"
@@ -256,7 +306,7 @@ class EvolutionVisualiser:
 
     def export(self, output_path: Path, year: str | None = None, timestamp: bool = True) -> Path:
         """
-        Render de figuur en schrijf naar output_path/evolutie-{pillar}-{jaar}[_{ts}].png.
+        Render de figuur en schrijf naar output_path/evolutie-{pillar}-{jaar}-{lang}[_{ts}].png.
 
         Args:
             output_path: Map waar het PNG-bestand geschreven wordt
@@ -267,7 +317,7 @@ class EvolutionVisualiser:
         Returns:
             Absoluut pad naar het gegenereerde PNG-bestand
         """
-        from datetime import UTC, datetime  # noqa: PLC0415
+        from datetime import datetime  # noqa: PLC0415
 
         import matplotlib.pyplot as plt
 
@@ -275,11 +325,11 @@ class EvolutionVisualiser:
         jaar = year or _extract_year(self._result.current_label) or "2026"
         jaar_safe = jaar.replace(" ", "-").replace("/", "-")
 
-        ts = f"_{datetime.now(tz=UTC).strftime('%Y%m%d-%H%M')}" if timestamp else ""
+        ts = f"_{datetime.now().astimezone().strftime('%Y%m%d-%H%M')}" if timestamp else ""
 
         output_path = Path(output_path)
         output_path.mkdir(parents=True, exist_ok=True)
-        pad = output_path / f"evolutie-{self._result.pillar}-{jaar_safe}{ts}.png"
+        pad = output_path / f"evolutie-{self._result.pillar}-{jaar_safe}-{self._lang}{ts}.png"
 
         fig.savefig(pad, dpi=_DPI_SCREEN, bbox_inches="tight", facecolor=fig.get_facecolor())
         plt.close(fig)
@@ -375,7 +425,7 @@ class EvolutionVisualiser:
             linestyle="--",
             linewidth=1.0,
             alpha=0.7,
-            label=f"Min. {AVG_SCORE_MIN:.1f}",
+            label=self._t("sub1_min_label", val=f"{AVG_SCORE_MIN:.1f}"),
             zorder=4,
         )
 
@@ -405,10 +455,8 @@ class EvolutionVisualiser:
 
         ax.set_ylim(0, 5.5)
         ax.set_xlim(left=x_b[0] - 0.5, right=x_c[-1] + 0.5)
-        ax.set_title(
-            "Gemiddelde CSAT-score per maand", color=ZORGI_GREY_BLUE, fontsize=11, fontweight="bold"
-        )
-        ax.set_ylabel("Score (1-5)", fontsize=9, color=ZORGI_BODY_TEXT)
+        ax.set_title(self._t("sub1_title"), color=ZORGI_GREY_BLUE, fontsize=11, fontweight="bold")
+        ax.set_ylabel(self._t("sub1_ylabel"), fontsize=9, color=ZORGI_BODY_TEXT)
         leg = ax.legend(
             loc="upper left",
             bbox_to_anchor=(0.01, 0.99),
@@ -431,11 +479,11 @@ class EvolutionVisualiser:
         timeline = sorted(r.monthly_timeline, key=lambda p: p.period)
 
         if not timeline:
-            ax.set_title("% Negatief per maand", color=ZORGI_GREY_BLUE, fontweight="bold")
+            ax.set_title(self._t("sub2_title"), color=ZORGI_GREY_BLUE, fontweight="bold")
             ax.text(
                 0.5,
                 0.5,
-                "Geen data",
+                self._t("sub2_no_data"),
                 ha="center",
                 va="center",
                 transform=ax.transAxes,
@@ -491,7 +539,7 @@ class EvolutionVisualiser:
                 linestyle="--",
                 linewidth=1.0,
                 alpha=0.7,
-                label=f"{HIGH_CRITICAL_MAX:.0f}% drempel",
+                label=self._t("sub2_threshold", val=f"{HIGH_CRITICAL_MAX:.0f}"),
                 zorder=5,
             )
 
@@ -530,8 +578,8 @@ class EvolutionVisualiser:
         if x_b and x_c:
             ax.set_xlim(left=x_b[0] - 0.5, right=x_c[-1] + 0.5)
 
-        ax.set_title("% Negatief per maand", color=ZORGI_GREY_BLUE, fontsize=11, fontweight="bold")
-        ax.set_ylabel("% negatief", fontsize=9, color=ZORGI_BODY_TEXT)
+        ax.set_title(self._t("sub2_title"), color=ZORGI_GREY_BLUE, fontsize=11, fontweight="bold")
+        ax.set_ylabel(self._t("sub2_ylabel"), fontsize=9, color=ZORGI_BODY_TEXT)
         leg = ax.legend(fontsize=8.5, labelcolor=ZORGI_BODY_TEXT)
         _style_legend(leg)
         _style_ax(ax)
@@ -566,7 +614,7 @@ class EvolutionVisualiser:
             linestyle="--",
             linewidth=1.0,
             alpha=0.7,
-            label=f"Drempel {HIGH_CRITICAL_MAX:.0f}%",
+            label=self._t("sub3_threshold", val=f"{HIGH_CRITICAL_MAX:.0f}"),
             zorder=5,
         )
 
@@ -575,10 +623,8 @@ class EvolutionVisualiser:
         ax.set_xlim(-0.75, 1.75)
         ax.set_xticks([0, 1])
         ax.set_xticklabels(labels, fontsize=9, color=ZORGI_BODY_TEXT, fontweight="normal")
-        ax.set_title(
-            "HC-ratio: baseline vs huidig", color=ZORGI_GREY_BLUE, fontsize=11, fontweight="bold"
-        )
-        ax.set_ylabel("% High/Critical", fontsize=9, color=ZORGI_BODY_TEXT)
+        ax.set_title(self._t("sub3_title"), color=ZORGI_GREY_BLUE, fontsize=11, fontweight="bold")
+        ax.set_ylabel(self._t("sub3_ylabel"), fontsize=9, color=ZORGI_BODY_TEXT)
         leg = ax.legend(fontsize=8.5, labelcolor=ZORGI_BODY_TEXT)
         _style_legend(leg)
         _style_ax(ax)
@@ -615,11 +661,11 @@ class EvolutionVisualiser:
             )
 
         if not vergelijkbaar:
-            ax.set_title("\u0394 score per ziekenhuis", color=ZORGI_GREY_BLUE, fontweight="bold")
+            ax.set_title(self._t("sub4_title"), color=ZORGI_GREY_BLUE, fontweight="bold")
             ax.text(
                 0.5,
                 0.5,
-                "Geen vergelijkbare data",
+                self._t("sub4_no_data"),
                 ha="center",
                 va="center",
                 transform=ax.transAxes,
@@ -675,12 +721,12 @@ class EvolutionVisualiser:
             lbl.set_fontweight("normal")
 
         ax.set_title(
-            "\u0394 score per ziekenhuis (beste \u2192 slechtste)",
+            self._t("sub4_title"),
             color=ZORGI_GREY_BLUE,
             fontsize=11,
             fontweight="bold",
         )
-        ax.set_xlabel("\u0394 gemiddelde score", fontsize=9, color=ZORGI_BODY_TEXT)
+        ax.set_xlabel(self._t("sub4_xlabel"), fontsize=9, color=ZORGI_BODY_TEXT)
 
         for yi, delta, b_tot, c_tot in zip(
             y_pos, deltas, baseline_totals, current_totals, strict=False

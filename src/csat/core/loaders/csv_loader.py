@@ -59,9 +59,11 @@ class CsvLoader(BaseLoader):
             raise FileNotFoundError(f"Geen CSV/Excel bestanden gevonden in {self.path}")
 
         bestand = all_files[0]
-        from datetime import UTC, datetime  # noqa: PLC0415
+        from datetime import datetime  # noqa: PLC0415
 
-        mtime = datetime.fromtimestamp(bestand.stat().st_mtime, tz=UTC).strftime("%Y-%m-%d %H:%M")
+        mtime = (
+            datetime.fromtimestamp(bestand.stat().st_mtime).astimezone().strftime("%Y-%m-%d %H:%M")
+        )
         logger.info(f"[CsvLoader] Bestand geladen: {bestand.name} (gewijzigd: {mtime})")
 
         if bestand.suffix == ".csv":

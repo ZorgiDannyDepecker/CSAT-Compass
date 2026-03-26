@@ -277,7 +277,7 @@ class TestExport:
     ) -> None:
         vis = EvolutionVisualiser(evolution_result)
         pad = vis.export(tmp_path, year="2026", timestamp=False)
-        assert pad.name == "evolutie-pharma-2026.png"
+        assert pad.name == "evolutie-pharma-2026-nl.png"
 
     def test_export_bestandsnaam_zonder_year_param(
         self, evolution_result: EvolutionResult, tmp_path: Path
@@ -285,7 +285,7 @@ class TestExport:
         """Zonder year-parameter wordt het jaar uit current_label geëxtraheerd."""
         vis = EvolutionVisualiser(evolution_result)
         pad = vis.export(tmp_path)
-        # current_label is "2026" — moet "evolutie-pharma-2026.png" worden
+        # current_label is "2026" — moet "evolutie-pharma-2026-nl.png" worden
         assert pad.suffix == ".png"
         assert "pharma" in pad.name
 
@@ -325,7 +325,7 @@ class TestExport:
     def test_export_zorgi_pijler(self, zorgi_result: EvolutionResult, tmp_path: Path) -> None:
         vis = EvolutionVisualiser(zorgi_result)
         pad = vis.export(tmp_path, year="2026", timestamp=False)
-        assert pad.name == "evolutie-zorgi-2026.png"
+        assert pad.name == "evolutie-zorgi-2026-nl.png"
 
     def test_export_jaar_met_spaties(
         self, evolution_result: EvolutionResult, tmp_path: Path

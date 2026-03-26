@@ -95,8 +95,8 @@ def main() -> None:
     if args.baseline:
         baseline_periods = _periods_range(args.baseline[0], args.baseline[1])
     else:
-        from datetime import UTC, datetime  # noqa: PLC0415
-        vorig_jaar = datetime.now(tz=UTC).year - 1
+        from datetime import datetime  # noqa: PLC0415
+        vorig_jaar = datetime.now().astimezone().year - 1
         baseline_periods = _periods_range(f"{vorig_jaar}-01", f"{vorig_jaar}-12")
 
     if args.current:
@@ -129,14 +129,15 @@ def main() -> None:
                 totaal += 1
                 print(f"  [OK] [{lang.upper()}] {pillar:<12} -> {pad.name}")
 
-            # Optionele visualisatie per pijler
+            # Optionele visualisatie per pijler — NL én FR PNG
             if args.chart:
                 from csat.config.settings import OUTPUT_PATH  # noqa: PLC0415
 
-                vis = EvolutionVisualiser(result)
-                png_pad = vis.export(OUTPUT_PATH, year=args.year)
-                totaal += 1
-                print(f"  [OK] [PNG] {pillar:<12} -> {png_pad.name}")
+                for lang in ["nl", "fr"]:
+                    vis = EvolutionVisualiser(result, lang=lang)
+                    png_pad = vis.export(OUTPUT_PATH, year=args.year)
+                    totaal += 1
+                    print(f"  [OK] [PNG-{lang.upper()}] {pillar:<12} -> {png_pad.name}")
 
         except Exception as exc:  # noqa: BLE001
             fouten.append(f"{pillar}: {exc}")

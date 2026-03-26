@@ -123,9 +123,9 @@ def main() -> None:  # noqa: C901
         baseline_periods = _periods_range(args.baseline[0], args.baseline[1])
     else:
         # Standaard: volledig vorig jaar
-        from datetime import UTC, datetime  # noqa: PLC0415
+        from datetime import datetime  # noqa: PLC0415
 
-        huidig_jaar = datetime.now(tz=UTC).year
+        huidig_jaar = datetime.now().astimezone().year
         vorig_jaar = huidig_jaar - 1
         baseline_periods = _periods_range(f"{vorig_jaar}-01", f"{vorig_jaar}-12")
 
@@ -163,13 +163,15 @@ def main() -> None:  # noqa: C901
 
     print(f"\n>> {len(exported)} bestand(en) gegenereerd in {exported[0].parent}")
 
-    # Optionele visualisatie
+    # Optionele visualisatie — NL en/of FR PNG afhankelijk van --lang
     if args.chart:
-        vis = EvolutionVisualiser(result)
         vis_output = Path(args.output) if args.output else OUTPUT_PATH
-        png_pad = vis.export(vis_output, year=args.year)
-        print(f"[OK] [PNG] {png_pad}")
-        print(f">> Visualisatie gegenereerd: {png_pad.name}")
+        vis_langs = ["nl", "fr"] if args.lang == "both" else [args.lang]
+        for lang in vis_langs:
+            vis = EvolutionVisualiser(result, lang=lang)
+            png_pad = vis.export(vis_output, year=args.year)
+            print(f"[OK] [PNG-{lang.upper()}] {png_pad}")
+        print(f">> {len(vis_langs)} visualisatie(s) gegenereerd")
 
 
 if __name__ == "__main__":

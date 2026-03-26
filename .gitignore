@@ -23,6 +23,7 @@ data/
 output/
 logs/
 archive/
+WIP/
 
 # Mypy / Ruff / Pytest cache
 .mypy_cache/
