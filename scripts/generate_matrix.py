@@ -109,6 +109,12 @@ def parse_args() -> argparse.Namespace:
         choices=_LANG_CHOICES,
         help="Taal van de output: nl, fr of both (standaard: both)",
     )
+    parser.add_argument(
+        "--output",
+        default=None,
+        metavar="MAP",
+        help=f"Uitvoermap (standaard: {OUTPUT_PATH})",
+    )
     return parser.parse_args()
 
 
@@ -132,7 +138,7 @@ def main() -> None:
     pillar = args.pillar
     pillar_naam = PILLAR_REGISTRY[pillar].get("report_name", pillar.upper())
 
-    print(f"\n[*] CSAT-Compass — Vergelijkingsmatrix")
+    print("\n[*] CSAT-Compass — Vergelijkingsmatrix")
     print(f"    Pijler  : {pillar_naam}")
     print(f"    Periode : {args.from_period} -> {to_period} ({len(periodes)} maand(en))")
     print(f"    Taal    : {args.lang}")
@@ -160,9 +166,10 @@ def main() -> None:
     print()
     talen = ["nl", "fr"] if args.lang == "both" else [args.lang]
     gegenereerde_bestanden: list[Path] = []
+    output_dir = Path(args.output) if args.output else OUTPUT_PATH
 
     for taal in talen:
-        exporter = MatrixExporter(lang=taal, output_path=OUTPUT_PATH)
+        exporter = MatrixExporter(lang=taal, output_path=output_dir)
         pad = exporter.export(resultaten)
         gegenereerde_bestanden.append(pad)
 

@@ -19,7 +19,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 
 from csat.config.pillars import PILLAR_REGISTRY  # noqa: E402
-from csat.config.settings import CSV_FALLBACK_PATH, DB_CONN, LOG_PATH  # noqa: E402
+from csat.config.settings import CSV_FALLBACK_PATH, DB_CONN, LOG_PATH, OUTPUT_PATH  # noqa: E402
 from csat.core.analysers.evolution_analyser import EvolutionAnalyser  # noqa: E402
 from csat.core.exporters.evolution_exporter import EvolutionExporter  # noqa: E402
 from csat.core.exporters.evolution_visualiser import EvolutionVisualiser  # noqa: E402, F401
@@ -87,6 +87,12 @@ def main() -> None:
         default=False,
         help="Forceer CSV-loader (omzeilt SQL — voor onderhoud of reproduceerbare runs)",
     )
+    parser.add_argument(
+        "--output",
+        default=None,
+        metavar="MAP",
+        help=f"Uitvoermap (standaard: {OUTPUT_PATH})",
+    )
     args = parser.parse_args()
 
     setup_logger(LOG_PATH)
@@ -114,6 +120,9 @@ def main() -> None:
     loader = get_loader(DB_CONN, CSV_FALLBACK_PATH, force_csv=args.force_csv)
     df = loader.load()
 
+    # Uitvoermap bepalen
+    output_dir = Path(args.output) if args.output else OUTPUT_PATH
+
     # Loop over pijlers
     totaal = 0
     fouten: list[str] = []
@@ -124,18 +133,16 @@ def main() -> None:
             result = analyser.analyse(baseline_periods, current_periods)
 
             for lang in ["nl", "fr"]:
-                exporter = EvolutionExporter(lang=lang)
+                exporter = EvolutionExporter(lang=lang, output_path=output_dir)
                 pad = exporter.export(result, year=args.year)
                 totaal += 1
                 print(f"  [OK] [{lang.upper()}] {pillar:<12} -> {pad.name}")
 
             # Optionele visualisatie per pijler — NL én FR PNG
             if args.chart:
-                from csat.config.settings import OUTPUT_PATH  # noqa: PLC0415
-
                 for lang in ["nl", "fr"]:
                     vis = EvolutionVisualiser(result, lang=lang)
-                    png_pad = vis.export(OUTPUT_PATH, year=args.year)
+                    png_pad = vis.export(output_dir, year=args.year, timestamp=False)
                     totaal += 1
                     print(f"  [OK] [PNG-{lang.upper()}] {pillar:<12} -> {png_pad.name}")
 

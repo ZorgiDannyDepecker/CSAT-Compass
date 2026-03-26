@@ -169,7 +169,7 @@ def main() -> None:  # noqa: C901
         vis_langs = ["nl", "fr"] if args.lang == "both" else [args.lang]
         for lang in vis_langs:
             vis = EvolutionVisualiser(result, lang=lang)
-            png_pad = vis.export(vis_output, year=args.year)
+            png_pad = vis.export(vis_output, year=args.year, timestamp=False)
             print(f"[OK] [PNG-{lang.upper()}] {png_pad}")
         print(f">> {len(vis_langs)} visualisatie(s) gegenereerd")
 

@@ -1,7 +1,7 @@
 # 📓 CSAT-Compass - Project Journal
 
-**Versie:** 1.2  
-**Laatst bijgewerkt:** 20/03/2026
+**Versie:** 1.8  
+**Laatst bijgewerkt:** 26/03/2026
 
 **Doel:** Chronologisch logboek van beslissingen, bevindingen en voortgang  
 **Type:** Reference  
@@ -21,6 +21,11 @@
 - [2026-03-17 — Projectstart](#2026-03-17--projectstart)
 - [2026-03-18 — Architectuur MCQ-sessie](#2026-03-18--architectuur-mcq-sessie)
 - [2026-03-20 — Fase 1 afsluiting + live DB-validatie](#2026-03-20--fase-1-afsluiting--live-db-validatie)
+- [2026-03-22 — Fase 2 afsluiting: Jinja2 + i18n + ReportExporter](#2026-03-22--fase-2-afsluiting-jinja2--i18n--reportexporter)
+- [2026-03-22 — Fase 3a afsluiting: MatrixExporter](#2026-03-22--fase-3a-afsluiting-matrixexporter)
+- [2026-03-23 — Fase 3b + 3c afsluiting: EvolutionAnalyser + EvolutionExporter](#2026-03-23--fase-3b--3c-afsluiting-evolutionanalyser--evolutionexporter)
+- [2026-03-25 — Fase 3d afsluiting: EvolutionVisualiser + aanvullingen](#2026-03-25--fase-3d-afsluiting-evolutionvisualiser--aanvullingen)
+- [2026-03-26 — Fase 3e afsluiting: run_monthly.py](#2026-03-26--fase-3e-afsluiting-run_monthlypy)
 - [Versiehistorie](#versiehistorie)
 
 ---
@@ -121,6 +126,140 @@
 
 ---
 
+## 2026-03-22 — Fase 2 afsluiting: Jinja2 + i18n + ReportExporter
+
+### Technische afronding
+
+- `ReportExporter` geïmplementeerd — Jinja2 + i18n naar NL/FR markdown
+- `src/csat/i18n/nl.json` en `fr.json` aangemaakt met alle labels en teksten
+- `docs/templates/rapport-nl.md.j2` en `rapport-fr.md.j2` volledig uitgewerkt
+- `scripts/generate_report.py` als CLI-runner voor enkelvoudige rapporten
+- Eerste PHARMA-rapporten gegenereerd: `rapport-2026-01-nl.md` + `rapport-2026-01-fr.md`
+
+### Beslissingen
+
+- Tweetaligheid volledig via i18n JSON — nooit labels hardcoden in templates
+- `_format_number()` en `_format_date()` als gedeelde helperfuncties in `report_exporter.py`
+
+### Teststand
+
+- Cumulatief einde Fase 2: **~250 tests** — 100% coverage
+
+---
+
+## 2026-03-22 — Fase 3a afsluiting: MatrixExporter
+
+### Technische afronding
+
+- `MatrixExporter` geïmplementeerd — genereert vergelijkingsmatrix NL + FR
+- `docs/templates/matrix-nl.md.j2` en `matrix-fr.md.j2` aangemaakt
+- `scripts/generate_matrix.py` als CLI-runner (`--from`, `--to`, `--pillar`, `--lang`)
+- Output: `matrix-{jaar}-nl.md` / `matrix-{jaar}-fr.md`
+
+### Beslissingen
+
+- Matrix-scope: intra-pijler (ziekenhuis × categorie) voor PHARMA
+- `--lang both` als standaard — altijd NL én FR genereren
+
+### Teststand
+
+- Cumulatief einde Fase 3a: **~300 tests** — 100% coverage
+
+---
+
+## 2026-03-23 — Fase 3b + 3c afsluiting: EvolutionAnalyser + EvolutionExporter
+
+### Technische afronding Fase 3b (EvolutionAnalyser)
+
+- `EvolutionResult` dataclass geïmplementeerd met alle vergelijkingsmetrieken
+- `EvolutionAnalyser` berekent baseline vs. huidig jaar voor elke pijler:
+  - Maandelijkse tijdlijn, issue_type breakdown, prioriteit, responstijd per score
+  - Ziekenhuisvergelijking (verdwenen / nieuw / delta per ziekenhuis)
+  - Negatieve feedbackthema's via keyword-matching
+  - KPI-statusevaluatie (OK / Aandacht / Risico)
+- **ADR-009** gedocumenteerd: KPI-drempel avg_score ≥ 4,0
+- **ADR-010** gedocumenteerd: `satisfaction_date` als datumbasis voor periodefiltering
+- 100 unit tests voor EvolutionAnalyser
+
+### Technische afronding Fase 3c (EvolutionExporter)
+
+- `EvolutionExporter` geïmplementeerd — Jinja2 + i18n naar NL/FR evolutierapport
+- `docs/templates/evolutie-nl.md.j2` en `evolutie-fr.md.j2` — 8-sectie structuur:
+  kerncijfers, tijdlijn, KPI-status, per type, per prioriteit, ziekenhuizen, thema's, conclusie
+- `scripts/generate_evolution.py` — enkelvoudige pijler (`--pillar`, `--baseline`, `--current`, `--lang`)
+- `scripts/generate_all_evolutions.py` — alle 5 pijlers in één run
+- `_fmt_delta()` helperfunctie voor delta-weergave met +/- prefix (ZORGI-getalnotatie)
+- 54 unit tests voor EvolutionExporter
+
+### Teststand
+
+- Cumulatief einde Fase 3b + 3c: **472 tests** — 100% coverage — CI stabiel
+
+---
+
+## 2026-03-25 — Fase 3d afsluiting: EvolutionVisualiser + aanvullingen
+
+### Technische afronding Fase 3d (EvolutionVisualiser)
+
+- `EvolutionVisualiser` geïmplementeerd — matplotlib 4-subplot PNG per pijler
+- Subplots: gem. score tijdlijn / % negatief / HC-ratio / delta per ziekenhuis
+- `--chart` vlag toegevoegd aan `generate_evolution.py` en `generate_all_evolutions.py`
+- 44 unit tests
+
+### Aanvullingen buiten originele scope (allemaal productierijp opgeleverd)
+
+| Toevoeging | Bestand(en) | Reden |
+|---|---|---|
+| ZORGI huisstijl | `src/csat/utils/zorgi_theme.py` | Centrale kleurconstanten — single source of truth |
+| NL + FR PNG | `evolution_visualiser.py` — `lang` parameter | Tweetaligheidsbeleid consequent doorgetrokken |
+| CSV-fallback robuustheid | `loaders/__init__.py` · `csv_loader.py` | 0-rijen detectie + duidelijke foutmelding |
+| `--force-csv` vlag | `generate_evolution.py` · `generate_all_evolutions.py` | Reproduceerbare runs bij SQL-storing |
+| `--snapshot` vlag | `scripts/export_data.py` | Automatische kopie naar `data/fallback/` |
+| Lokale tijdstempel | `evolution_visualiser.py` · `csv_loader.py` | UTC vervangen door lokale systeemtijd |
+
+### Beslissingen
+
+- **ADR-011** gedocumenteerd: `satisfaction_date` als datumbasis in alle 4 visualisatiesubplots
+- **ADR-012** gedocumenteerd: nieuwe instappers (baseline_total=0) uitgesloten uit delta-ranking subplot 4 — statistisch misleidend zonder historische vergelijking
+- PNG-bestandsnaam: `evolutie-{pillar}-{jaar}-{lang}.png` (NL + FR apart)
+
+### Teststand
+
+- Cumulatief einde Fase 3d: **515 tests** — 100% coverage — CI stabiel (Python 3.11 / 3.12 / 3.13)
+
+---
+
+## 2026-03-26 — Fase 3e afsluiting: run_monthly.py
+
+### Technische afronding
+
+- `scripts/run_monthly.py` geïmplementeerd — maandelijkse batch-runner
+- Argumenten: `--month`, `--pillar`, `--no-charts`, `--force-csv`
+- Periodelogica volledig automatisch afgeleid uit doelmaand (`_derive_periods()`)
+- Standaard: vorige maand, alle 5 pijlers, charts aan
+- Consolefeedback: stapsgewijze voortgang + samenvatting (totaal bestanden + duur)
+- 37 unit tests via subprocess-mocks
+
+### Beslissingen
+
+- `run_monthly.py` roept de generators aan via `subprocess.run` (geen directe imports)
+  → onafhankelijk testbaar zonder DB of bestanden
+- Output naar datumstempel-submap in `output/YYYY-MM-DD_HHMM/` (geen overschrijving)
+
+### Documentatieopkuis (26/03/2026)
+
+- WIP-map volledig gearchiveerd naar `archive/WIP/20260326-1645/` (23 bestanden)
+- 4 nieuwe docs aangemaakt: `fase3c-evolutie-exporter.md`, `fase3e-run-monthly.md`,
+  `operations-runbook.md`, `tools/run-monthly.md`
+- `implementatie-gids.md` bijgewerkt: fase 3e toegevoegd (versie 1.7)
+- `projectplan-highlevel.md` bijgewerkt: fase 1–3 als Compleet gemarkeerd (versie 1.1)
+
+### Teststand
+
+- Cumulatief einde Fase 3e: **563 tests** — 100% coverage — CI stabiel
+
+---
+
 ## Versiehistorie
 
 | Versie | Datum | Wijzigingen | Auteur               |
@@ -128,6 +267,12 @@
 | 1.0 | 17/03/2026 | Initiële versie — projectstart + architectuur-sessie | Danny Depecker       |
 | 1.1 | 18/03/2026 | ADR-001 t/m ADR-005 toegevoegd | Danny Depecker       |
 | 1.2 | 20/03/2026 | Fase 1 afsluiting — live DB-validatie, ADR-007, exports | Danny Depecker + GHC |
+| 1.3 | 22/03/2026 | Fase 2 afsluiting — ReportExporter, i18n, templates | Danny Depecker + GHC |
+| 1.4 | 22/03/2026 | Fase 3a afsluiting — MatrixExporter | Danny Depecker + GHC |
+| 1.5 | 23/03/2026 | Fase 3b + 3c afsluiting — EvolutionAnalyser, EvolutionExporter, 472 tests | Danny Depecker + GHC |
+| 1.6 | 25/03/2026 | Fase 3d afsluiting — EvolutionVisualiser, ADR-011/012, 515 tests | Danny Depecker + GHC |
+| 1.7 | 26/03/2026 | Fase 3e afsluiting — run_monthly.py, 563 tests | Danny Depecker + GHC |
+| 1.8 | 26/03/2026 | Documentatieopkuis: WIP gearchiveerd, 4 nieuwe docs, 3 docs bijgewerkt | Danny Depecker + GHC |
 
 ---
 *ZORGI — Danny Depecker*
