@@ -19,12 +19,12 @@
 |---|---|---|---|---|
 | Fase 1 | [fase1-data-analyse.md](fasen/fase1-data-analyse.md) | Hybride loader + PHARMA-analyser | M | ✅ Compleet |
 | Fase 2 | [fase2-rapportage.md](fasen/fase2-rapportage.md) | Jinja2-templates + i18n NL/FR | M | ✅ Compleet |
- Fase 3a  [fase3a-matrix.md](fasen/fase3a-matrix.md)  MatrixExporter — maand/kwartaal/jaar  S  ✅ Compleet
- Fase 3b  [fase3b-evolutie-analyser.md](fasen/fase3b-evolutie-analyser.md)  EvolutionResult + EvolutionAnalyser  M  ✅ Compleet
- Fase 3c  [fase3c-evolutie-exporter.md](fasen/fase3c-evolutie-exporter.md)  EvolutionExporter + templates NL/FR  M  ✅ Compleet
- Fase 3d  [fase3d-evolutie-visualisatie.md](fasen/fase3d-evolutie-visualisatie.md)  Matplotlib 4-subplot + CLI runner  M  ✅ Compleet
- Fase 3e  [fase3e-run-monthly.md](fasen/fase3e-run-monthly.md)  Maandelijkse batch-runner  S  ✅ Compleet
- Fase 4  [fase4-pijlers.md](fasen/fase4-pijlers.md)  CARE / CARE ADMIN / ERP4HC  M  ⏳ Gepland
+| Fase 3a | [fase3a-matrix.md](fasen/fase3a-matrix.md) | MatrixExporter — maand/kwartaal/jaar | S | ✅ Compleet |
+| Fase 3b | [fase3b-evolutie-analyser.md](fasen/fase3b-evolutie-analyser.md) | EvolutionResult + EvolutionAnalyser | M | ✅ Compleet |
+| Fase 3c | [fase3c-evolutie-exporter.md](fasen/fase3c-evolutie-exporter.md) | EvolutionExporter + templates NL/FR | M | ✅ Compleet |
+| Fase 3d | [fase3d-evolutie-visualisatie.md](fasen/fase3d-evolutie-visualisatie.md) | Matplotlib 4-subplot + CLI runner | M | ✅ Compleet |
+| Fase 3e | [fase3e-run-monthly.md](fasen/fase3e-run-monthly.md) | Maandelijkse batch-runner | S | ✅ Compleet |
+| Fase 4 | [fase4-pijlers.md](fasen/fase4-pijlers.md) | CARE / CARE ADMIN / ERP4HC | M | ⏳ Gepland |
 | Fase 5 | [fase5-dashboard.md](fasen/fase5-dashboard.md) | Streamlit dashboard NL/FR | L | ⏳ Gepland |
 | Fase 6 | [fase6-zorgi-overall.md](fasen/fase6-zorgi-overall.md) | ZORGI-aggregatie | S | ⏳ Gepland |
 
@@ -42,12 +42,12 @@
 | Fase 3a | S | 4–8u | MatrixExporter — bouwt op Fase 2-infrastructuur |
 | Fase 3b | M | 8–24u | EvolutionResult dataclass + EvolutionAnalyser (issue_type, priority, responstijd, hospitals, thema's) |
 | Fase 3c | M | 8–24u | EvolutionExporter + 11 template-secties + conditionele narratieve blokken NL/FR |
- Fase 3d  M  8–24u  Matplotlib 4-subplot visualisatie + generate_evolution.py CLI runner
- Fase 3e  S  4–8u  Batch-runner run_monthly.py — combineert matrix + evolutie + charts
- Fase 4  M  8–24u  3 pijlers  (config + analyser + tests), repetitief maar elk met eigen categorien
+| Fase 3d | M | 8–24u | Matplotlib 4-subplot visualisatie + generate_evolution.py CLI runner |
+| Fase 3e | S | 4–8u | Batch-runner run_monthly.py — combineert matrix + evolutie + charts |
+| Fase 4 | M | 8–24u | 3 pijlers (config + analyser + tests), repetitief maar elk met eigen categorieën |
 | Fase 5 | L | 24–48u | Dashboard altijd meer werk: UX, filtering, plotly charts, NL/FR toggle |
 | Fase 6 | S | 4–8u | Aggregatie van bestaande pijlers, geen nieuwe infrastructuur |
- **Totaal**  **XXXL**  **92–192u**  Combinatie van M+M+S+M+M+M+S+M+L+S
+| **Totaal** | **XXXL** | **92–192u** | Combinatie van M+M+S+M+M+M+S+M+L+S |
 
 ### T-shirt legenda
 
@@ -140,6 +140,6 @@ src/csat/utils/zorgi_theme.py                      ← pure constanten, geen fra
 | 1.2 | 19/03/2026 | T-shirt tabellen herzien: uurbandbreedte + gewicht | Danny Depecker + GHC |
 | 1.3 | 22/03/2026 | Fase 2 status bijgewerkt naar Compleet | GHC |
 | 1.4 | 23/03/2026 | Fase 3 hernoemd naar 3a; sub-fasen 3b/3c/3d toegevoegd (Option C — EvolutionExporter); Mermaid diagram uitgebreid | Danny Depecker + GHC |
- 1.5  23/03/2026  Fase 3b + 3c status bijgewerkt naar Compleet (472 tests, 100% coverage)  GHC
- 1.6  25/03/2026  Fase 3d status Compleet; kleurarchitectuur sectie toegevoegd (zorgi_theme.py 3-laags)  Danny Depecker + GHC
- 1.7  26/03/2026  Fase 3e toegevoegd (run_monthly.py); mermaid diagram bijgewerkt; T-shirt tabel en totaal bijgewerkt  Danny Depecker + GHC
+| 1.5 | 23/03/2026 | Fase 3b + 3c status bijgewerkt naar Compleet (472 tests, 100% coverage) | GHC |
+| 1.6 | 25/03/2026 | Fase 3d status Compleet; kleurarchitectuur sectie toegevoegd (zorgi_theme.py 3-laags) | Danny Depecker + GHC |
+| 1.7 | 26/03/2026 | Fase 3e toegevoegd (run_monthly.py); mermaid diagram bijgewerkt; T-shirt tabel en totaal bijgewerkt | Danny Depecker + GHC |

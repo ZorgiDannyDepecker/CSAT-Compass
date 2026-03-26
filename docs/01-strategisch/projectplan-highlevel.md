@@ -176,12 +176,12 @@ PHARMA is de **referentie-implementatie**. Elke volgende pijler is een kopie + a
 
 | Fase | Inhoud | Deliverables | Status |
 |---|---|---|---|
- **Fase 1**  Hybride loader + PHARMA-analyser  Data ingeladen, KPI's berekend  ✅ Compleet
- **Fase 2**  Jinja2-templates + i18n NL/FR  Eerste rapporten PHARMA NL+FR  ✅ Compleet
- **Fase 3**  Matrix + Evolutie + Visualisatie + Batch-runner  Fasen 3a–3e voltooid  ✅ Compleet
- **Fase 4**  CARE / CARE ADMIN / ERP4HC  Alle 4 pillar-analysers actief  ⏳ Gepland
- **Fase 5**  Streamlit dashboard  Interactief dashboard NL/FR  ⏳ Gepland
- **Fase 6**  ZORGI overall aggregatie  ZORGI-rapport + ZORGI-matrix  ⏳ Gepland
+| **Fase 1** | Hybride loader + PHARMA-analyser | Data ingeladen, KPI's berekend | ✅ Compleet |
+| **Fase 2** | Jinja2-templates + i18n NL/FR | Eerste rapporten PHARMA NL+FR | ✅ Compleet |
+| **Fase 3** | Matrix + Evolutie + Visualisatie + Batch-runner | Fasen 3a–3e voltooid | ✅ Compleet |
+| **Fase 4** | CARE / CARE ADMIN / ERP4HC | Alle 4 pillar-analysers actief | ⏳ Gepland |
+| **Fase 5** | Streamlit dashboard | Interactief dashboard NL/FR | ⏳ Gepland |
+| **Fase 6** | ZORGI overall aggregatie | ZORGI-rapport + ZORGI-matrix | ⏳ Gepland |
 
 ### 6.2 Migratieaanpak
 
@@ -272,5 +272,5 @@ CSAT-Compass/
 
 | Versie | Datum | Wijzigingen | Auteur               |
 | ------ | ---------- | ----------------------------------------------- |----------------------|
- 1.0  18/03/2026  Initile versie — basis advies MCQ-sessie verwerkt  Danny Depecker + GHC
- 1.1  26/03/2026  Fase-statussen bijgewerkt: fasen 1 t/m 3 compleet  Danny Depecker + GHC
+| 1.0 | 18/03/2026 | Initiële versie — basis advies MCQ-sessie verwerkt | Danny Depecker + GHC |
+| 1.1 | 26/03/2026 | Fase-statussen bijgewerkt: fasen 1 t/m 3 compleet | Danny Depecker + GHC |

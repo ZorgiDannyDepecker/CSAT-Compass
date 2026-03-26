@@ -83,7 +83,7 @@ Vereist dat `data/fallback/` een recente CSV-export bevat (zie `export_data.py`)
 
 Alle bestanden worden weggeschreven naar een **datumstempel-submap** in `output/`:
 
-```
+```text
 output/
   YYYY-MM-DD_HHMM/
     matrix-{jaar}-nl.md

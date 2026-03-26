@@ -88,7 +88,7 @@ def _derive_periods(target_month: str) -> dict[str, str]:
 
 ## 5. Uitvoeringsvolgorde
 
-```
+```text
 Stap 1 — Matrix (generate_matrix.py)
          --from {huidig_jaar}-01 --to {target_month}
          --pillar pharma
@@ -109,7 +109,7 @@ Stap 3 — Samenvatting tonen (totaal bestanden + duur)
 
 ## 6. Verwachte output (--month 2026-03, alle pijlers)
 
-```
+```text
 [CSAT-Compass] Maandelijkse run — maart 2026
 ============================================
 Doelmaand  : 2026-03
