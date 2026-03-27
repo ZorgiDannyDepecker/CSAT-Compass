@@ -26,3 +26,5 @@ jobs:
             !**/node_modules/**
             !archive/**
             !WIP/**
+            !output/**
+            !.pytest_cache/**

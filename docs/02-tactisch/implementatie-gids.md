@@ -1,7 +1,7 @@
 # CSAT-Compass - Implementatiegids
 
-**Versie:** 1.7  
-**Laatst bijgewerkt:** 26/03/2026  
+**Versie:** 1.8
+**Laatst bijgewerkt:** 27/03/2026
 
 **Doel:** Index van alle implementatiefasen met status en verwijzingen  
 **Type:** Guide  
@@ -24,6 +24,7 @@
 | Fase 3c | [fase3c-evolutie-exporter.md](fasen/fase3c-evolutie-exporter.md) | EvolutionExporter + templates NL/FR | M | ✅ Compleet |
 | Fase 3d | [fase3d-evolutie-visualisatie.md](fasen/fase3d-evolutie-visualisatie.md) | Matplotlib 4-subplot + CLI runner | M | ✅ Compleet |
 | Fase 3e | [fase3e-run-monthly.md](fasen/fase3e-run-monthly.md) | Maandelijkse batch-runner | S | ✅ Compleet |
+| Fase 3f | [fase3f-evolutie-rapport-verfijning.md](fasen/fase3f-evolutie-rapport-verfijning.md) | Evolutierapport verfijning — inhoud TBD | S | 🔄 In planning |
 | Fase 4 | [fase4-pijlers.md](fasen/fase4-pijlers.md) | CARE / CARE ADMIN / ERP4HC | M | ⏳ Gepland |
 | Fase 5 | [fase5-dashboard.md](fasen/fase5-dashboard.md) | Streamlit dashboard NL/FR | L | ⏳ Gepland |
 | Fase 6 | [fase6-zorgi-overall.md](fasen/fase6-zorgi-overall.md) | ZORGI-aggregatie | S | ⏳ Gepland |
@@ -44,10 +45,11 @@
 | Fase 3c | M | 8–24u | EvolutionExporter + 11 template-secties + conditionele narratieve blokken NL/FR |
 | Fase 3d | M | 8–24u | Matplotlib 4-subplot visualisatie + generate_evolution.py CLI runner |
 | Fase 3e | S | 4–8u | Batch-runner run_monthly.py — combineert matrix + evolutie + charts |
+| Fase 3f | S | 4–8u | Evolutierapport verfijning — templates, metrics, narratief (inhoud TBD) |
 | Fase 4 | M | 8–24u | 3 pijlers (config + analyser + tests), repetitief maar elk met eigen categorieën |
 | Fase 5 | L | 24–48u | Dashboard altijd meer werk: UX, filtering, plotly charts, NL/FR toggle |
 | Fase 6 | S | 4–8u | Aggregatie van bestaande pijlers, geen nieuwe infrastructuur |
-| **Totaal** | **XXXL** | **92–192u** | Combinatie van M+M+S+M+M+M+S+M+L+S |
+| **Totaal** | **XXXL** | **96–200u** | Combinatie van M+M+S+M+M+M+S+S+M+L+S |
 
 ### T-shirt legenda
 
@@ -78,8 +80,9 @@ graph TD
     F3a[Fase 3a: MatrixExporter]
     F3b[Fase 3b: EvolutionAnalyser]
     F3c[Fase 3c: EvolutionExporter]
-    F3d[Fase 3d: Visualisatie + CLI]
-    F3e[Fase 3e: Batch-runner run_monthly]
+    F3d[Fase 3d: EvolutionVisualiser]
+    F3e[Fase 3e: run_monthly.py]
+    F3f[Fase 3f: rapport verfijning]
     F4[Fase 4: CARE / CARE ADMIN / ERP4HC]
     F5[Fase 5: Streamlit dashboard]
     F6[Fase 6: ZORGI overall]
@@ -93,7 +96,9 @@ graph TD
     F3c --> F3d
     F3a --> F3e
     F3d --> F3e
+    F3c --> F3f
     F3e --> F4
+    F3f --> F4
     F4 --> F5
     F4 --> F6
     F5 --> F6
@@ -143,3 +148,4 @@ src/csat/utils/zorgi_theme.py                      ← pure constanten, geen fra
 | 1.5 | 23/03/2026 | Fase 3b + 3c status bijgewerkt naar Compleet (472 tests, 100% coverage) | GHC |
 | 1.6 | 25/03/2026 | Fase 3d status Compleet; kleurarchitectuur sectie toegevoegd (zorgi_theme.py 3-laags) | Danny Depecker + GHC |
 | 1.7 | 26/03/2026 | Fase 3e toegevoegd (run_monthly.py); mermaid diagram bijgewerkt; T-shirt tabel en totaal bijgewerkt | Danny Depecker + GHC |
+| 1.8 | 27/03/2026 | Fase 3f toegevoegd (in planning); mermaid diagram + t-shirt tabel bijgewerkt | Danny Depecker + GHC |

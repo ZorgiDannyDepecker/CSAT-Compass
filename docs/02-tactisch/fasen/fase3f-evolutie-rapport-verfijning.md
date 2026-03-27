@@ -77,7 +77,7 @@ De verbeteringen kunnen betrekking hebben op (niet-limitatief):
 
 ## 5. Architectuur — betrokken componenten
 
-```
+```text
 EvolutionAnalyser.analyse()
     └─► EvolutionResult (dataclass)
             └─► EvolutionExporter.export()

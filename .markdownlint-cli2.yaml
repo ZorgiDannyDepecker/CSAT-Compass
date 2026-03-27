@@ -2,3 +2,5 @@ ignores:
   - ".venv/**"
   - "archive/**"
   - "WIP/**"
+  - "output/**"
+  - ".pytest_cache/**"

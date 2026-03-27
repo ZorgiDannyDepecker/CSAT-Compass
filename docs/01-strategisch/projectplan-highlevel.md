@@ -1,7 +1,7 @@
 # CSAT-Compass - Projectplan High-Level
 
-**Versie:** 1.1  
-**Laatst bijgewerkt:** 26/03/2026  
+**Versie:** 1.2
+**Laatst bijgewerkt:** 27/03/2026
 
 **Doel:** Fundament en referentiedocument voor de volledige CSAT-Compass opzet  
 **Type:** Planning  
@@ -179,6 +179,7 @@ PHARMA is de **referentie-implementatie**. Elke volgende pijler is een kopie + a
 | **Fase 1** | Hybride loader + PHARMA-analyser | Data ingeladen, KPI's berekend | ✅ Compleet |
 | **Fase 2** | Jinja2-templates + i18n NL/FR | Eerste rapporten PHARMA NL+FR | ✅ Compleet |
 | **Fase 3** | Matrix + Evolutie + Visualisatie + Batch-runner | Fasen 3a–3e voltooid | ✅ Compleet |
+| **Fase 3f** | Evolutierapport verfijning | Inhoud TBD | 🔄 In planning |
 | **Fase 4** | CARE / CARE ADMIN / ERP4HC | Alle 4 pillar-analysers actief | ⏳ Gepland |
 | **Fase 5** | Streamlit dashboard | Interactief dashboard NL/FR | ⏳ Gepland |
 | **Fase 6** | ZORGI overall aggregatie | ZORGI-rapport + ZORGI-matrix | ⏳ Gepland |
@@ -274,3 +275,4 @@ CSAT-Compass/
 | ------ | ---------- | ----------------------------------------------- |----------------------|
 | 1.0 | 18/03/2026 | Initiële versie — basis advies MCQ-sessie verwerkt | Danny Depecker + GHC |
 | 1.1 | 26/03/2026 | Fase-statussen bijgewerkt: fasen 1 t/m 3 compleet | Danny Depecker + GHC |
+| 1.2 | 27/03/2026 | Fase 3f toegevoegd als aparte rij (in planning) | Danny Depecker + GHC |
