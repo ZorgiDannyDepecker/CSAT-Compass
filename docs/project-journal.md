@@ -1,7 +1,7 @@
 # 📓 CSAT-Compass - Project Journal
 
-**Versie:** 1.8  
-**Laatst bijgewerkt:** 26/03/2026
+**Versie:** 1.9
+**Laatst bijgewerkt:** 27/03/2026
 
 **Doel:** Chronologisch logboek van beslissingen, bevindingen en voortgang  
 **Type:** Reference  
@@ -26,6 +26,7 @@
 - [2026-03-23 — Fase 3b + 3c afsluiting: EvolutionAnalyser + EvolutionExporter](#2026-03-23--fase-3b--3c-afsluiting-evolutionanalyser--evolutionexporter)
 - [2026-03-25 — Fase 3d afsluiting: EvolutionVisualiser + aanvullingen](#2026-03-25--fase-3d-afsluiting-evolutionvisualiser--aanvullingen)
 - [2026-03-26 — Fase 3e afsluiting: run_monthly.py](#2026-03-26--fase-3e-afsluiting-run_monthlypy)
+- [2026-03-27 — Fase 3d verfijning + Fase 3f opstart](#2026-03-27--fase-3d-verfijning--fase-3f-opstart)
 - [Versiehistorie](#versiehistorie)
 
 ---
@@ -260,6 +261,50 @@
 
 ---
 
+## 2026-03-27 — Fase 3d verfijning + Fase 3f opstart
+
+### Technische afronding — subplot 3 volledige herwerking
+
+Subplot 3 van de `EvolutionVisualiser` (kwadrant linksonder in de PNG) werd volledig
+vervangen: het eenvoudige HC-ratio staafdiagram maakte plaats voor een informatierijker
+**gestapeld prioriteitscompositiediagram**.
+
+**Nieuw subplot 3:**
+
+- Gestapelde staven per maand: Blocker / Critical / Major / Minor / Trivial (% van totaal)
+- HC-ratio lijndiagram bovenop de staven (Blocker + Critical)
+- Ticket-annotaties boven elke staaf (absolute aantallen, grijs)
+- Legenda op één rij met `99`-marker als uitleg voor de annotaties
+- `ylim(0, 118)` — ruimte boven 100% voor annotaties + legenda
+- Wit legenda-kader binnenin de plotruimte (consistent met kwadranten 1, 2 en 4)
+
+**Layout-verbeteringen iteratief doorgevoerd:**
+
+- Subplot 2 legenda verplaatst naar rechtsboven (consistent met subplot 4)
+- Trivial-kleur aangepast naar `#b8cfe0` (zichtbaar zonder edgecolor)
+- Annotaties: `fontsize=7`, `color=ZORGI_GREY_BLUE` (treedt terug)
+- 5 lint-issues opgelost: `N806`, `C901 noqa`, `RUF005`, `RUF002/003`, `W605`
+
+### Beslissingen
+
+- `PRIORITY_COLORS` als module-niveau constante gedefinieerd (niet binnen methode)
+- `noqa: C901` toegevoegd aan `_draw_subplot3_priority_composition`
+  — complexiteit van 14 is aanvaardbaar voor één visualisatiemethode
+- `ylim = 118` (niet 112): voldoende ruimte voor zowel ticket-annotaties als legenda
+
+### Fase 3f opstart
+
+- Fase-document aangemaakt: `docs/02-tactisch/fasen/fase3f-evolutie-rapport-verfijning.md`
+- Handover aangemaakt: `WIP/handover-fase3f-2026-03-27.md`
+- Conversatie-opener aangemaakt: `WIP/conversatie-opener-fase3f.md`
+- Inhoud fase 3f (concrete verbeteringen) wordt aangeleverd door Danny Depecker
+
+### Teststand
+
+- Cumulatief einde 27/03: **570 tests** — 100% coverage — CI stabiel (Python 3.11 / 3.12 / 3.13)
+
+---
+
 ## Versiehistorie
 
 | Versie | Datum | Wijzigingen | Auteur               |
@@ -273,6 +318,7 @@
 | 1.6 | 25/03/2026 | Fase 3d afsluiting — EvolutionVisualiser, ADR-011/012, 515 tests | Danny Depecker + GHC |
 | 1.7 | 26/03/2026 | Fase 3e afsluiting — run_monthly.py, 563 tests | Danny Depecker + GHC |
 | 1.8 | 26/03/2026 | Documentatieopkuis: WIP gearchiveerd, 4 nieuwe docs, 3 docs bijgewerkt | Danny Depecker + GHC |
+| 1.9 | 27/03/2026 | Fase 3d verfijning (subplot 3 herwerking, 570 tests) + Fase 3f opstart | Danny Depecker + GHC |
 
 ---
 *ZORGI — Danny Depecker*

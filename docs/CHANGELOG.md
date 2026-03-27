@@ -37,6 +37,35 @@ Formaat gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.0.0/).
 
 ---
 
+## [Fase 3d verfijning + Fase 3f opstart] — 27/03/2026
+
+### Toegevoegd
+
+- `docs/02-tactisch/fasen/fase3f-evolutie-rapport-verfijning.md` — fase-framework (inhoud TBD)
+- `WIP/handover-fase3f-2026-03-27.md` — volledige contextoverdracht voor nieuwe conversatie
+- `WIP/conversatie-opener-fase3f.md` — klaar-om-te-plakken conversatietekst
+
+### Gewijzigd
+
+- `src/csat/core/exporters/evolution_visualiser.py` — subplot 3 volledig vervangen:
+  - Oud: HC-ratio staafdiagram (baseline vs huidig)
+  - Nieuw: gestapeld prioriteitscompositiediagram (Blocker/Critical/Major/Minor/Trivial) per maand
+  - HC-ratio als lijndiagram bovenop de staven
+  - Ticket-annotaties boven elke staaf (`# tickets`)
+  - Legenda op één rij met `99` marker als uitleg voor de annotaties
+  - Subplot 2 legenda verplaatst naar rechtsboven (consistent met subplot 4)
+  - `ylim(0, 118)` voor ruimte boven 100%-grens
+  - `PRIORITY_COLORS` module-niveau constante + `PRIORITY_ORDER`
+- `tests/core/test_evolution_visualiser.py` — bijgewerkt voor subplot 3 wijzigingen:
+  - `ylim`-assertie bijgewerkt van 112 naar 118
+  - `×` (Unicode) vervangen door `x` in docstrings + comments
+- `.github/copilot-instructions.md` → v3.3: CVE-herinnering toegevoegd als stap 6
+  in `/git` Flow 1 + Flow 3 na succesvolle commit
+
+**Teststand:** 570 passed — 100% coverage — CI stabiel
+
+---
+
 ## [Fase 3e] — 26/03/2026
 
 ### Toegevoegd
