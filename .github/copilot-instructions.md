@@ -4,8 +4,8 @@ applyTo: '**/*'
 
 # CSAT-Compass - Copilot Instructions
 
-**Versie:** 3.2
-**Laatst bijgewerkt:** 25/03/2026
+**Versie:** 3.3
+**Laatst bijgewerkt:** 27/03/2026
 
 **Doel:** CSAT-Compass projectspecifieke GHC-instructies
 **Type:** Reference
@@ -206,6 +206,9 @@ Wait for the user's answer (1, 2 or 3), then execute the matching flow below.
    - Bullet-lijst met de belangrijkste wijzigingen per categorie
 4. **Commit:** `git commit -m "..."`
 5. **Toon** de commit hash + samenvatting
+6. **CVE-herinnering** — toon altijd deze melding na elke succesvolle commit:
+   > 🔒 **CVE-reminder:** Typ `/cve` om de geïnstalleerde packages te scannen op kwetsbaarheden.
+   > Aanbevolen bij: nieuwe dependencies, `requirements.txt`-wijzigingen of periodiek (maandelijks).
 
 ### Flow 2 — alleen lint
 
@@ -217,7 +220,7 @@ Wait for the user's answer (1, 2 or 3), then execute the matching flow below.
 
 1. **Voer uit:** `.\tools\lint.ps1`
 2. **Toon** de lint-output
-3. Als lint **slaagt** (exit code 0): voer Flow 1 volledig uit
+3. Als lint **slaagt** (exit code 0): voer Flow 1 volledig uit (inclusief stap 6 CVE-herinnering)
 4. Als lint **faalt:** stop — vermeld welke checks gefaald hebben en commit **niet**
 
 **Gedragsregels:**
@@ -259,4 +262,5 @@ When the user types `/cve` as the entire message, immediately execute this seque
 | 2.7 | 19/03/2026 | /GIT flows, /cve, branding sectie | Danny Depecker + GHC |
 | 3.0 | 24/03/2026 | Afgeslankt — gedeelde instructies verplaatst naar copilot-base.instructions.md | Danny Depecker |
 | 3.1 | 25/03/2026 | Architectuurrefactor: /pdf, /GIT, /cve implementaties teruggeplaatst vanuit base naar project; command-tabel herwerkt naar project-centric formaat; /email expliciet als ❌ gedocumenteerd | Danny Depecker |
-| 3.2 | 25/03/2026 | /GIT hernoemd naar /git | Danny Depecker |
+| 3.2 | 25/03/2026 | /git hernoemd naar /git | Danny Depecker |
+| 3.3 | 27/03/2026 | /git Flow 1 + Flow 3: CVE-herinnering toegevoegd als stap 6 na succesvolle commit | Danny Depecker |
