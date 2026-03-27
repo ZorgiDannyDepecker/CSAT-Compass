@@ -38,6 +38,16 @@ FUNC_POSITIVE = ZORGI_FUNC_POSITIVE  # Groen — positieve delta bars (Optie B)
 FUNC_NEGATIVE = ZORGI_RED  # Rood — negatieve delta bars
 FUNC_CRISIS = ZORGI_RED  # Rood — hoge % negatief bars
 
+# Prioriteitsvolgorde (Jira-schaal hoog → laag) en kleuren per prioriteit
+PRIORITY_ORDER: list[str] = ["Blocker", "Critical", "Major", "Minor", "Trivial"]
+PRIORITY_COLORS: dict[str, str] = {
+    "Blocker": "#7f0000",  # Donker rood — ernstigste
+    "Critical": ZORGI_RED,  # ZORGI rood
+    "Major": "#e8835c",  # Oranje-rood — afgeleide tint
+    "Minor": ZORGI_LIGHT_BLUE,  # ZORGI lichtblauw
+    "Trivial": "#b8cfe0",  # Lichtblauw — donkerder dan #d7e7f3, lichter dan Minor
+}
+
 # --- Technische constanten ---
 _DPI_SCREEN: int = 150
 _DPI_PRINT: int = 300
@@ -57,9 +67,11 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
         "sub2_ylabel": "% negatief",
         "sub2_threshold": "{val}% drempel",
         "sub2_no_data": "Geen data",
-        "sub3_title": "HC-ratio: baseline vs huidig",
-        "sub3_ylabel": "% High/Critical",
-        "sub3_threshold": "Drempel {val}%",
+        "sub3_title": "Prioriteitscompositie per maand",
+        "sub3_ylabel": "% van tickets",
+        "sub3_threshold": "% Blocker + Critical",
+        "sub3_ticket_label": "# tickets",
+        "sub3_no_data": "Geen data",
         "sub4_title": "\u0394 Score per ziekenhuis (beste \u2192 slechtste)",
         "sub4_xlabel": "\u0394 gemiddelde score",
         "sub4_no_data": "Geen vergelijkbare data",
@@ -74,9 +86,11 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
         "sub2_ylabel": "% n\u00e9gatif",
         "sub2_threshold": "Seuil {val}%",
         "sub2_no_data": "Pas de donn\u00e9es",
-        "sub3_title": "Ratio HC : r\u00e9f\u00e9rence vs actuel",
-        "sub3_ylabel": "% \u00c9lev\u00e9/Critique",
-        "sub3_threshold": "Seuil {val}%",
+        "sub3_title": "Composition des priorit\u00e9s par mois",
+        "sub3_ylabel": "% des tickets",
+        "sub3_threshold": "% Bloqueur + Critique",
+        "sub3_ticket_label": "# tickets",
+        "sub3_no_data": "Pas de donn\u00e9es",
         "sub4_title": "\u0394 Score par h\u00f4pital (meilleur \u2192 moins bon)",
         "sub4_xlabel": "\u0394 score moyen",
         "sub4_no_data": "Pas de donn\u00e9es comparables",
@@ -298,7 +312,7 @@ class EvolutionVisualiser:
 
         self._draw_subplot1_score(ax1, r)
         self._draw_subplot2_pct_neg(ax2, r)
-        self._draw_subplot3_hc_ratio(ax3, r)
+        self._draw_subplot3_priority_composition(ax3, r)
         self._draw_subplot4_hospitals(ax4, r)
 
         fig.subplots_adjust(top=0.93, bottom=0.08, left=0.08, right=0.97, hspace=0.50, wspace=0.40)
@@ -580,53 +594,217 @@ class EvolutionVisualiser:
 
         ax.set_title(self._t("sub2_title"), color=ZORGI_GREY_BLUE, fontsize=11, fontweight="bold")
         ax.set_ylabel(self._t("sub2_ylabel"), fontsize=9, color=ZORGI_BODY_TEXT)
-        leg = ax.legend(fontsize=8.5, labelcolor=ZORGI_BODY_TEXT)
+        leg = ax.legend(
+            loc="upper right",
+            framealpha=0.92,
+            facecolor="white",
+            edgecolor=ZORGI_GREY_BLUE,
+            fontsize=8.5,
+            labelcolor=ZORGI_BODY_TEXT,
+        )
         _style_legend(leg)
         _style_ax(ax)
 
     # ------------------------------------------------------------------
-    # Subplot 3 — HC-ratio: baseline vs huidig (staafdiagram)
+    # Subplot 3 — prioriteitscompositie per maand (gestapeld staafdiagram)
     # ------------------------------------------------------------------
 
-    def _draw_subplot3_hc_ratio(self, ax, r: EvolutionResult) -> None:
-        """Subplot 3: twee-balk vergelijking HC-ratio baseline vs huidig."""
-        waarden = [r.baseline_hc_ratio, r.current_hc_ratio]
-        labels = [r.baseline_label, r.current_label]
-        alphas = [0.6, 1.0]
+    def _draw_subplot3_priority_composition(self, ax, r: EvolutionResult) -> None:  # noqa: C901
+        """
+        Subplot 3: gestapeld staafdiagram prioriteitscompositie per maand.
 
-        # Beide bars altijd ZORGI Red — HC-ratio is per definitie een aandachtspunt
-        for i, (val, alpha) in enumerate(zip(waarden, alphas, strict=False)):
-            ax.bar(i, val, color=ZORGI_RED, alpha=alpha, width=0.45, zorder=2)
+        Toont het procentuele aandeel van elke Jira-prioriteit per maand,
+        gesorteerd op tijdlijn (baseline → huidig). Een lijndiagram bovenop
+        toont de gecumuleerde HC-ratio (Blocker+Critical+Major) per maand.
+        """
+        import matplotlib.patches as mpatches  # noqa: PLC0415
+        from matplotlib.lines import Line2D  # noqa: PLC0415
+
+        timeline = sorted(r.monthly_timeline, key=lambda p: p.period)
+
+        if not timeline:
+            ax.set_title(self._t("sub3_title"), color=ZORGI_GREY_BLUE, fontweight="bold")
             ax.text(
-                i,
-                val + 0.8,
-                f"{val:.1f}%".replace(".", ","),
+                0.5,
+                0.5,
+                self._t("sub3_no_data"),
                 ha="center",
-                fontsize=11,
+                va="center",
+                transform=ax.transAxes,
                 color=ZORGI_BODY_TEXT,
-                fontweight="bold",
+            )
+            _style_ax(ax)
+            return
+
+        current_year = _extract_year(r.current_label)
+        baseline_pts = [p for p in timeline if not p.period.startswith(current_year)]
+        current_pts = [p for p in timeline if p.period.startswith(current_year)]
+
+        if not baseline_pts and not current_pts:  # pragma: no cover
+            mid = len(timeline) // 2
+            baseline_pts = timeline[:mid]
+            current_pts = timeline[mid:]
+
+        x_b = list(range(len(baseline_pts)))
+        offset = len(x_b)
+        x_c = list(range(offset, offset + len(current_pts)))
+        all_x = x_b + x_c
+
+        # -- Stap 1: data voorbereiden --
+        pct_data: dict[str, list[float]] = {p: [] for p in PRIORITY_ORDER}
+        hc_pct_per_maand: list[float] = []
+
+        for pt in timeline:
+            total = sum(pt.priority_counts.values()) if pt.priority_counts else 0
+            if total == 0:
+                for prio in PRIORITY_ORDER:
+                    pct_data[prio].append(0.0)
+                hc_pct_per_maand.append(0.0)
+            else:
+                for prio in PRIORITY_ORDER:
+                    pct_data[prio].append(pt.priority_counts.get(prio, 0) / total * 100)
+                hc = sum(pt.priority_counts.get(p, 0) for p in ["Blocker", "Critical"])
+                hc_pct_per_maand.append(hc / total * 100)
+
+        # Baseline = 0.6, current = 1.0
+        alphas = [0.6 if pt.period < f"{current_year}-01" else 1.0 for pt in timeline]
+
+        # -- Stap 2: gestapelde staven --
+        bottoms = [0.0] * len(all_x)
+        for prio in PRIORITY_ORDER:
+            vals = pct_data[prio]
+            # Teken per staaf afzonderlijk voor correcte alpha per maand
+            for i, (xi, val, alpha) in enumerate(zip(all_x, vals, alphas, strict=False)):
+                ax.bar(
+                    xi,
+                    val,
+                    bottom=bottoms[i],
+                    color=PRIORITY_COLORS.get(prio, ZORGI_GREY_BLUE),
+                    alpha=alpha,
+                    width=0.7,
+                    zorder=2,
+                )
+                bottoms[i] += val
+
+        # -- Stap 2b: totaal tickets annotatie bovenaan elke staaf --
+        for xi, pt in zip(all_x, timeline, strict=False):
+            total = sum(pt.priority_counts.values()) if pt.priority_counts else 0
+            if total > 0:
+                ax.text(
+                    xi,
+                    101.5,
+                    str(total),
+                    ha="center",
+                    va="bottom",
+                    fontsize=7,
+                    fontweight="normal",
+                    color=ZORGI_GREY_BLUE,  # lichtere kleur — treedt terug achter de staven
+                )
+
+        # -- Stap 3: HC-ratio lijn bovenop --
+        if all_x and hc_pct_per_maand:
+            ax.plot(
+                all_x,
+                hc_pct_per_maand,
+                color=ZORGI_BORDEAUX,
+                linestyle="--",
+                linewidth=1.2,
+                alpha=0.85,
+                marker="o",
+                markersize=3,
+                zorder=5,
+                label=self._t("sub3_threshold"),
             )
 
-        # Drempellijn -> ZORGI Bordeaux (identiek aan subplot 1)
+        # -- Stap 4: drempellijn --
         ax.axhline(
             HIGH_CRITICAL_MAX,
             color=ZORGI_BORDEAUX,
-            linestyle="--",
+            linestyle=":",
             linewidth=1.0,
-            alpha=0.7,
-            label=self._t("sub3_threshold", val=f"{HIGH_CRITICAL_MAX:.0f}"),
-            zorder=5,
+            alpha=0.5,
+            zorder=4,
         )
 
-        max_val = max(waarden) if waarden else HIGH_CRITICAL_MAX
-        ax.set_ylim(0, max(100, max_val + 20))
-        ax.set_xlim(-0.75, 1.75)
-        ax.set_xticks([0, 1])
-        ax.set_xticklabels(labels, fontsize=9, color=ZORGI_BODY_TEXT, fontweight="normal")
-        ax.set_title(self._t("sub3_title"), color=ZORGI_GREY_BLUE, fontsize=11, fontweight="bold")
-        ax.set_ylabel(self._t("sub3_ylabel"), fontsize=9, color=ZORGI_BODY_TEXT)
-        leg = ax.legend(fontsize=8.5, labelcolor=ZORGI_BODY_TEXT)
+        # -- Stap 5: jaargrens-lijn --
+        if x_b and x_c:
+            scheiding = x_c[0] - 0.5
+            ax.axvline(
+                scheiding,
+                color=ZORGI_DARK_BLUE,
+                linestyle=":",
+                linewidth=1.4,
+                alpha=0.6,
+                zorder=1,
+            )
+
+        # -- Stap 6: horizontale legenda boven de grafiek (Trivial → Blocker + HC-lijn) --
+        _legenda_volgorde = ["Trivial", "Minor", "Major", "Critical", "Blocker"]
+        prio_handles = [
+            mpatches.Patch(color=PRIORITY_COLORS[p], label=p) for p in _legenda_volgorde
+        ]
+        hc_handle = Line2D(
+            [0],
+            [0],
+            color=ZORGI_BORDEAUX,
+            linestyle="--",
+            linewidth=1.2,
+            marker="o",
+            markersize=3,
+            label=self._t("sub3_threshold"),
+        )
+        ticket_handle = Line2D(
+            [0],
+            [0],
+            color="none",
+            marker=r"$\ 99$",
+            markersize=8,
+            markerfacecolor=ZORGI_GREY_BLUE,
+            markeredgewidth=0,
+            label=self._t("sub3_ticket_label"),
+        )
+        handles = [*prio_handles, hc_handle, ticket_handle]
+        leg = ax.legend(
+            handles=handles,
+            loc="upper left",
+            bbox_to_anchor=(0.0, 1.0),  # binnenin plotruimte, linkerbovenhoek
+            borderaxespad=0.5,
+            ncols=len(handles),  # alle items op één rij
+            frameon=True,  # wit kader — identiek aan kwadranten 1, 2 en 4
+            framealpha=0.92,
+            facecolor="white",
+            edgecolor=ZORGI_GREY_BLUE,
+            fontsize=7.5,  # licht verkleind zodat 6 items op één rij passen
+            labelcolor=ZORGI_BODY_TEXT,
+            handlelength=1.0,
+            handletextpad=0.4,
+            columnspacing=0.8,
+        )
         _style_legend(leg)
+
+        # -- Stap 7: assen en titels --
+        all_labels = _build_tick_labels(baseline_pts) + _build_tick_labels(current_pts)
+        ax.set_xticks(all_x)
+        ax.set_xticklabels(
+            all_labels,
+            rotation=0,
+            ha="center",
+            fontsize=8.5,
+            color=ZORGI_BODY_TEXT,
+            fontweight="normal",
+        )
+        if x_b and x_c:
+            ax.set_xlim(left=x_b[0] - 0.5, right=x_c[-1] + 0.5)
+        ax.set_ylim(0, 118)
+        ax.set_yticks([0, 25, 50, 75, 100])
+        ax.set_title(
+            self._t("sub3_title"),
+            color=ZORGI_GREY_BLUE,
+            fontsize=11,
+            fontweight="bold",
+            fontfamily="DejaVu Sans",  # #1 — consistent met aslabels en legenda
+        )
+        ax.set_ylabel(self._t("sub3_ylabel"), fontsize=9, color=ZORGI_BODY_TEXT)
         _style_ax(ax)
 
     # ------------------------------------------------------------------

@@ -29,6 +29,9 @@ class MonthlyDataPoint:
     total_tickets: int  # Totaal tickets (inclusief ongescoorde)
     pct_negative: float  # % scores <= 2 t.o.v. gescoorde tickets
     fase: str  # "H1 YYYY" of "H2 YYYY"
+    priority_counts: dict[str, int] = field(default_factory=dict)
+    # Tickettelling per Jira-prioriteit (Blocker/Critical/Major/Minor/Trivial)
+    # Gebruikt door EvolutionVisualiser subplot 3 (prioriteitscompositie).
 
 
 @dataclass

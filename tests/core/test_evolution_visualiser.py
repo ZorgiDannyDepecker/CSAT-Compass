@@ -371,12 +371,70 @@ class TestSubplots:
         assert len(ax2.patches) > 0
         plt.close(fig)
 
-    def test_subplot3_heeft_twee_staven(self, evolution_result: EvolutionResult) -> None:
-        """Subplot 3 toont exact 2 staven: baseline en current."""
+    def test_subplot3_heeft_gestapelde_staven(self, evolution_result: EvolutionResult) -> None:
+        """Subplot 3 toont gestapelde staven — aantal patches = maanden x prioriteiten."""
         vis = EvolutionVisualiser(evolution_result)
         fig = vis.render()
         ax3 = fig.axes[2]
-        assert len(ax3.patches) == 2
+        # 4 maanden (2 baseline + 2 current) x 5 prioriteiten = 20 patches
+        n_maanden = len(evolution_result.monthly_timeline)
+        n_prioriteiten = 5  # PRIORITY_ORDER: Blocker, Critical, Major, Minor, Trivial
+        assert len(ax3.patches) == n_maanden * n_prioriteiten
+        plt.close(fig)
+
+    def test_subplot3_titel_nl(self, evolution_result: EvolutionResult) -> None:
+        """Subplot 3 toont de Nederlandse titel."""
+        vis = EvolutionVisualiser(evolution_result, lang="nl")
+        fig = vis.render()
+        ax3 = fig.axes[2]
+        assert ax3.get_title() == "Prioriteitscompositie per maand"
+        plt.close(fig)
+
+    def test_subplot3_titel_fr(self, evolution_result: EvolutionResult) -> None:
+        """Subplot 3 toont de Franse titel."""
+        vis = EvolutionVisualiser(evolution_result, lang="fr")
+        fig = vis.render()
+        ax3 = fig.axes[2]
+        assert ax3.get_title() == "Composition des priorités par mois"
+        plt.close(fig)
+
+    def test_subplot3_ylim_heeft_ruimte_voor_annotaties(
+        self, evolution_result: EvolutionResult
+    ) -> None:
+        """Subplot 3 y-as loopt tot 112 zodat ticketaantal-annotaties boven 100% zichtbaar zijn."""
+        vis = EvolutionVisualiser(evolution_result)
+        fig = vis.render()
+        ax3 = fig.axes[2]
+        assert ax3.get_ylim()[0] == 0
+        assert ax3.get_ylim()[1] == 112
+        plt.close(fig)
+
+    def test_subplot3_totaal_annotaties_aanwezig(self, evolution_result: EvolutionResult) -> None:
+        """Subplot 3 toont het totaal aantal tickets bovenaan elke staaf."""
+        vis = EvolutionVisualiser(evolution_result)
+        fig = vis.render()
+        ax3 = fig.axes[2]
+        # Elke maand met tickets krijgt een annotatie — minstens één verwacht
+        teksten = [t.get_text() for t in ax3.texts]
+        assert any(t.isdigit() or t.isdecimal() for t in teksten)
+        plt.close(fig)
+
+    def test_subplot3_lege_data_geen_fout(self, lege_result: EvolutionResult) -> None:
+        """Subplot 3 toont 'Geen data' tekst als timeline leeg is."""
+        vis = EvolutionVisualiser(lege_result)
+        fig = vis.render()
+        ax3 = fig.axes[2]
+        teksten = [t.get_text() for t in ax3.texts]
+        assert any("Geen data" in t for t in teksten)
+        plt.close(fig)
+
+    def test_subplot3_lege_data_geen_fout_fr(self, lege_result: EvolutionResult) -> None:
+        """Subplot 3 FR toont 'Pas de données' tekst als timeline leeg is."""
+        vis = EvolutionVisualiser(lege_result, lang="fr")
+        fig = vis.render()
+        ax3 = fig.axes[2]
+        teksten = [t.get_text() for t in ax3.texts]
+        assert any("Pas de donn" in t for t in teksten)
         plt.close(fig)
 
     def test_subplot4_heeft_horizontale_staven(self, evolution_result: EvolutionResult) -> None:
@@ -498,6 +556,58 @@ class TestSubplots:
         ax4 = fig.axes[3]
         # Maximaal 15 staven
         assert len(ax4.patches) <= 15
+        plt.close(fig)
+
+    def test_subplot3_lege_priority_counts_geen_fout(self) -> None:
+        """Subplot 3 werkt correct als priority_counts leeg zijn (total==0 branch)."""
+        from csat.core.analysers.evolution_result import MonthlyDataPoint
+
+        monthly = [
+            MonthlyDataPoint(
+                period="2025-06",
+                avg_score=3.5,
+                total_tickets=5,
+                pct_negative=20.0,
+                fase="H1 2025",
+                priority_counts={},  # ← leeg → total == 0 branch
+            ),
+            MonthlyDataPoint(
+                period="2026-01",
+                avg_score=4.0,
+                total_tickets=3,
+                pct_negative=10.0,
+                fase="H1 2026",
+                priority_counts={},  # ← leeg → total == 0 branch
+            ),
+        ]
+        result = EvolutionResult(
+            pillar="pharma",
+            baseline_label="2025",
+            current_label="2026",
+            baseline_total=5,
+            current_total=3,
+            baseline_avg_score=3.5,
+            current_avg_score=4.0,
+            delta_avg_score=0.5,
+            baseline_pct_positive=60.0,
+            current_pct_positive=70.0,
+            baseline_pct_negative=20.0,
+            current_pct_negative=10.0,
+            baseline_avg_response_days=5.0,
+            current_avg_response_days=3.0,
+            baseline_n_hospitals=1,
+            current_n_hospitals=1,
+            baseline_hc_ratio=10.0,
+            current_hc_ratio=5.0,
+            trend_is_structural=False,
+            trend_breadth="beperkt",
+            monthly_timeline=monthly,
+        )
+        vis = EvolutionVisualiser(result)
+        fig = vis.render()
+        ax3 = fig.axes[2]
+        # 2 maanden x 5 prioriteiten = 10 patches, alle met hoogte 0
+        assert len(ax3.patches) == 2 * 5
         plt.close(fig)
 
     def test_subplot3_drempellijn_aanwezig(self, evolution_result: EvolutionResult) -> None:

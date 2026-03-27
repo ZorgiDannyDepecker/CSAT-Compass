@@ -338,12 +338,20 @@ class EvolutionAnalyser:
         df = filter_period(self._pillar_df, period, date_col=self._PERIOD_DATE_COL)
         year, month = parse_period(period)
         fase = f"H1 {year}" if month <= 6 else f"H2 {year}"
+
+        # Prioriteitstellingen — voor subplot 3 (prioriteitscompositie per maand)
+        priority_counts: dict[str, int] = {}
+        if "priority" in df.columns and not df.empty:
+            counts = df["priority"].dropna().value_counts()
+            priority_counts = {str(k): int(v) for k, v in counts.items()}
+
         return MonthlyDataPoint(
             period=period,
             avg_score=self._calc_avg_score(df),
             total_tickets=len(df),
             pct_negative=self._calc_pct_scored(df, lambda s: s <= 2.0),
             fase=fase,
+            priority_counts=priority_counts,
         )
 
     # ------------------------------------------------------------------
