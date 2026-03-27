@@ -401,12 +401,12 @@ class TestSubplots:
     def test_subplot3_ylim_heeft_ruimte_voor_annotaties(
         self, evolution_result: EvolutionResult
     ) -> None:
-        """Subplot 3 y-as loopt tot 112 zodat ticketaantal-annotaties boven 100% zichtbaar zijn."""
+        """Subplot 3 y-as loopt tot 118 zodat ticketaantal-annotaties boven 100% zichtbaar zijn."""
         vis = EvolutionVisualiser(evolution_result)
         fig = vis.render()
         ax3 = fig.axes[2]
         assert ax3.get_ylim()[0] == 0
-        assert ax3.get_ylim()[1] == 112
+        assert ax3.get_ylim()[1] == 118
         plt.close(fig)
 
     def test_subplot3_totaal_annotaties_aanwezig(self, evolution_result: EvolutionResult) -> None:
