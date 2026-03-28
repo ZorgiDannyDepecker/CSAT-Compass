@@ -360,7 +360,38 @@ class TestSubplots:
         ax1 = fig.axes[0]
         ymin, ymax = ax1.get_ylim()
         assert ymin == pytest.approx(0.0, abs=0.1)
-        assert ymax > 5.0
+        assert ymax == pytest.approx(6.0)
+        plt.close(fig)
+
+    def test_subplot1_totaal_annotaties_aanwezig(self, evolution_result: EvolutionResult) -> None:
+        """Subplot 1 toont ticket-aantallen boven de scorepunten."""
+        vis = EvolutionVisualiser(evolution_result)
+        fig = vis.render()
+        ax1 = fig.axes[0]
+        teksten = [t.get_text() for t in ax1.texts]
+        assert any(t.isdigit() or t.isdecimal() for t in teksten)
+        plt.close(fig)
+
+    def test_subplot1_legenda_bevat_ticket_uitleg(self, evolution_result: EvolutionResult) -> None:
+        """Subplot 1 legenda bevat ook '# tickets', analoog aan subplot 3."""
+        vis = EvolutionVisualiser(evolution_result)
+        fig = vis.render()
+        ax1 = fig.axes[0]
+        legend = ax1.get_legend()
+        assert legend is not None
+        legend_labels = [text.get_text() for text in legend.get_texts()]
+        assert "# tickets" in legend_labels
+        plt.close(fig)
+
+    def test_subplot1_ylim_heeft_ruimte_voor_annotaties(
+        self, evolution_result: EvolutionResult
+    ) -> None:
+        """Subplot 1 y-as loopt tot 6,0 zodat ticketaantal-annotaties boven de punten passen."""
+        vis = EvolutionVisualiser(evolution_result)
+        fig = vis.render()
+        ax1 = fig.axes[0]
+        assert ax1.get_ylim()[0] == 0
+        assert ax1.get_ylim()[1] == pytest.approx(6.0)
         plt.close(fig)
 
     def test_subplot2_heeft_staven(self, evolution_result: EvolutionResult) -> None:
@@ -369,6 +400,38 @@ class TestSubplots:
         fig = vis.render()
         ax2 = fig.axes[1]
         assert len(ax2.patches) > 0
+        plt.close(fig)
+
+    def test_subplot2_totaal_annotaties_aanwezig(self, evolution_result: EvolutionResult) -> None:
+        """Subplot 2 toont ticket-aantallen boven de staven."""
+        vis = EvolutionVisualiser(evolution_result)
+        fig = vis.render()
+        ax2 = fig.axes[1]
+        teksten = [t.get_text() for t in ax2.texts]
+        assert any(t.isdigit() or t.isdecimal() for t in teksten)
+        plt.close(fig)
+
+    def test_subplot2_legenda_bevat_ticket_uitleg(self, evolution_result: EvolutionResult) -> None:
+        """Subplot 2 legenda bevat ook '# tickets', analoog aan subplot 3."""
+        vis = EvolutionVisualiser(evolution_result)
+        fig = vis.render()
+        ax2 = fig.axes[1]
+        legend = ax2.get_legend()
+        assert legend is not None
+        legend_labels = [text.get_text() for text in legend.get_texts()]
+        assert "# tickets" in legend_labels
+        plt.close(fig)
+
+    def test_subplot2_ylim_heeft_ruimte_voor_annotaties(
+        self, evolution_result: EvolutionResult
+    ) -> None:
+        """Subplot 2 y-as heeft extra ruimte boven de hoogste staaf voor annotaties."""
+        vis = EvolutionVisualiser(evolution_result)
+        fig = vis.render()
+        ax2 = fig.axes[1]
+        ymax = ax2.get_ylim()[1]
+        max_pct = max(pt.pct_negative for pt in evolution_result.monthly_timeline)
+        assert ymax > max_pct
         plt.close(fig)
 
     def test_subplot3_heeft_gestapelde_staven(self, evolution_result: EvolutionResult) -> None:
@@ -686,4 +749,55 @@ class TestRandgevallenBranchCoverage:
         # Ticket-label "#8/6" moet aanwezig zijn in de ax-teksten
         teksten = [t.get_text() for t in ax4.texts]
         assert any("#8/6" in t for t in teksten)
+        plt.close(fig)
+
+    def test_subplot4_legenda_toont_placeholder_en_uitleg_met_juiste_kleuren(self) -> None:
+        """Subplot 4 legenda toont '#99/99' grijs en uitlegtekst zwart."""
+        from matplotlib.colors import to_hex
+
+        from csat.utils.zorgi_theme import ZORGI_BODY_TEXT, ZORGI_GREY_BLUE
+
+        hospitals = [
+            HospitalComparison(
+                hospital="Referentie_ZH",
+                baseline_score=4.2,
+                baseline_total=9,
+                current_score=4.5,
+                current_total=7,
+            ),
+        ]
+        result = EvolutionResult(
+            pillar="pharma",
+            baseline_label="2025",
+            current_label="2026",
+            baseline_total=9,
+            current_total=7,
+            baseline_avg_score=4.2,
+            current_avg_score=4.5,
+            delta_avg_score=0.3,
+            baseline_pct_positive=70.0,
+            current_pct_positive=80.0,
+            baseline_pct_negative=10.0,
+            current_pct_negative=5.0,
+            baseline_avg_response_days=3.0,
+            current_avg_response_days=2.0,
+            baseline_n_hospitals=1,
+            current_n_hospitals=1,
+            baseline_hc_ratio=12.0,
+            current_hc_ratio=8.0,
+            trend_is_structural=False,
+            trend_breadth="beperkt",
+            hospital_comparison=hospitals,
+        )
+        vis = EvolutionVisualiser(result)
+        fig = vis.render()
+        ax4 = fig.axes[3]
+        legend = ax4.get_legend()
+        assert legend is not None
+        legend_texts = legend.get_texts()
+        assert len(legend_texts) == 2
+        assert legend_texts[0].get_text() == "#99/99"
+        assert legend_texts[1].get_text() == "aantal 2025/2026"
+        assert to_hex(legend_texts[0].get_color()).lower() == ZORGI_GREY_BLUE.lower()
+        assert to_hex(legend_texts[1].get_color()).lower() == ZORGI_BODY_TEXT.lower()
         plt.close(fig)

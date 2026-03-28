@@ -74,6 +74,7 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
         "sub3_no_data": "Geen data",
         "sub4_title": "\u0394 Score per ziekenhuis (beste \u2192 slechtste)",
         "sub4_xlabel": "\u0394 gemiddelde score",
+        "sub4_ticket_explainer": "aantal {baseline}/{current}",
         "sub4_no_data": "Geen vergelijkbare data",
     },
     "fr": {
@@ -93,6 +94,7 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
         "sub3_no_data": "Pas de donn\u00e9es",
         "sub4_title": "\u0394 Score par h\u00f4pital (meilleur \u2192 moins bon)",
         "sub4_xlabel": "\u0394 score moyen",
+        "sub4_ticket_explainer": "nombre {baseline}/{current}",
         "sub4_no_data": "Pas de donn\u00e9es comparables",
     },
 }
@@ -356,6 +358,8 @@ class EvolutionVisualiser:
 
     def _draw_subplot1_score(self, ax, r: EvolutionResult) -> None:
         """Subplot 1: lijndiagram met maandelijkse gemiddelde CSAT-score baseline vs huidig."""
+        from matplotlib.lines import Line2D  # noqa: PLC0415
+
         timeline = sorted(r.monthly_timeline, key=lambda p: p.period)
 
         if not timeline:
@@ -467,11 +471,40 @@ class EvolutionVisualiser:
             fontweight="normal",
         )
 
-        ax.set_ylim(0, 5.5)
+        # Totaal tickets boven elk datapunt — subtiel, analoog aan subplot 3
+        for xi, pt in zip(all_x, timeline, strict=False):
+            if pt.total_tickets > 0 and pt.avg_score > 0:
+                ax.text(
+                    xi,
+                    pt.avg_score + 0.08,
+                    str(pt.total_tickets),
+                    ha="center",
+                    va="bottom",
+                    fontsize=7,
+                    fontweight="normal",
+                    color=ZORGI_GREY_BLUE,
+                )
+
+        ax.set_ylim(0, 6.0)
         ax.set_xlim(left=x_b[0] - 0.5, right=x_c[-1] + 0.5)
         ax.set_title(self._t("sub1_title"), color=ZORGI_GREY_BLUE, fontsize=11, fontweight="bold")
         ax.set_ylabel(self._t("sub1_ylabel"), fontsize=9, color=ZORGI_BODY_TEXT)
+
+        handles, _ = ax.get_legend_handles_labels()
+        ticket_handle = Line2D(
+            [0],
+            [0],
+            color="none",
+            marker=r"$\ 99$",
+            markersize=8,
+            markerfacecolor=ZORGI_GREY_BLUE,
+            markeredgewidth=0,
+            label=self._t("sub3_ticket_label"),
+        )
+        handles.append(ticket_handle)
+
         leg = ax.legend(
+            handles=handles,
             loc="upper left",
             bbox_to_anchor=(0.01, 0.99),
             borderaxespad=0,
@@ -488,8 +521,10 @@ class EvolutionVisualiser:
     # Subplot 2 — % negatief per maand (staafdiagram)
     # ------------------------------------------------------------------
 
-    def _draw_subplot2_pct_neg(self, ax, r: EvolutionResult) -> None:
+    def _draw_subplot2_pct_neg(self, ax, r: EvolutionResult) -> None:  # noqa: C901
         """Subplot 2: staafdiagram % negatief per maand, rood boven 15%."""
+        from matplotlib.lines import Line2D  # noqa: PLC0415
+
         timeline = sorted(r.monthly_timeline, key=lambda p: p.period)
 
         if not timeline:
@@ -574,7 +609,8 @@ class EvolutionVisualiser:
         # Minimum: 2x drempel zodat de drempellijn altijd goed zichtbaar is.
         # Maximum: 100 (percentage kan niet hoger).
         # Effect: bij lage waarden (< 20%) worden bars proportioneel leesbaar.
-        y_top = max(HIGH_CRITICAL_MAX * 2, min(100, max_pct + 15))
+        # Extra headroom bovenaan houdt ticketaantal-annotaties zichtbaar.
+        y_top = max(HIGH_CRITICAL_MAX * 2 + 4.0, min(104.0, max_pct + 8.0))
         ax.set_ylim(0, y_top)
 
         all_labels = _build_tick_labels(baseline_pts) + [""] * gap + _build_tick_labels(current_pts)
@@ -592,9 +628,38 @@ class EvolutionVisualiser:
         if x_b and x_c:
             ax.set_xlim(left=x_b[0] - 0.5, right=x_c[-1] + 0.5)
 
+        # Totaal tickets boven elke staaf — subtiel, analoog aan subplot 3
+        for xi, pt in zip(all_x, timeline, strict=False):
+            if pt.total_tickets > 0:
+                ax.text(
+                    xi,
+                    pt.pct_negative + 1.5,
+                    str(pt.total_tickets),
+                    ha="center",
+                    va="bottom",
+                    fontsize=7,
+                    fontweight="normal",
+                    color=ZORGI_GREY_BLUE,
+                )
+
         ax.set_title(self._t("sub2_title"), color=ZORGI_GREY_BLUE, fontsize=11, fontweight="bold")
         ax.set_ylabel(self._t("sub2_ylabel"), fontsize=9, color=ZORGI_BODY_TEXT)
+
+        handles, _ = ax.get_legend_handles_labels()
+        ticket_handle = Line2D(
+            [0],
+            [0],
+            color="none",
+            marker=r"$\ 99$",
+            markersize=8,
+            markerfacecolor=ZORGI_GREY_BLUE,
+            markeredgewidth=0,
+            label=self._t("sub3_ticket_label"),
+        )
+        handles.append(ticket_handle)
+
         leg = ax.legend(
+            handles=handles,
             loc="upper right",
             framealpha=0.92,
             facecolor="white",
@@ -811,7 +876,7 @@ class EvolutionVisualiser:
     # Subplot 4 — top/bottom ziekenhuizen (horizontaal staafdiagram)
     # ------------------------------------------------------------------
 
-    def _draw_subplot4_hospitals(self, ax, r: EvolutionResult) -> None:
+    def _draw_subplot4_hospitals(self, ax, r: EvolutionResult) -> None:  # noqa: C901
         """Subplot 4: horizontaal staafdiagram delta per ziekenhuis (beste -> slechtste).
 
         Ziekenhuizen zonder baseline-data (baseline_total == 0) worden uitgesloten
@@ -962,11 +1027,19 @@ class EvolutionVisualiser:
         # Dummy invisible handle zodat ax.legend() enkel de tekstlabel toont
         from matplotlib.lines import Line2D  # noqa: PLC0415
 
-        dummy = Line2D(
-            [0], [0], color="none", label=f"# tickets {r.baseline_label}/{r.current_label}"
+        dummy_value = Line2D([0], [0], color="none", label="#99/99")
+        dummy_explainer = Line2D(
+            [0],
+            [0],
+            color="none",
+            label=self._t(
+                "sub4_ticket_explainer",
+                baseline=r.baseline_label,
+                current=r.current_label,
+            ),
         )
         leg = ax.legend(
-            handles=[dummy],
+            handles=[dummy_value, dummy_explainer],
             loc="upper right",
             framealpha=0.92,
             facecolor="white",
@@ -975,10 +1048,15 @@ class EvolutionVisualiser:
             labelcolor=ZORGI_BODY_TEXT,
             handlelength=0,
             handletextpad=0,
+            ncols=2,
+            columnspacing=0.4,
         )
         _style_legend(leg)
-        # labelcolor na _style_legend bewust op ZORGI_BODY_TEXT — zwart leest duidelijker
-        for text in leg.get_texts():
-            text.set_color(ZORGI_BODY_TEXT)
+        # Voor subplot 4 moet de placeholder grijs zijn, maar de uitleg zwart blijven.
+        legend_texts = leg.get_texts()
+        if legend_texts:
+            legend_texts[0].set_color(ZORGI_GREY_BLUE)
+        if len(legend_texts) > 1:
+            legend_texts[1].set_color(ZORGI_BODY_TEXT)
 
         _style_ax(ax)
