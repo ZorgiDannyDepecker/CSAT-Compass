@@ -21,20 +21,20 @@ repos:
         pass_filenames: false
 
       # -----------------------------------------------------------------------
-      # Ruff — opmaak + regellengte (max 100 tekens)
+      # Black — formatter
       # -----------------------------------------------------------------------
       - id: ruff-format
-        name: Ruff — opmaak
+        name: Black — formatter
         entry: python -m ruff format src/ tests/
         language: system
         types: [python]
         pass_filenames: false
 
       # -----------------------------------------------------------------------
-      # Mypy — statische typecontrole
+      # MyPy — type checker
       # -----------------------------------------------------------------------
       - id: mypy
-        name: MyPy — typecontrole
+        name: MyPy — type checker
         entry: python -m mypy src/ --ignore-missing-imports --no-error-summary
         language: system
         types: [python]

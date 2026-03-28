@@ -32,29 +32,29 @@ if ($LASTEXITCODE -ne 0) {
     Write-Host "      Ruff: alles in orde." -ForegroundColor Green
 }
 
-# --- [2/5] Ruff: opmaak + regellengte (max 100) ---
-Write-Host "`n[2/5] Ruff — opmaak en regellengte (max 100)..." -ForegroundColor Yellow
+# --- [2/5] Black: formatter ---
+Write-Host "`n[2/5] Black — formatter..." -ForegroundColor Yellow
 if ($Fix) {
     python -m ruff format src/ tests/
 } else {
     python -m ruff format src/ tests/ --check
 }
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "      Opmaak: afwijkingen gevonden." -ForegroundColor Red
+    Write-Host "      Formatter: afwijkingen gevonden." -ForegroundColor Red
     Write-Host "      Tip: '.\tools\lint.ps1 -Fix' past automatisch aan." -ForegroundColor Yellow
     $ErrorCount++
 } else {
-    Write-Host "      Opmaak: alles in orde." -ForegroundColor Green
+    Write-Host "      Formatter: alles in orde." -ForegroundColor Green
 }
 
-# --- [3/5] Mypy: typecontrole ---
-Write-Host "`n[3/5] Mypy — typecontrole..." -ForegroundColor Yellow
+# --- [3/5] MyPy: type checker ---
+Write-Host "`n[3/5] MyPy — type checker..." -ForegroundColor Yellow
 python -m mypy src/ --ignore-missing-imports --no-error-summary 2>&1 | Where-Object { $_ -notmatch "^Found" }
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "      Mypy: typefouten gevonden." -ForegroundColor Red
+    Write-Host "      MyPy: typefouten gevonden." -ForegroundColor Red
     $ErrorCount++
 } else {
-    Write-Host "      Mypy: geen typefouten." -ForegroundColor Green
+    Write-Host "      MyPy: geen typefouten." -ForegroundColor Green
 }
 
 # --- [4/5] Bandit: security scan ---

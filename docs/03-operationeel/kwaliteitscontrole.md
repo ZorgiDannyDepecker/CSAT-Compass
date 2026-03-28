@@ -1,7 +1,7 @@
 # CSAT-Compass - Kwaliteitscontrole overzicht
 
-**Versie:** 1.0  
-**Laatst bijgewerkt:** 20/03/2026
+**Versie:** 1.3  
+**Laatst bijgewerkt:** 28/03/2026
 
 **Doel:** Overzicht van alle kwaliteitscontroles — wat doet het systeem automatisch, wat doe je manueel  
 **Type:** Runbook  
@@ -33,27 +33,27 @@ Jij schrijft code
 
 ## 2. De tools — wat doet elk?
 
-### 2.1 Ruff — linting + opmaak
+### 2.1 Black — formatter
 
-**Wat is het?** Één tool die zowel `flake8`, `isort` als `black` vervangt — maar dan 10–100× sneller.
+**Wat is het?** In de tooling verschijnt deze stap als **Black — formatter**, maar technisch wordt `python -m ruff format` uitgevoerd. De formatter volgt Black-stijl, zonder Black als aparte tool te installeren.
 
 | Functie | Wat het doet | Voorbeeld |
 |---------|-------------|-----------|
 | **Linting** | Fouten, slechte patronen, ongebruikte imports | `import os` zonder gebruik → fout |
-| **Opmaak** | Inspringing, witruimte, aanhalingstekens | 2 spaties → 4 spaties |
+| **Formatter** | Inspringing, witruimte, aanhalingstekens | 2 spaties → 4 spaties |
 | **Regellengte** | Max 100 tekens per regel | Lange regel → afkappen |
 | **Import-volgorde** | `isort`-stijl — stdlib → third-party → local | `from csat import x` altijd als laatste |
 | **Security** | Eenvoudige security-patronen (Bandit-lite) | `eval()` → waarschuwing |
 | **Pandas-stijl** | Best practices voor DataFrames | `.values` → `.to_numpy()` |
 
-> 💡 **Black gebruiken we niet apart** — Ruff-formatter doet hetzelfde. Één tool, geen conflict.
+> 💡 **Black gebruiken we niet apart** — de labelnaam is "Black — formatter", maar onderliggend draait Ruff-formatter. Eén formatter, geen conflict.
 
-### 2.2 Mypy — typecontrole
+### 2.2 MyPy — type checker
 
-**Wat is het?** Controleert of type-annotaties in je code kloppen zonder de code uit te voeren.
+**Wat is het?** Type checker die controleert of type-annotaties in je code kloppen zonder de code uit te voeren.
 
 ```python
-def load(pillar: str) -> pd.DataFrame:  ← Mypy checkt: geeft de functie echt een DataFrame terug?
+def load(pillar: str) -> pd.DataFrame:  ← MyPy checkt: geeft de functie echt een DataFrame terug?
 ```
 
 | Vindt het? | Voorbeeld |
@@ -111,7 +111,7 @@ Het systeem heeft **twee onafhankelijke lagen** — ze vullen elkaar aan:
 - **Wanneer:** Wanneer jíj het wil — geen automatisme
 - **Hoe:** `.\tools\lint.ps1` in de terminal
 - **Scope:** Alle bestanden in `src/` en `tests/` altijd
-- **Checks:** Ruff lint · Ruff opmaak · Mypy · Bandit · pip-audit (met ZORGI-fallback)
+- **Checks:** Ruff lint · Black formatter · MyPy type checker · Bandit · pip-audit (met ZORGI-fallback)
 - **Optie:** `.\tools\lint.ps1 -Fix` → past Ruff-problemen automatisch aan
 
 ### Laag 2 — Automatisch: pre-commit hooks
@@ -119,7 +119,7 @@ Het systeem heeft **twee onafhankelijke lagen** — ze vullen elkaar aan:
 - **Wanneer:** Altijd, automatisch bij **elke** `git commit`
 - **Hoe:** Niets doen — werkt vanzelf na `python -m pre_commit install`
 - **Scope:** Alleen de **gewijzigde** bestanden in die commit
-- **Checks:** Ruff lint · Ruff opmaak · Mypy · Bandit · syntax · merge-conflicten
+- **Checks:** Ruff lint · Black formatter · MyPy type checker · Bandit · syntax · merge-conflicten
 - **Effect:** Bij fout → commit wordt **geblokkeerd** — je ziet welke check faalde
 
 > 💡 **Verschil scope:** `lint.ps1` checkt altijd alles. Pre-commit checkt alleen wat je gewijzigd hebt.
@@ -180,8 +180,8 @@ Copilot toont tabel: Package | Versie | CVE | Ernst | Actie
 
 | Moment | Actie | Door wie |
 |--------|-------|----------|
-| Bij elke `git commit` | Ruff lint + opmaak | pre-commit |
-| Bij elke `git commit` | Mypy typecontrole | pre-commit |
+| Bij elke `git commit` | Ruff lint + Black formatter | pre-commit |
+| Bij elke `git commit` | MyPy type checker | pre-commit |
 | Bij elke `git commit` | Bandit security | pre-commit |
 | Bij elke `git commit` | Python syntax check | pre-commit |
 | Bij elke `git commit` | Merge conflict check | pre-commit |
@@ -204,7 +204,7 @@ Copilot toont tabel: Package | Versie | CVE | Ernst | Actie
 | Wat | Bestand | Wat erin staat |
 |-----|---------|---------------|
 | Ruff-regels | `pyproject.toml` → `[tool.ruff]` | Regellengte 100, geselecteerde regels |
-| Mypy-config | `pyproject.toml` → `[tool.mypy]` | Strictheid, uitzonderingen per map |
+| MyPy-config | `pyproject.toml` → `[tool.mypy]` | Strictheid, uitzonderingen per map |
 | Bandit-config | `pyproject.toml` → `[tool.bandit]` | Uitgesloten mappen |
 | Pre-commit hooks | `.pre-commit-config.yaml` | Welke checks, op welke bestanden |
 | Lint runner | `tools/lint.ps1` | Volgorde, ZORGI-proxy afhandeling |
@@ -216,16 +216,16 @@ Copilot toont tabel: Package | Versie | CVE | Ernst | Actie
 
 **Pre-commit blokkeert mijn commit — wat nu?**
 Lees de foutmelding. Ruff-fouten kan je automatisch fixen: `.\tools\lint.ps1 -Fix`.
-Mypy- of Bandit-fouten moet je zelf oplossen in de code.
+MyPy- of Bandit-fouten moet je zelf oplossen in de code.
 
 **Kan ik pre-commit overslaan?**
 Ja, maar doe dit alleen in noodgevallen: `git commit --no-verify -m "..."`.
 Noteer altijd waarom je de checks overgeslagen hebt in de commit message.
 
 **Ruff vs Black — welke gebruik ik?**
-Alleen Ruff. Black is niet geïnstalleerd en niet nodig — Ruff-formatter doet hetzelfde.
+De zichtbare labelnaam is **Black — formatter**, maar technisch gebruiken we alleen Ruff. Black is niet apart geïnstalleerd en niet nodig — Ruff-formatter doet hetzelfde.
 
-**Mypy klaagt over een externe library zonder types?**
+**MyPy klaagt over een externe library zonder types?**
 Voeg toe aan `pyproject.toml` onder `[[tool.mypy.overrides]]`:
 
 ```toml
@@ -244,3 +244,6 @@ Normaal — ZORGI corporate proxy. Gebruik `/cve` in Copilot Chat als alternatie
 | Versie | Datum | Wijzigingen | Auteur               |
 | ------ | ---------- | --------------- |----------------------|
 | 1.0 | 20/03/2026 | Initiële versie | Danny Depecker + GHC |
+| 1.1 | 28/03/2026 | Terminologie bijgewerkt: Ruff 'opmaak' hernoemd naar 'formattering (Black-stijl)' | Danny Depecker + GHC |
+| 1.2 | 28/03/2026 | Terminologie bijgewerkt: 'MyPy' hernoemd naar 'MyPy — type checker' | Danny Depecker + GHC |
+| 1.3 | 28/03/2026 | Zichtbare toolinglabels afgestemd op CLI-output: 'Black — formatter' en 'MyPy — type checker' | Danny Depecker + GHC |
