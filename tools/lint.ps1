@@ -32,19 +32,19 @@ if ($LASTEXITCODE -ne 0) {
     Write-Host "      Ruff: alles in orde." -ForegroundColor Green
 }
 
-# --- [2/5] Black: formatter ---
-Write-Host "`n[2/5] Black — formatter..." -ForegroundColor Yellow
+# --- [2/5] Ruff: formatter (ex Black) ---
+Write-Host "`n[2/5] Ruff - formatter (ex Black)..." -ForegroundColor Yellow
 if ($Fix) {
     python -m ruff format src/ tests/
 } else {
     python -m ruff format src/ tests/ --check
 }
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "      Formatter: afwijkingen gevonden." -ForegroundColor Red
+    Write-Host "      Ruff formatter: afwijkingen gevonden." -ForegroundColor Red
     Write-Host "      Tip: '.\tools\lint.ps1 -Fix' past automatisch aan." -ForegroundColor Yellow
     $ErrorCount++
 } else {
-    Write-Host "      Formatter: alles in orde." -ForegroundColor Green
+    Write-Host "      Ruff formatter: alles in orde." -ForegroundColor Green
 }
 
 # --- [3/5] MyPy: type checker ---

@@ -1,7 +1,7 @@
 # CSAT-Compass - Projectplan High-Level
 
-**Versie:** 1.2
-**Laatst bijgewerkt:** 27/03/2026
+**Versie:** 1.3
+**Laatst bijgewerkt:** 29/03/2026
 
 **Doel:** Fundament en referentiedocument voor de volledige CSAT-Compass opzet  
 **Type:** Planning  
@@ -126,14 +126,11 @@ databron
 
 ### 4.1 Databron — hybride strategie
 
-```python
-# Selectie-logica DataLoader (pseudocode)
-if db_connection_available():
-    loader = SqlLoader(connection_string=settings.DB_CONN)
-else:
-    loader = CsvLoader(path=settings.CSV_FALLBACK_PATH)
-    logger.warning("SQL niet bereikbaar — fallback naar CSV")
-```
+Selectielogica in woorden:
+
+- als een DB-connectie beschikbaar is, gebruikt de `DataLoader` de SQL-bron;
+- anders schakelt de loader over naar de CSV-fallback;
+- bij fallback wordt een waarschuwing gelogd zodat de run traceerbaar blijft.
 
 - **SQL (primair):** directe connectie via `pyodbc` / `sqlalchemy` naar de PowerBI-databaseview
 - **CSV (fallback):** handmatige of geplande exports in `data/` (niet in Git)
@@ -179,7 +176,8 @@ PHARMA is de **referentie-implementatie**. Elke volgende pijler is een kopie + a
 | **Fase 1** | Hybride loader + PHARMA-analyser | Data ingeladen, KPI's berekend | ✅ Compleet |
 | **Fase 2** | Jinja2-templates + i18n NL/FR | Eerste rapporten PHARMA NL+FR | ✅ Compleet |
 | **Fase 3** | Matrix + Evolutie + Visualisatie + Batch-runner | Fasen 3a–3e voltooid | ✅ Compleet |
-| **Fase 3f** | Evolutierapport verfijning | Inhoud TBD | 🔄 In planning |
+| **Fase 3f** | Evolutie-advieskader | Gap-analyse, beslisrecord, release 1 scope | ✅ Compleet |
+| **Fase 3g** | Evolutierapport verfijning | Implementatie release 1 op basis van fase 3f | 🔄 In planning |
 | **Fase 4** | CARE / CARE ADMIN / ERP4HC | Alle 4 pillar-analysers actief | ⏳ Gepland |
 | **Fase 5** | Streamlit dashboard | Interactief dashboard NL/FR | ⏳ Gepland |
 | **Fase 6** | ZORGI overall aggregatie | ZORGI-rapport + ZORGI-matrix | ⏳ Gepland |
@@ -276,3 +274,4 @@ CSAT-Compass/
 | 1.0 | 18/03/2026 | Initiële versie — basis advies MCQ-sessie verwerkt | Danny Depecker + GHC |
 | 1.1 | 26/03/2026 | Fase-statussen bijgewerkt: fasen 1 t/m 3 compleet | Danny Depecker + GHC |
 | 1.2 | 27/03/2026 | Fase 3f toegevoegd als aparte rij (in planning) | Danny Depecker + GHC |
+| 1.3 | 29/03/2026 | Fase 3f hergedefinieerd als advieskader; implementatiefase doorgeschoven naar 3g | Danny Depecker + GHC |

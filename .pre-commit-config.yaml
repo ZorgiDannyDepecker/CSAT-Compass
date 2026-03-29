@@ -21,10 +21,10 @@ repos:
         pass_filenames: false
 
       # -----------------------------------------------------------------------
-      # Black — formatter
+      # Ruff - formatter (ex Black)
       # -----------------------------------------------------------------------
       - id: ruff-format
-        name: Black — formatter
+        name: Ruff - formatter (ex Black)
         entry: python -m ruff format src/ tests/
         language: system
         types: [python]

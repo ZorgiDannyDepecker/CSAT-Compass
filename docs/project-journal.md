@@ -1,7 +1,7 @@
 # 📓 CSAT-Compass - Project Journal
 
-**Versie:** 1.9
-**Laatst bijgewerkt:** 27/03/2026
+**Versie:** 2.0
+**Laatst bijgewerkt:** 29/03/2026
 
 **Doel:** Chronologisch logboek van beslissingen, bevindingen en voortgang  
 **Type:** Reference  
@@ -27,6 +27,7 @@
 - [2026-03-25 — Fase 3d afsluiting: EvolutionVisualiser + aanvullingen](#2026-03-25--fase-3d-afsluiting-evolutionvisualiser--aanvullingen)
 - [2026-03-26 — Fase 3e afsluiting: run_monthly.py](#2026-03-26--fase-3e-afsluiting-run_monthlypy)
 - [2026-03-27 — Fase 3d verfijning + Fase 3f opstart](#2026-03-27--fase-3d-verfijning--fase-3f-opstart)
+- [2026-03-29 — Fase 3f/3g herstructurering](#2026-03-29--fase-3f3g-herstructurering)
 - [Versiehistorie](#versiehistorie)
 
 ---
@@ -295,13 +296,43 @@ vervangen: het eenvoudige HC-ratio staafdiagram maakte plaats voor een informati
 ### Fase 3f opstart
 
 - Fase-document aangemaakt: `docs/02-tactisch/fasen/fase3f-evolutie-rapport-verfijning.md`
+  (later hernoemd naar `fase3g-evolutie-rapport-verfijning.md`)
 - Handover aangemaakt: `WIP/handover-fase3f-2026-03-27.md`
+  (later hernoemd naar `handover-fase3g-2026-03-27.md`)
 - Conversatie-opener aangemaakt: `WIP/conversatie-opener-fase3f.md`
+  (later hernoemd naar `conversatie-opener-fase3g.md`)
 - Inhoud fase 3f (concrete verbeteringen) wordt aangeleverd door Danny Depecker
 
 ### Teststand
 
 - Cumulatief einde 27/03: **570 tests** — 100% coverage — CI stabiel (Python 3.11 / 3.12 / 3.13)
+
+---
+
+## 2026-03-29 — Fase 3f/3g herstructurering
+
+### Beslissingen
+
+- Het formele advies- en besliskader voor de evolutieverbetering wordt de **nieuwe fase 3f**
+- De eerdere implementatiegerichte fase 3f schuift door naar **fase 3g**
+- `fase3f` = gap-analyse, beslisrecord, architectuurkeuzes, release-1 scope
+- `fase3g` = effectieve implementatie van de verfijning op basis van fase 3f
+
+### Documentatieopkuis
+
+- `WIP/ghc_advies-evolutie-verbetering_v2.md` verplaatst naar
+  `docs/02-tactisch/fasen/fase3f-evolutie-advieskader.md`
+- `docs/02-tactisch/fasen/fase3f-evolutie-rapport-verfijning.md` hernoemd naar
+  `docs/02-tactisch/fasen/fase3g-evolutie-rapport-verfijning.md`
+- `WIP/handover-fase3f-2026-03-27.md` hernoemd naar `WIP/handover-fase3g-2026-03-27.md`
+- `WIP/conversatie-opener-fase3f.md` hernoemd naar `WIP/conversatie-opener-fase3g.md`
+- Verouderd alternatief adviesdocument gearchiveerd naar `archive/WIP/20260329-documentatieopkuis/`
+
+### Bijgewerkte richting
+
+- Fase 3f is nu **compleet als adviesfase**
+- Fase 3g staat **in planning als implementatiefase**
+- De implementatiegids en het high-level projectplan werden mee aangepast zodat de fasering opnieuw klopt
 
 ---
 
@@ -319,6 +350,7 @@ vervangen: het eenvoudige HC-ratio staafdiagram maakte plaats voor een informati
 | 1.7 | 26/03/2026 | Fase 3e afsluiting — run_monthly.py, 563 tests | Danny Depecker + GHC |
 | 1.8 | 26/03/2026 | Documentatieopkuis: WIP gearchiveerd, 4 nieuwe docs, 3 docs bijgewerkt | Danny Depecker + GHC |
 | 1.9 | 27/03/2026 | Fase 3d verfijning (subplot 3 herwerking, 570 tests) + Fase 3f opstart | Danny Depecker + GHC |
+| 2.0 | 29/03/2026 | Fase 3f/3g herstructurering: advieskader formeel naar fase 3f, implementatie doorgeschoven naar 3g, documentatie opgeschoond | Danny Depecker + GHC |
 
 ---
 *ZORGI — Danny Depecker*
