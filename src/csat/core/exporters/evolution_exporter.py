@@ -7,6 +7,8 @@ vanuit een EvolutionResult-object via Jinja2-templates en NL/FR i18n.
 Talen: nl (Nederlands) + fr (Frans) — conform ZORGI tweetaligheidsbeleid.
 Templates: docs/templates/evolutie-{lang}.md.j2
 Output: output/evolutie-YYYY-{lang}.md
+
+Fase 3g: InsightsGenerator geïntegreerd voor narratieve secties (beslissing 7).
 """
 
 from datetime import UTC, datetime
@@ -19,6 +21,7 @@ from csat.config.pillars import PILLAR_REGISTRY
 from csat.config.settings import OUTPUT_PATH, TEMPLATES_PATH
 from csat.core.analysers.evolution_result import EvolutionResult, KpiStatus
 from csat.core.exporters.report_exporter import _format_date, _format_number
+from csat.core.insights import InsightsGenerator
 from csat.i18n import SUPPORTED_LANGS, load_translations
 
 
@@ -172,6 +175,21 @@ class EvolutionExporter:
             result.current_avg_response_days - result.baseline_avg_response_days, 1
         )
 
+        # --- Fase 3g: InsightsGenerator aanroepen (beslissing 7) ---
+        # Seed = rapportdatum als int voor reproduceerbaarheid bij herhaalde runs
+        seed = int(datetime.now(tz=UTC).strftime("%Y%m%d"))
+        insights_gen = InsightsGenerator(i18n=t, lang=self._lang, seed=seed)
+        insights = insights_gen.generate(result)
+
+        # KPI target tracking labels
+        target_tracking_labels = t.get("evolution", {}).get("target_tracking", {})
+
+        def target_status_label(status: str) -> str:
+            return str(target_tracking_labels.get(status, status))
+
+        def kpi_target_name(name: str) -> str:
+            return str(target_tracking_labels.get("kpi_names", {}).get(name, name))
+
         return {
             "t": t,
             "lang": self._lang,
@@ -221,4 +239,19 @@ class EvolutionExporter:
             "trend_is_structural": result.trend_is_structural,
             "trend_breadth": result.trend_breadth,
             "trend_breadth_label": trend_breadth_label,
+            # --- Fase 3g: nieuwe context-variabelen ---
+            "insights": insights,
+            "baseline_summary": result.baseline_summary,
+            "current_summary": result.current_summary,
+            "score_distribution_baseline": result.score_distribution_baseline,
+            "score_distribution_current": result.score_distribution_current,
+            "response_time_insight": result.response_time_insight,
+            "negative_cases": result.negative_cases,
+            "kpi_targets": result.kpi_targets,
+            "benchmark_h2": result.benchmark_h2,
+            "hospital_shortlist": result.hospital_shortlist,
+            "hospital_retention_pct": result.hospital_retention_pct,
+            # KPI target tracking hulpfuncties
+            "target_status_label": target_status_label,
+            "kpi_target_name": kpi_target_name,
         }

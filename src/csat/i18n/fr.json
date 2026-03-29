@@ -99,7 +99,17 @@
       "hospitals": "Comparaison par hôpital",
       "themes": "Thèmes de feedback négatif",
       "kpi_status": "Statut KPI",
-      "conclusion": "Conclusion et recommandations"
+      "conclusion": "Conclusion",
+      "executive_summary": "Résumé exécutif",
+      "critical_findings": "Constats critiques",
+      "positive_developments": "Évolutions positives",
+      "negative_feedback": "Feedback négatif — analyse approfondie",
+      "kpi_target_tracking": "Suivi des objectifs KPI",
+      "visual_analysis": "Analyse visuelle",
+      "recommendations": "Recommandations stratégiques",
+      "follow_up": "Actions de suivi",
+      "benchmark": "Double benchmark",
+      "hospital_shortlist": "Hôpitaux prioritaires"
     },
     "kpi": {
       "delta_avg_score": "Delta score moy.",
@@ -107,7 +117,8 @@
       "pct_negative": "% Négatif (≤ 2)",
       "avg_response_days": "Délai moy. de réponse (jours)",
       "n_hospitals": "Nombre d'hôpitaux",
-      "hc_ratio": "Taux High/Critical"
+      "hc_ratio": "Taux High/Critical",
+      "score_distribution": "Distribution des scores"
     },
     "status": {
       "ok": "✅ OK",
@@ -146,7 +157,128 @@
       "response_days": "Délai (j)",
       "theme": "Thème",
       "pct_comments": "% comm. nég.",
-      "status": "Statut"
+      "status": "Statut",
+      "ticket_id": "ID Ticket",
+      "comment": "Commentaire",
+      "category": "Catégorie",
+      "target": "Objectif 2026",
+      "on_track": "En bonne voie?",
+      "impact": "Impact",
+      "timeline": "Délai",
+      "owner": "Responsable"
+    },
+    "target_tracking": {
+      "op_schema": "✅ En bonne voie",
+      "aandacht": "⚠️ Attention",
+      "kritiek": "🔴 Critique",
+      "kpi_names": {
+        "avg_score_min": "Score CSAT moy. (min ≥ 4,00)",
+        "high_critical_max": "Taux High/Critical (max ≤ 15%)",
+        "pct_positive_min": "% Positif (min ≥ 75%)",
+        "pct_negative_max": "% Négatif (max ≤ 15%)",
+        "avg_response_days_max": "Délai moy. (max ≤ 10 j)",
+        "pct_with_comment_min": "% Avec commentaire (min ≥ 40%)",
+        "hospital_retention_min": "Rétention hôpitaux (min ≥ 50%)"
+      }
+    },
+    "recommendation": {
+      "timeline": {
+        "kort": "Court terme (< 1 mois)",
+        "middellang": "Moyen terme (1–3 mois)",
+        "lang": "Long terme (3+ mois)"
+      },
+      "horizon": {
+        "kort": "Court terme",
+        "middellang": "Moyen terme",
+        "lang": "Long terme"
+      },
+      "priority": {
+        "hoog": "🔴 Haute",
+        "midden": "🟡 Moyenne",
+        "laag": "🟢 Basse"
+      }
+    }
+  },
+  "insights": {
+    "score_decline": {
+      "licht": [
+        "Le score moyen a légèrement reculé de {baseline} à {current}.",
+        "Avec un écart de {baseline} à {current}, la baisse reste limitée.",
+        "Le score a légèrement diminué : de {baseline} à {current}."
+      ],
+      "matig": [
+        "Le score moyen a sensiblement baissé de {baseline} à {current}.",
+        "Une baisse notable : le score est passé de {baseline} à {current}."
+      ],
+      "significant": [
+        "Le score moyen a significativement chuté de {baseline} à {current}.",
+        "Un recul préoccupant : le score est passé de {baseline} à {current}."
+      ]
+    },
+    "score_increase": {
+      "licht": [
+        "Le score moyen a légèrement progressé de {baseline} à {current}.",
+        "Une amélioration modeste : le score est passé de {baseline} à {current}.",
+        "Le score a enregistré une légère hausse : de {baseline} à {current}."
+      ],
+      "matig": [
+        "Le score moyen a sensiblement progressé de {baseline} à {current}.",
+        "Une amélioration notable : le score est passé de {baseline} à {current}."
+      ],
+      "significant": [
+        "Le score moyen a fortement progressé de {baseline} à {current}.",
+        "Une amélioration significative : le score est passé de {baseline} à {current}."
+      ]
+    },
+    "score_stable": [
+      "Le score moyen est resté stable à {current}.",
+      "Avec un score de {current}, la situation est inchangée par rapport à la baseline.",
+      "Le score n'a pas enregistré de mouvement notable : {current} ★."
+    ],
+    "nuance": {
+      "stable_positive": [
+        "le taux positif de {pct}% relativise ce mouvement.",
+        "avec {pct}% de scores positifs, il s'agit d'un léger écart.",
+        "{pct}% des clients donnent encore une note positive, ce qui atténue l'impact."
+      ]
+    },
+    "correlation": {
+      "positive": [
+        "L'analyse révèle une corrélation positive (r={r}) entre le délai de réponse et la satisfaction : traiter plus vite conduit à de meilleures notes.",
+        "Délai et score sont corrélés (r={r}) : des délais plus courts s'accompagnent de meilleures évaluations."
+      ],
+      "negative": [
+        "Fait notable : la corrélation entre délai et score est négative (r={r}). Les tickets plus longs sont mieux notés en moyenne.",
+        "La corrélation délai/score est négative (r={r}), ce qui peut indiquer des tickets complexes chez les clients les plus engagés."
+      ],
+      "neutral": [
+        "La corrélation entre délai et satisfaction est négligeable (r={r}).",
+        "Délai et score ne montrent pas de lien significatif (r={r})."
+      ]
+    },
+    "conclusion": {
+      "structural_broad": [
+        "l'évolution positive est portée par une large majorité d'hôpitaux.",
+        "l'amélioration est visible chez la plupart des hôpitaux et de nature structurelle."
+      ],
+      "structural_limited": [
+        "l'amélioration est réelle mais concentrée — l'élargir est le prochain objectif.",
+        "la tendance positive est présente mais limitée à une minorité."
+      ],
+      "declining": [
+        "une correction est nécessaire pour éviter une dégradation supplémentaire.",
+        "une action ciblée est requise — voir les recommandations stratégiques."
+      ],
+      "stable": [
+        "la situation est stable mais offre des marges de progression.",
+        "la consolidation est le maître-mot — pas de recul, mais pas de percée non plus."
+      ]
+    },
+    "connectors": {
+      "contrast": ["Bien que", "Malgré", "Parallèlement"],
+      "causal": ["Cela suggère que", "Une explication possible est", "Cela est lié à"],
+      "reinforcing": ["Cela est confirmé par", "Dans le même sens", "De plus"],
+      "concluding": ["En résumé", "Le message clé est", "Concrètement"]
     }
   }
 }

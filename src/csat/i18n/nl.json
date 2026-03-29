@@ -99,7 +99,17 @@
       "hospitals": "Ziekenhuisvergelijking",
       "themes": "Negatieve feedbackthema's",
       "kpi_status": "KPI-status",
-      "conclusion": "Conclusie en aanbevelingen"
+      "conclusion": "Conclusie",
+      "executive_summary": "Executive Summary",
+      "critical_findings": "Kritieke bevindingen",
+      "positive_developments": "Positieve ontwikkelingen",
+      "negative_feedback": "Negatieve feedback — deep-dive",
+      "kpi_target_tracking": "KPI target tracking",
+      "visual_analysis": "Visuele analyse",
+      "recommendations": "Strategische aanbevelingen",
+      "follow_up": "Follow-up acties",
+      "benchmark": "Dubbele benchmark",
+      "hospital_shortlist": "Focuslijst ziekenhuizen"
     },
     "kpi": {
       "delta_avg_score": "Delta gem. score",
@@ -107,7 +117,8 @@
       "pct_negative": "% Negatief (≤ 2)",
       "avg_response_days": "Gem. responstijd (dagen)",
       "n_hospitals": "Aantal ziekenhuizen",
-      "hc_ratio": "High/Critical-ratio"
+      "hc_ratio": "High/Critical-ratio",
+      "score_distribution": "Scoreverdeling"
     },
     "status": {
       "ok": "✅ OK",
@@ -146,7 +157,128 @@
       "response_days": "Responstijd (d)",
       "theme": "Thema",
       "pct_comments": "% neg. comments",
-      "status": "Status"
+      "status": "Status",
+      "ticket_id": "Ticket-ID",
+      "comment": "Comment",
+      "category": "Categorie",
+      "target": "Target 2026",
+      "on_track": "Op schema?",
+      "impact": "Impact",
+      "timeline": "Tijdlijn",
+      "owner": "Eigenaar"
+    },
+    "target_tracking": {
+      "op_schema": "✅ Op schema",
+      "aandacht": "⚠️ Aandacht",
+      "kritiek": "🔴 Kritiek",
+      "kpi_names": {
+        "avg_score_min": "Gem. CSAT-score (min ≥ 4,00)",
+        "high_critical_max": "High/Critical-ratio (max ≤ 15%)",
+        "pct_positive_min": "% Positief (min ≥ 75%)",
+        "pct_negative_max": "% Negatief (max ≤ 15%)",
+        "avg_response_days_max": "Gem. responstijd (max ≤ 10 d)",
+        "pct_with_comment_min": "% Met comment (min ≥ 40%)",
+        "hospital_retention_min": "Ziekenhuisretentie (min ≥ 50%)"
+      }
+    },
+    "recommendation": {
+      "timeline": {
+        "kort": "Kort (< 1 maand)",
+        "middellang": "Middellang (1–3 maanden)",
+        "lang": "Lang (3+ maanden)"
+      },
+      "horizon": {
+        "kort": "Korte termijn",
+        "middellang": "Middellange termijn",
+        "lang": "Lange termijn"
+      },
+      "priority": {
+        "hoog": "🔴 Hoog",
+        "midden": "🟡 Midden",
+        "laag": "🟢 Laag"
+      }
+    }
+  },
+  "insights": {
+    "score_decline": {
+      "licht": [
+        "De gemiddelde score kende een lichte terugval van {baseline} naar {current}.",
+        "Met een verschuiving van {baseline} naar {current} blijft de daling beperkt.",
+        "De score bewoog licht neerwaarts: van {baseline} naar {current}."
+      ],
+      "matig": [
+        "De gemiddelde score daalde merkbaar van {baseline} naar {current}.",
+        "Een noemenswaardige daling: de score zakte van {baseline} naar {current}."
+      ],
+      "significant": [
+        "De gemiddelde score daalde significant van {baseline} naar {current}.",
+        "Een zorgwekkende terugval: de score ging van {baseline} naar {current}."
+      ]
+    },
+    "score_increase": {
+      "licht": [
+        "De gemiddelde score steeg licht van {baseline} naar {current}.",
+        "Een bescheiden verbetering: de score klom van {baseline} naar {current}.",
+        "De score noteerde een lichte stijging: van {baseline} naar {current}."
+      ],
+      "matig": [
+        "De gemiddelde score steeg merkbaar van {baseline} naar {current}.",
+        "Een noemenswaardige verbetering: de score ging van {baseline} naar {current}."
+      ],
+      "significant": [
+        "De gemiddelde score steeg sterk van {baseline} naar {current}.",
+        "Een significante verbetering: de score klom van {baseline} naar {current}."
+      ]
+    },
+    "score_stable": [
+      "De gemiddelde score bleef stabiel op {current}.",
+      "Met een score van {current} is de situatie ongewijzigd ten opzichte van de baseline.",
+      "De score noteerde geen noemenswaardige beweging: {current} ★."
+    ],
+    "nuance": {
+      "stable_positive": [
+        "het positieve percentage van {pct}% relativeert deze beweging.",
+        "bij {pct}% positieve scores is dit een beperkte verschuiving.",
+        "{pct}% van de klanten geeft nog steeds een positieve score, wat de impact verzacht."
+      ]
+    },
+    "correlation": {
+      "positive": [
+        "De analyse toont een positieve correlatie (r={r}) tussen responstijd en klanttevredenheid: sneller afhandelen leidt aantoonbaar tot hogere scores.",
+        "Responstijd en score zijn gecorreleerd (r={r}): kortere wachttijden gaan samen met betere beoordelingen."
+      ],
+      "negative": [
+        "Opvallend: er is een negatieve correlatie (r={r}) tussen responstijd en score. Langere tickets scoren gemiddeld hoger.",
+        "De correlatie tussen responstijd en score is negatief (r={r}), wat kan wijzen op complexere tickets bij de meest betrokken klanten."
+      ],
+      "neutral": [
+        "De correlatie tussen responstijd en klanttevredenheid is verwaarloosbaar (r={r}).",
+        "Responstijd en score tonen geen significante samenhang (r={r})."
+      ]
+    },
+    "conclusion": {
+      "structural_broad": [
+        "de positieve ontwikkeling is breed gedragen en robuust.",
+        "de verbetering is zichtbaar bij de meerderheid van de ziekenhuizen en structureel van aard."
+      ],
+      "structural_limited": [
+        "de verbetering is reëel maar beperkt tot een selecte groep — verbreding is het volgende doel.",
+        "de positieve trend is aanwezig maar concentreert zich bij een minderheid."
+      ],
+      "declining": [
+        "bijsturing is noodzakelijk om verdere achteruitgang te vermijden.",
+        "gerichte actie is vereist — zie de strategische aanbevelingen."
+      ],
+      "stable": [
+        "de situatie is stabiel maar biedt ruimte voor verbetering.",
+        "consolidatie is het sleutelwoord — geen achteruitgang, maar ook geen doorbraak."
+      ]
+    },
+    "connectors": {
+      "contrast": ["Hoewel", "Ondanks", "Tegelijkertijd"],
+      "causal": ["Dit suggereert dat", "Een mogelijke verklaring is", "Dit hangt samen met"],
+      "reinforcing": ["Dit wordt bevestigd door", "In lijn hiermee", "Bovendien"],
+      "concluding": ["Samenvattend", "De kernboodschap is", "Dit betekent concreet"]
     }
   }
 }

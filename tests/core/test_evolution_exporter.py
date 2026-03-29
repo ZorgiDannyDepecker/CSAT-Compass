@@ -530,3 +530,86 @@ class TestGetalnotatie:
     ) -> None:
         result = exporter_nl.render(evolution_result)
         assert "+1,70" in result
+
+
+# ---------------------------------------------------------------------------
+# 9. Recurring themes — voorbeeld + actiehint (fase 3g scope)
+# ---------------------------------------------------------------------------
+
+
+class TestRenderRecurringThemes:
+    """Tests voor recurring themes sectie met voorbeeld en actiehint."""
+
+    def test_nog_aanwezig_thema_toont_voorbeeld(
+        self, exporter_nl: EvolutionExporter, evolution_result: EvolutionResult
+    ) -> None:
+        """NOG_AANWEZIG thema met example → voorbeeld verschijnt in rapport."""
+        import dataclasses
+
+        from csat.core.analysers.evolution_result import ThemeEvolution
+
+        result = dataclasses.replace(
+            evolution_result,
+            negative_themes=[
+                ThemeEvolution(
+                    theme_key="responstijd",
+                    pct_baseline=30.0,
+                    pct_current=20.0,
+                    status="NOG_AANWEZIG",
+                    example="te lang gewacht op een reactie",
+                    action_hint="Controleer SLA-naleving.",
+                )
+            ],
+        )
+        rendered = exporter_nl.render(result)
+        assert "te lang gewacht op een reactie" in rendered
+
+    def test_nog_aanwezig_thema_toont_actiehint(
+        self, exporter_nl: EvolutionExporter, evolution_result: EvolutionResult
+    ) -> None:
+        """NOG_AANWEZIG thema met action_hint → actiehint verschijnt in rapport."""
+        import dataclasses
+
+        from csat.core.analysers.evolution_result import ThemeEvolution
+
+        result = dataclasses.replace(
+            evolution_result,
+            negative_themes=[
+                ThemeEvolution(
+                    theme_key="communicatie",
+                    pct_baseline=15.0,
+                    pct_current=25.0,
+                    status="NOG_AANWEZIG",
+                    example="geen update gekregen",
+                    action_hint="Activeer proactieve statusupdates.",
+                )
+            ],
+        )
+        rendered = exporter_nl.render(result)
+        assert "Activeer proactieve statusupdates." in rendered
+
+    def test_opgelost_thema_toont_geen_voorbeeld_sectie(
+        self, exporter_nl: EvolutionExporter, evolution_result: EvolutionResult
+    ) -> None:
+        """OPGELOST thema → geen voorbeeld/actiehint weergegeven in uitgebreide sectie."""
+        import dataclasses
+
+        from csat.core.analysers.evolution_result import ThemeEvolution
+
+        result = dataclasses.replace(
+            evolution_result,
+            negative_themes=[
+                ThemeEvolution(
+                    theme_key="responstijd",
+                    pct_baseline=30.0,
+                    pct_current=0.0,
+                    status="OPGELOST",
+                    example="te lang gewacht",
+                    action_hint="Controleer SLA.",
+                )
+            ],
+        )
+        rendered = exporter_nl.render(result)
+        # Het thema staat in de tabel maar het voorbeeld-blok wordt niet getoond
+        assert "✅ Opgelost" in rendered
+        assert "te lang gewacht" not in rendered  # voorbeeld niet zichtbaar voor opgeloste

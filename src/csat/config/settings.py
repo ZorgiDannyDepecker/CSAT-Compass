@@ -53,6 +53,19 @@ AVG_SCORE_MIN: float = float(os.getenv("CSAT_AVG_SCORE_MIN", "4.0"))
 # Beslissing Danny Depecker 20/03/2026 — zie ADR-007.
 HIGH_CRITICAL_MAX: float = float(os.getenv("CSAT_HIGH_CRITICAL_MAX", "15.0"))
 
+# --- KPI-targets voor target tracking (Fase 3g — fase3f-evolutie-advieskader.md §G) ---
+# Beslissing DDP 29/03/2026 — 7 targets, zie fase3f sectie G.
+# Minimaal % positieve scores (score >= 4).
+PCT_POSITIVE_MIN: float = float(os.getenv("CSAT_PCT_POSITIVE_MIN", "75.0"))
+# Maximaal % negatieve scores (score <= 2).
+PCT_NEGATIVE_MAX: float = float(os.getenv("CSAT_PCT_NEGATIVE_MAX", "15.0"))
+# Maximale gemiddelde responstijd in dagen.
+AVG_RESPONSE_DAYS_MAX: float = float(os.getenv("CSAT_AVG_RESPONSE_DAYS_MAX", "10.0"))
+# Minimaal % tickets met een klantcomment (klantbetrokkenheid).
+PCT_WITH_COMMENT_MIN: float = float(os.getenv("CSAT_PCT_WITH_COMMENT_MIN", "40.0"))
+# Minimale retentie van baseline-ziekenhuizen in huidige periode.
+HOSPITAL_RETENTION_MIN: float = float(os.getenv("CSAT_HOSPITAL_RETENTION_MIN", "50.0"))
+
 
 def db_available() -> bool:
     """Controleer of een DB-wachtwoord beschikbaar is voor connectie."""

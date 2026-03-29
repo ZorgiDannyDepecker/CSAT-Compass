@@ -11,7 +11,11 @@ Current-periodes:  ["2026-01", "2026-02"]
 import pandas as pd
 import pytest
 
-from csat.core.analysers.evolution_analyser import THEME_KEYWORDS, EvolutionAnalyser
+from csat.core.analysers.evolution_analyser import (
+    THEME_ACTION_HINTS,
+    THEME_KEYWORDS,
+    EvolutionAnalyser,
+)
 from csat.core.analysers.evolution_result import (
     EvolutionResult,
     HospitalComparison,
@@ -1048,3 +1052,428 @@ class TestDataclassInstantiatie:
         assert r.hospital_comparison == []
         assert r.kpi_status == {}
         assert r.negative_themes == []
+
+
+# ===========================================================================
+# Fase 3g — nieuwe metrics
+# ===========================================================================
+
+
+class TestFase3gSummaryStats:
+    """Tests voor _calc_summary_stats en nieuwe SummaryStats velden."""
+
+    def test_summary_stats_aanwezig(self, evolution_df: pd.DataFrame) -> None:
+        result = run_analyse(evolution_df)
+        assert result.baseline_summary is not None
+        assert result.current_summary is not None
+
+    def test_summary_stats_total_responses(self, evolution_df: pd.DataFrame) -> None:
+        result = run_analyse(evolution_df)
+        assert result.baseline_summary is not None
+        assert result.baseline_summary.total_responses == 6
+        assert result.current_summary is not None
+        assert result.current_summary.total_responses == 4
+
+    def test_summary_stats_median_score(self, evolution_df: pd.DataFrame) -> None:
+        result = run_analyse(evolution_df)
+        assert result.current_summary is not None
+        # Current scores: [5, 4, 5, 4] → mediaan = 4.5
+        assert result.current_summary.median_score == 4.50
+
+    def test_summary_stats_std_dev_groter_nul(self, evolution_df: pd.DataFrame) -> None:
+        result = run_analyse(evolution_df)
+        assert result.baseline_summary is not None
+        assert result.baseline_summary.std_dev_score > 0.0
+
+    def test_summary_stats_pct_neutral(self, evolution_df: pd.DataFrame) -> None:
+        result = run_analyse(evolution_df)
+        assert result.current_summary is not None
+        pct_pos = result.current_summary.pct_positive
+        pct_neg = result.current_summary.pct_negative
+        pct_neu = result.current_summary.pct_neutral
+        assert abs(pct_pos + pct_neg + pct_neu - 100.0) < 0.2
+
+    def test_summary_stats_period_start_end(self, evolution_df: pd.DataFrame) -> None:
+        result = run_analyse(evolution_df)
+        assert result.baseline_summary is not None
+        assert result.baseline_summary.period_start == "2025-06"
+        assert result.baseline_summary.period_end == "2025-07"
+        assert result.current_summary is not None
+        assert result.current_summary.period_start == "2026-01"
+        assert result.current_summary.period_end == "2026-02"
+
+
+class TestFase3gScoreDistribution:
+    """Tests voor _calc_score_distribution."""
+
+    def test_score_distribution_aanwezig(self, evolution_df: pd.DataFrame) -> None:
+        result = run_analyse(evolution_df)
+        assert result.score_distribution_current is not None
+        assert result.score_distribution_baseline is not None
+
+    def test_score_distribution_counts_optelling(self, evolution_df: pd.DataFrame) -> None:
+        result = run_analyse(evolution_df)
+        assert result.score_distribution_current is not None
+        sd = result.score_distribution_current
+        # Current: 4 gescoorde tickets [5, 4, 5, 4]
+        total = sum(sd.counts.values())
+        assert total == 4
+
+    def test_score_distribution_percentages_optelling(self, evolution_df: pd.DataFrame) -> None:
+        result = run_analyse(evolution_df)
+        assert result.score_distribution_current is not None
+        total_pct = sum(result.score_distribution_current.percentages.values())
+        assert abs(total_pct - 100.0) < 0.5
+
+    def test_score_distribution_compact_label_aanwezig(self, evolution_df: pd.DataFrame) -> None:
+        result = run_analyse(evolution_df)
+        assert result.score_distribution_current is not None
+        assert "★" in result.score_distribution_current.compact_label
+        assert "|" in result.score_distribution_current.compact_label
+
+    def test_score_distribution_narrative_aanwezig(self, evolution_df: pd.DataFrame) -> None:
+        result = run_analyse(evolution_df)
+        assert result.score_distribution_current is not None
+        assert len(result.score_distribution_current.narrative) > 0
+
+    def test_score_distribution_niveau_5_hoog(self, evolution_df: pd.DataFrame) -> None:
+        result = run_analyse(evolution_df)
+        assert result.score_distribution_current is not None
+        # Current: 2x score 5, 2x score 4 → 5★: 50%
+        pct_5 = result.score_distribution_current.percentages.get(5, 0.0)
+        assert pct_5 == 50.0
+
+    def test_score_distribution_narrative_top_level_vijf(self, evolution_df: pd.DataFrame) -> None:
+        """Als 5★ de dominante score is, bevat narrative '5★'."""
+        from tests.conftest import _make_row
+
+        # Maak een df met 3x 5★ en 1x 4★ → top_level = 5 (3 > 1)
+        rijen = [
+            _make_row(
+                "X1", "Bug", "Trivial", 5.0, "ZH", "Apotheek", "PHARMA", "2026-01-05", "2026-01-06"
+            ),
+            _make_row(
+                "X2", "Bug", "Trivial", 5.0, "ZH", "Apotheek", "PHARMA", "2026-01-06", "2026-01-07"
+            ),
+            _make_row(
+                "X3", "Bug", "Trivial", 5.0, "ZH", "Apotheek", "PHARMA", "2026-01-07", "2026-01-08"
+            ),
+            _make_row(
+                "X4", "Bug", "Trivial", 4.0, "ZH", "Apotheek", "PHARMA", "2026-01-08", "2026-01-09"
+            ),
+        ]
+        df = pd.DataFrame(rijen)
+        df["effective_date"] = pd.to_datetime(df["satisfaction_date"])
+        analyser = EvolutionAnalyser(evolution_df, pillar_key="pharma")
+        sd = analyser._calc_score_distribution(df)
+        # top_level = 5 (3 hits) → narrative bevat "volle 5★"
+        assert "5★" in sd.narrative
+        assert "75,0%" in sd.narrative  # 3/4 = 75%
+
+
+class TestFase3gResponseTimeInsight:
+    """Tests voor _calc_response_time_insight."""
+
+    def test_response_time_insight_aanwezig(self, evolution_df: pd.DataFrame) -> None:
+        result = run_analyse(evolution_df)
+        assert result.response_time_insight is not None
+
+    def test_response_time_avg_positief(self, evolution_df: pd.DataFrame) -> None:
+        result = run_analyse(evolution_df)
+        assert result.response_time_insight is not None
+        # Current: 4 tickets met responstijden [1, 2, 2, 2] dagen
+        assert result.response_time_insight.avg_days == 1.8
+
+    def test_response_time_min_max(self, evolution_df: pd.DataFrame) -> None:
+        result = run_analyse(evolution_df)
+        assert result.response_time_insight is not None
+        assert result.response_time_insight.min_days == 1.0
+        assert result.response_time_insight.max_days == 2.0
+
+    def test_response_time_mediaan(self, evolution_df: pd.DataFrame) -> None:
+        result = run_analyse(evolution_df)
+        assert result.response_time_insight is not None
+        assert result.response_time_insight.median_days == 2.0
+
+    def test_response_time_avg_positive_dagen(self, evolution_df: pd.DataFrame) -> None:
+        result = run_analyse(evolution_df)
+        assert result.response_time_insight is not None
+        # Alle current tickets scoren ≥ 4
+        assert result.response_time_insight.avg_positive_days is not None
+        assert result.response_time_insight.avg_positive_days > 0
+
+    def test_response_time_insight_lege_df(self, evolution_df: pd.DataFrame) -> None:
+        """Lege periode → ResponseTimeInsight met nullen."""
+        analyser = make_analyser(evolution_df)
+        insight = analyser._calc_response_time_insight(evolution_df.iloc[0:0].copy())
+        assert insight.avg_days == 0.0
+        assert insight.correlation_score is None
+
+
+class TestFase3gNegativeCases:
+    """Tests voor _calc_negative_cases."""
+
+    def test_negative_cases_aantal(self, evolution_df: pd.DataFrame) -> None:
+        result = run_analyse(evolution_df)
+        # Geen negatieve (≤ 2) in current_df (alle scores ≥ 4)
+        assert result.negative_cases == []
+
+    def test_negative_cases_met_lage_scores(self, evolution_df: pd.DataFrame) -> None:
+        """Test met baseline (bevat lage scores) als current."""
+        analyser = make_analyser(evolution_df)
+        baseline_df = analyser._get_df_for_periods(BASELINE)
+        cases = analyser._calc_negative_cases(baseline_df)
+        # Baseline: EB-001 (score=2) en EB-003 (score=2)
+        assert len(cases) == 2
+
+    def test_negative_cases_gesorteerd(self, evolution_df: pd.DataFrame) -> None:
+        """Cases gesorteerd op score (laagste eerst)."""
+        analyser = make_analyser(evolution_df)
+        baseline_df = analyser._get_df_for_periods(BASELINE)
+        cases = analyser._calc_negative_cases(baseline_df)
+        scores = [c.score for c in cases]
+        assert scores == sorted(scores)
+
+    def test_negative_case_velden_aanwezig(self, evolution_df: pd.DataFrame) -> None:
+        """Elke NegativeCase heeft alle vereiste velden."""
+        analyser = make_analyser(evolution_df)
+        baseline_df = analyser._get_df_for_periods(BASELINE)
+        cases = analyser._calc_negative_cases(baseline_df)
+        for c in cases:
+            assert c.ticket_id
+            assert c.hospital
+            assert c.issue_type
+            assert c.score in (1, 2)
+
+    def test_negative_case_comment_gevuld(self, evolution_df: pd.DataFrame) -> None:
+        """Cases met comment bevatten de volledige tekst."""
+        analyser = make_analyser(evolution_df)
+        baseline_df = analyser._get_df_for_periods(BASELINE)
+        cases = analyser._calc_negative_cases(baseline_df)
+        cases_with_comment = [c for c in cases if c.comment]
+        assert len(cases_with_comment) >= 1
+
+    def test_negative_case_categorie_responstijd(self, evolution_df: pd.DataFrame) -> None:
+        """EB-001 (comment='te lang gewacht') krijgt categorie 'responstijd'."""
+        analyser = make_analyser(evolution_df)
+        baseline_df = analyser._get_df_for_periods(BASELINE)
+        cases = analyser._calc_negative_cases(baseline_df)
+        resp_cases = [c for c in cases if c.category == "responstijd"]
+        assert len(resp_cases) >= 1
+
+
+class TestFase3gKpiTargets:
+    """Tests voor _calc_kpi_targets (7 targets)."""
+
+    def test_kpi_targets_7_stuks(self, evolution_df: pd.DataFrame) -> None:
+        result = run_analyse(evolution_df)
+        assert len(result.kpi_targets) == 7
+
+    def test_kpi_target_namen(self, evolution_df: pd.DataFrame) -> None:
+        result = run_analyse(evolution_df)
+        namen = {kt.name for kt in result.kpi_targets}
+        verwacht = {
+            "avg_score_min",
+            "high_critical_max",
+            "pct_positive_min",
+            "pct_negative_max",
+            "avg_response_days_max",
+            "pct_with_comment_min",
+            "hospital_retention_min",
+        }
+        assert namen == verwacht
+
+    def test_avg_score_op_schema(self, evolution_df: pd.DataFrame) -> None:
+        """Current avg = 4.50 ≥ target 4.00 → op_schema."""
+        result = run_analyse(evolution_df)
+        avg_target = next(kt for kt in result.kpi_targets if kt.name == "avg_score_min")
+        assert avg_target.on_track is True
+        assert avg_target.status == "op_schema"
+
+    def test_kpi_target_status_types(self, evolution_df: pd.DataFrame) -> None:
+        result = run_analyse(evolution_df)
+        for kt in result.kpi_targets:
+            assert kt.status in ("op_schema", "aandacht", "kritiek")
+            assert isinstance(kt.on_track, bool)
+
+
+class TestFase3gBenchmarkH2:
+    """Tests voor _calc_benchmark_h2."""
+
+    def test_geen_h2_periodes_geeft_none(self, evolution_df: pd.DataFrame) -> None:
+        """Enkel H1-periodes → geen H2 benchmark."""
+        result = make_analyser(evolution_df).analyse(["2025-01", "2025-06"], CURRENT)
+        assert result.benchmark_h2 is None
+
+    def test_h2_periodes_geeft_benchmark(self, evolution_df: pd.DataFrame) -> None:
+        """BASELINE bevat 2025-07 (H2) → benchmark_h2 aanwezig."""
+        result = run_analyse(evolution_df)
+        # 2025-07 is H2 → benchmark_h2 moet aanwezig zijn
+        assert result.benchmark_h2 is not None
+        assert result.benchmark_h2.label == "H2 2025"
+
+    def test_h2_benchmark_correct_totaal(self, evolution_df: pd.DataFrame) -> None:
+        """H2 benchmark bevat enkel tickets uit 2025-07."""
+        result = run_analyse(evolution_df)
+        assert result.benchmark_h2 is not None
+        # 2025-07 heeft 3 tickets (EB-004, EB-005, EB-006)
+        assert result.benchmark_h2.total == 3
+
+
+class TestFase3gHospitalShortlist:
+    """Tests voor _calc_hospital_shortlist."""
+
+    def test_shortlist_aanwezig(self, evolution_df: pd.DataFrame) -> None:
+        result = run_analyse(evolution_df)
+        # 2 ziekenhuizen aanwezig in beide periodes → shortlist bevat 1-2 stuks
+        assert len(result.hospital_shortlist) >= 1
+
+    def test_shortlist_subset_van_comparison(self, evolution_df: pd.DataFrame) -> None:
+        result = run_analyse(evolution_df)
+        shortlist_hospitals = {h.hospital for h in result.hospital_shortlist}
+        all_hospitals = {h.hospital for h in result.hospital_comparison}
+        assert shortlist_hospitals.issubset(all_hospitals)
+
+
+class TestFase3gHospitalRetention:
+    """Tests voor hospital_retention_pct."""
+
+    def test_retentie_berekend(self, evolution_df: pd.DataFrame) -> None:
+        result = run_analyse(evolution_df)
+        # Baseline: 3 ziekenhuizen (AZ, UZ, OLV)
+        # Current: 2 ziekenhuizen (AZ, UZ) — OLV verdwenen
+        # Retentie: 2/3 ≈ 66.7%
+        assert abs(result.hospital_retention_pct - 66.7) < 0.2
+
+    def test_retentie_100_bij_geen_verdwenen(self, evolution_df: pd.DataFrame) -> None:
+        """Als geen ziekenhuizen verdwijnen → retentie 100%."""
+        result = make_analyser(evolution_df).analyse(CURRENT, CURRENT)
+        assert result.hospital_retention_pct == 100.0
+
+
+class TestSanitizeComment:
+    """Tests voor de sanitize_comment hulpfunctie."""
+
+    def test_lege_comment_geeft_leeg(self) -> None:
+        from csat.core.analysers.evolution_analyser import sanitize_comment
+
+        assert sanitize_comment("") == ""
+        assert sanitize_comment(None) is None  # type: ignore[arg-type]
+
+    def test_geen_namen_geeft_origineel(self) -> None:
+        from csat.core.analysers.evolution_analyser import sanitize_comment
+
+        comment = "Dit ticket was heel traag opgelost."
+        assert sanitize_comment(comment, []) == comment
+
+    def test_naam_vervangen(self) -> None:
+        from csat.core.analysers.evolution_analyser import sanitize_comment
+
+        comment = "Jan heeft dit niet goed afgehandeld."
+        result = sanitize_comment(comment, ["Jan"])
+        assert "Jan" not in result
+        assert "[ZORGI]" in result
+
+    def test_meerdere_namen(self) -> None:
+        from csat.core.analysers.evolution_analyser import sanitize_comment
+
+        comment = "Jan en Piet hebben dit slecht gedaan."
+        result = sanitize_comment(comment, ["Jan", "Piet"])
+        assert "Jan" not in result
+        assert "Piet" not in result
+        assert result.count("[ZORGI]") == 2
+
+
+class TestFase3gThemeEvolutionExtended:
+    """Tests voor ThemeEvolution.example en action_hint — fase 3g scope release 1."""
+
+    def test_alle_themas_hebben_action_hint(self, evolution_df: pd.DataFrame) -> None:
+        """Elk gedetecteerd thema krijgt een niet-lege actiehint."""
+        result = run_analyse(evolution_df)
+        for theme in result.negative_themes:
+            assert theme.action_hint, f"Thema '{theme.theme_key}' heeft geen action_hint"
+
+    def test_opgelost_thema_voorbeeld_uit_baseline(self, evolution_df: pd.DataFrame) -> None:
+        """OPGELOST thema: example komt uit baseline negatieve tickets."""
+        result = run_analyse(evolution_df)
+        opgelost = [t for t in result.negative_themes if t.status == "OPGELOST"]
+        assert len(opgelost) >= 1
+        # responstijd-thema: EB-001 heeft comment "te lang gewacht"
+        resp_theme = next((t for t in opgelost if t.theme_key == "responstijd"), None)
+        assert resp_theme is not None
+        assert "lang" in resp_theme.example.lower() or "wacht" in resp_theme.example.lower()
+
+    def test_nieuw_thema_voorbeeld_uit_current(self, evolution_df: pd.DataFrame) -> None:
+        """NIEUW thema: example komt uit current negatieve tickets."""
+        from tests.conftest import _make_row
+
+        # Voeg negatief current ticket toe met 'geen update' (communicatie-thema)
+        extra = _make_row(
+            "EC-NEG-NIEUW",
+            "Bug",
+            "Major",
+            1.0,
+            "Test ZH",
+            "Apotheek",
+            "PHARMA",
+            "2026-01-15",
+            "2026-01-20",
+            comment="geen update gekregen over ticket status",
+        )
+        extended = pd.concat([evolution_df, pd.DataFrame([extra])], ignore_index=True)
+        analyser = EvolutionAnalyser(extended, pillar_key="pharma")
+        current_df = analyser._get_df_for_periods(CURRENT)
+        baseline_df = analyser._get_df_for_periods(BASELINE)
+        themes = analyser._negative_themes(baseline_df, current_df)
+
+        nieuw = [t for t in themes if t.status == "NIEUW"]
+        assert len(nieuw) >= 1
+        comm = next((t for t in nieuw if t.theme_key == "communicatie"), None)
+        assert comm is not None
+        assert comm.example  # voorbeeld gevuld vanuit current
+        assert "update" in comm.example.lower()
+
+    def test_nog_aanwezig_thema_voorbeeld_uit_current(self, evolution_df: pd.DataFrame) -> None:
+        """NOG_AANWEZIG thema: example uit current negatief ticket met keyword."""
+        from tests.conftest import _make_row
+
+        # Voeg negatief current ticket toe met 'te lang' (responstijd — ook al in baseline)
+        extra = _make_row(
+            "EC-NEG-STILL",
+            "Bug",
+            "Minor",
+            2.0,
+            "Test ZH",
+            "Apotheek",
+            "PHARMA",
+            "2026-01-10",
+            "2026-02-01",
+            comment="te lang geduurd, wacht al een week",
+        )
+        extended = pd.concat([evolution_df, pd.DataFrame([extra])], ignore_index=True)
+        analyser = EvolutionAnalyser(extended, pillar_key="pharma")
+        current_df = analyser._get_df_for_periods(CURRENT)
+        baseline_df = analyser._get_df_for_periods(BASELINE)
+        themes = analyser._negative_themes(baseline_df, current_df)
+
+        resp = next((t for t in themes if t.theme_key == "responstijd"), None)
+        assert resp is not None
+        assert resp.status == "NOG_AANWEZIG"
+        assert resp.example  # voorbeeld aanwezig (uit current)
+
+    def test_action_hint_per_thematype(self) -> None:
+        """THEME_ACTION_HINTS bevat hints voor alle standaardthema's."""
+        for theme_key in THEME_ACTION_HINTS:
+            assert len(THEME_ACTION_HINTS[theme_key]) > 20  # substantiële tekst
+
+    def test_responstijd_action_hint_bevat_sla(self) -> None:
+        """Actiehint voor responstijd vermeldt SLA."""
+        assert "SLA" in THEME_ACTION_HINTS["responstijd"]
+
+    def test_thema_zonder_match_geeft_leeg_voorbeeld(self, evolution_df: pd.DataFrame) -> None:
+        """Thema zonder matchende comments → example blijft leeg."""
+        analyser = EvolutionAnalyser(evolution_df, pillar_key="pharma")
+        # Gebruik lege DataFrames (geen negatieve tickets)
+        lege = evolution_df.iloc[0:0].copy()
+        themes = analyser._negative_themes(lege, lege)
+        assert themes == []  # geen thema's bij lege data

@@ -50,7 +50,7 @@ Het rapport wordt altijd **tweetalig** aangeleverd: Nederlands (primair) en Fran
 
 1. **Danny Depecker (Project Manager):** Voortgang tracking, beslissingen
 2. **Senior Leadership (CEO Eric, COO Christian):** Status, risico's, tijdlijn
-3. **PHARMA-team (Tom, Wilfried, Frédéric, Thomas):** Operationele voortgang
+3. **PHARMA-team (Tom, Wilfried, Frédéric, Thomas W):** Operationele voortgang
 4. **Toekomstig team:** Historisch overzicht
 
 ---
