@@ -32,7 +32,7 @@
 
 > 💡 **Fase 3a–3d** vormen samen de volledige evolutie-rapportage (Option C — standalone, geen externe AI nodig).
 > Dit vervangt de voormalige Claude-workflow (`PromptTemplate_CustomerSatisfactionEvolution.md`).
-
+>
 > 💡 **Fase 3f** is het normatieve advieskader (v3.0 — samenvoeging CD + GHC advies, alle 12 DDP-beslissingen).
 > De oorspronkelijke GHC-versie is gearchiveerd in `archive/analyse_3f/fase3f-evolutie-advieskader_ghc.md`.
 
