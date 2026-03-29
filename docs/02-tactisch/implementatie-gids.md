@@ -1,15 +1,15 @@
 # CSAT-Compass - Implementatiegids
 
-**Versie:** 1.9
+**Versie:** 2.0
 **Laatst bijgewerkt:** 29/03/2026
 
-**Doel:** Index van alle implementatiefasen met status en verwijzingen  
-**Type:** Guide  
-**Auteur:** Danny Depecker + GHC  
-**Status:** In Progress  
+**Doel:** Index van alle implementatiefasen met status en verwijzingen
+**Type:** Guide
+**Auteur:** Danny Depecker + GHC + Claude Desktop
+**Status:** In Progress
 
-**Bestandsnaam:** implementatie-gids.md  
-**Path:** docs/02-tactisch/  
+**Bestandsnaam:** implementatie-gids.md
+**Path:** docs/02-tactisch/
 
 ---
 
@@ -24,14 +24,17 @@
 | Fase 3c | [fase3c-evolutie-exporter.md](fasen/fase3c-evolutie-exporter.md) | EvolutionExporter + templates NL/FR | M | ✅ Compleet |
 | Fase 3d | [fase3d-evolutie-visualisatie.md](fasen/fase3d-evolutie-visualisatie.md) | Matplotlib 4-subplot + CLI runner | M | ✅ Compleet |
 | Fase 3e | [fase3e-run-monthly.md](fasen/fase3e-run-monthly.md) | Maandelijkse batch-runner | S | ✅ Compleet |
-| Fase 3f | [fase3f-evolutie-advieskader.md](fasen/fase3f-evolutie-advieskader.md) | Evolutie-advieskader — gap-analyse, beslisrecord, release 1 scope | S | ✅ Compleet |
-| Fase 3g | [fase3g-evolutie-rapport-verfijning.md](fasen/fase3g-evolutie-rapport-verfijning.md) | Evolutierapport verfijning — implementatie release 1 | M | 🔄 In planning |
+| Fase 3f | [fase3f-evolutie-advieskader.md](fasen/fase3f-evolutie-advieskader.md) | Evolutie-advieskader — gap-analyse, 12 beslissingen DDP, release 1 scope | S | ✅ Compleet (v3.0) |
+| Fase 3g | [fase3g-evolutie-rapport-verfijning.md](fasen/fase3g-evolutie-rapport-verfijning.md) | Evolutierapport verfijning — implementatie release 1 | M | 🔄 In planning (v3.0) |
 | Fase 4 | `fase4-pijlers.md` | CARE / CARE ADMIN / ERP4HC | M | ⏳ Gepland |
 | Fase 5 | `fase5-dashboard.md` | Streamlit dashboard NL/FR | L | ⏳ Gepland |
 | Fase 6 | `fase6-zorgi-overall.md` | ZORGI-aggregatie | S | ⏳ Gepland |
 
 > 💡 **Fase 3a–3d** vormen samen de volledige evolutie-rapportage (Option C — standalone, geen externe AI nodig).
 > Dit vervangt de voormalige Claude-workflow (`PromptTemplate_CustomerSatisfactionEvolution.md`).
+
+> 💡 **Fase 3f** is het normatieve advieskader (v3.0 — samenvoeging CD + GHC advies, alle 12 DDP-beslissingen).
+> De oorspronkelijke GHC-versie is gearchiveerd in `archive/analyse_3f/fase3f-evolutie-advieskader_ghc.md`.
 
 ---
 
@@ -47,7 +50,7 @@
 | Fase 3d | M | 8–24u | Matplotlib 4-subplot visualisatie + generate_evolution.py CLI runner |
 | Fase 3e | S | 4–8u | Batch-runner run_monthly.py — combineert matrix + evolutie + charts |
 | Fase 3f | S | 4–8u | Evolutie-advieskader — gap-analyse, beslisrecord, release 1 scope en acceptatiecriteria |
-| Fase 3g | M | 8–24u | Evolutierapport verfijning — metrics, insights-helper, templates en validatie |
+| Fase 3g | M | 8–24u | Evolutierapport verfijning — metrics, InsightsGenerator (gedeeld), templates en validatie |
 | Fase 4 | M | 8–24u | 3 pijlers (config + analyser + tests), repetitief maar elk met eigen categorieën |
 | Fase 5 | L | 24–48u | Dashboard altijd meer werk: UX, filtering, plotly charts, NL/FR toggle |
 | Fase 6 | S | 4–8u | Aggregatie van bestaande pijlers, geen nieuwe infrastructuur |
@@ -84,7 +87,7 @@ graph TD
     F3c[Fase 3c: EvolutionExporter]
     F3d[Fase 3d: EvolutionVisualiser]
     F3e[Fase 3e: run_monthly.py]
-    F3f[Fase 3f: advieskader]
+    F3f[Fase 3f: advieskader v3.0]
     F3g[Fase 3g: rapport verfijning]
     F4[Fase 4: CARE / CARE ADMIN / ERP4HC]
     F5[Fase 5: Streamlit dashboard]
@@ -156,3 +159,4 @@ src/csat/utils/zorgi_theme.py                      ← pure constanten, geen fra
 | 1.7 | 26/03/2026 | Fase 3e toegevoegd (run_monthly.py); mermaid diagram bijgewerkt; T-shirt tabel en totaal bijgewerkt | Danny Depecker + GHC |
 | 1.8 | 27/03/2026 | Fase 3f toegevoegd (in planning); mermaid diagram + t-shirt tabel bijgewerkt | Danny Depecker + GHC |
 | 1.9 | 29/03/2026 | Fase 3f hergedefinieerd als advieskader; implementatiefase doorgeschoven naar 3g; tabellen, afhankelijkheden en totaalinschatting bijgewerkt | Danny Depecker + GHC |
+| 2.0 | 29/03/2026 | Fase 3f/3g links gecorrigeerd naar v3.0 in `fasen/` (was: archief GHC-versie); fase 3f beschrijving aangevuld met "12 beslissingen DDP"; noot over samenvoeging CD+GHC toegevoegd | Danny Depecker + CD |
