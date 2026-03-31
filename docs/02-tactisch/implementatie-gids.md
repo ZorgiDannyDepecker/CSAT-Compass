@@ -1,7 +1,7 @@
 # CSAT-Compass - Implementatiegids
 
-**Versie:** 2.0
-**Laatst bijgewerkt:** 29/03/2026
+**Versie:** 2.2
+**Laatst bijgewerkt:** 31/03/2026
 
 **Doel:** Index van alle implementatiefasen met status en verwijzingen
 **Type:** Guide
@@ -25,7 +25,7 @@
 | Fase 3d | [fase3d-evolutie-visualisatie.md](fasen/fase3d-evolutie-visualisatie.md) | Matplotlib 4-subplot + CLI runner | M | ✅ Compleet |
 | Fase 3e | [fase3e-run-monthly.md](fasen/fase3e-run-monthly.md) | Maandelijkse batch-runner | S | ✅ Compleet |
 | Fase 3f | [fase3f-evolutie-advieskader.md](fasen/fase3f-evolutie-advieskader.md) | Evolutie-advieskader — gap-analyse, 12 beslissingen DDP, release 1 scope | S | ✅ Compleet (v3.0) |
-| Fase 3g | [fase3g-evolutie-rapport-verfijning.md](fasen/fase3g-evolutie-rapport-verfijning.md) | Evolutierapport verfijning — implementatie release 1 | M | 🔄 In planning (v3.0) |
+| Fase 3g | [fase3g-evolutie-rapport-verfijning.md](fasen/fase3g-evolutie-rapport-verfijning.md) | Evolutierapport verfijning — implementatie release 1 | M | ✅ Compleet |
 | Fase 4 | `fase4-pijlers.md` | CARE / CARE ADMIN / ERP4HC | M | ⏳ Gepland |
 | Fase 5 | `fase5-dashboard.md` | Streamlit dashboard NL/FR | L | ⏳ Gepland |
 | Fase 6 | `fase6-zorgi-overall.md` | ZORGI-aggregatie | S | ⏳ Gepland |
@@ -161,3 +161,4 @@ src/csat/utils/zorgi_theme.py                      ← pure constanten, geen fra
 | 1.9 | 29/03/2026 | Fase 3f hergedefinieerd als advieskader; implementatiefase doorgeschoven naar 3g; tabellen, afhankelijkheden en totaalinschatting bijgewerkt | Danny Depecker + GHC |
 | 2.0 | 29/03/2026 | Fase 3f/3g links gecorrigeerd naar v3.0 in `fasen/` (was: archief GHC-versie); fase 3f beschrijving aangevuld met "12 beslissingen DDP"; noot over samenvoeging CD+GHC toegevoegd | Danny Depecker + CD |
 | 2.1 | 31/03/2026 | Sectie "Mapstructuur: scripts / src / tools" toegevoegd (runner/library-patroon, ADR-013) | Danny Depecker + GHC |
+| 2.2 | 31/03/2026 | Fase 3g status bijgewerkt naar Compleet (727 tests, 100% coverage, CI stabiel) | Danny Depecker + GHC |

@@ -1,12 +1,12 @@
 # CSAT-Compass — Fase 3g: Evolutierapport verfijning
 
-**Versie:** 4.0
-**Laatst bijgewerkt:** 30/03/2026
+**Versie:** 5.0
+**Laatst bijgewerkt:** 31/03/2026
 
 **Doel:** Implementatie van release 1 voor de verfijning en verrijking van de evolutie-markdown-rapporten
 **Type:** Implementatie
 **Auteur:** Danny Depecker + Claude Desktop + GHC
-**Status:** Grotendeels geïmplementeerd — 3 chirurgische aanvullingen resterend (zie §9)
+**Status:** Compleet
 
 **Bestandsnaam:** fase3g-evolutie-rapport-verfijning.md
 **Path:** docs/02-tactisch/fasen/
@@ -247,3 +247,4 @@ en de NLP-gedreven thema-analyse van de CD-versie — een bewuste architectuurke
 | 2.0 | 29/03/2026 | Hernoemd van fase 3f naar fase 3g; scope bevestigd op basis van GHC-advies | Danny Depecker + GHC |
 | 3.0 | 29/03/2026 | Scope gecorrigeerd op basis van alle 12 DDP-beslissingen: volledige comments + ticket-ID's (besl. 2+3), scoreverdeling (besl. 12), visuele analyse (besl. 8), eigenaar per aanbeveling (besl. 9), matrix-absorptie (besl. 11), 7 KPI-targets (besl. 5), gedeelde InsightsGenerator (besl. 7), comment-policy geëxpliciteerd | Danny Depecker + CD + GHC |
 | 4.0 | 30/03/2026 | Implementatiestatus bijgewerkt na pipeline-review: alle 7 lagen geïmplementeerd; 3 resterende aanvullingen gedocumenteerd in §9 en WIP/ghc-prompts-fase3g-interpreterende-laag.md | Danny Depecker + CD |
+| 5.0 | 31/03/2026 | Fase afgesloten: alle resterende aanvullingen geïmplementeerd (baseline correlatie, omslag-detectie, NL/FR taalcorrecties, 14.N nummering); status → Compleet; 727 tests, 100% coverage, CI stabiel | Danny Depecker + GHC |

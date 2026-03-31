@@ -28,6 +28,7 @@
 - [2026-03-26 — Fase 3e afsluiting: run_monthly.py](#2026-03-26--fase-3e-afsluiting-run_monthlypy)
 - [2026-03-27 — Fase 3d verfijning + Fase 3f opstart](#2026-03-27--fase-3d-verfijning--fase-3f-opstart)
 - [2026-03-29 — Fase 3f/3g herstructurering](#2026-03-29--fase-3f3g-herstructurering)
+- [2026-03-31 — Fase 3g afsluiting](#2026-03-31--fase-3g-afsluiting)
 - [Versiehistorie](#versiehistorie)
 
 ---
@@ -336,6 +337,57 @@ vervangen: het eenvoudige HC-ratio staafdiagram maakte plaats voor een informati
 
 ---
 
+## 2026-03-31 — Fase 3g afsluiting
+
+### Wat werd afgerond
+
+Fase 3g is volledig afgerond. Alle deliverables uit het advieskader (fase 3f v3.0) zijn geïmplementeerd en gevalideerd.
+
+**Resterende aanvullingen uit §9.2 (30/03/2026) — nu alsnog geïmplementeerd:**
+
+| Aanvulling | Implementatie |
+|---|---|
+| `baseline_correlation_score` veld | `evolution_result.py` — nieuw veld toegevoegd |
+| Baseline-correlatie berekening | `evolution_analyser.py` — Pearson r voor baseline |
+| Correlatie-omslag detectie + KPI-achievement narrative | `insights_generator.py` — bevinding + executive summary |
+
+**NL/FR taalcorrecties (31/03/2026):**
+
+- `"responses"` → `"antwoorden"` (NL) — 4 locaties: `insights_generator.py`, `evolution_analyser.py`
+- `"Standaard deviatie"` → `"Standaarddeviatie"` (NL) — `nl.json` + tests
+- `"deep-dive"` → `"diepgaande analyse"` (NL/FR) — templates + generator + json
+- `"Causale factor:"` → `"Oorzaak:"` (NL) / `"Facteur causal :"` → `"Cause :"` (FR)
+- `"sanitizing"` → `"anonimisering"` (NL) / `"sanitization"` → `"anonymisation"` (FR)
+- `"ticketworkflow"` → `"ticketstroom"`, `"manuele"` → `"handmatige"` (NL)
+- `"workflow de tickets"` → `"flux de tickets"` (FR)
+- Drempel-inconsistentie: `"drempel van 25%"` → `"KPI-target van 15%"` (NL/FR)
+- Trendlijn: em dash → en dash + lowercase breadth labels (NL/FR)
+- Hiërarchische nummering aanbevelingen: `1.` → `14.1.` t/m `14.5.` (NL/FR)
+- Spelfout `"ziekenhuisen"` → `"ziekenhuizen"` — code-logica suffix (2 locaties)
+- Verborgen soft-hyphen in `"Scoreverbeter­ing"` verwijderd
+
+### Teststand eindstand
+
+- **727 tests** — 100% coverage — CI stabiel (Python 3.11 / 3.12 / 3.13)
+- Na taalcorrecties: 2 tests bijgewerkt in `test_evolution_exporter.py` + `test_insights_generator.py`
+- Na CI-falen: `evolution_analyser.py` + `evolution_result.py` ook bijgewerkt (narrative-veld)
+
+### Commits
+
+| Hash | Beschrijving |
+|---|---|
+| `77c99bf` | fix(i18n): correct NL/FR language quality in reports and templates |
+| `afa11b6` | fix(tests): update assertions after NL language corrections |
+
+### Beslissingen
+
+- Fase 5a (Streamlit dashboard PHARMA-only) is de volgende stap — vóór Fase 4
+- Rationale: PHARMA is de enige volledige pijler; verticale slice geeft directe managementwaarde
+- Dashboard-architectuur pijler-agnostisch bouwen via `PILLAR_REGISTRY`; andere pijlers = "Coming soon"
+- Handover aangemaakt: `WIP/handover-fase5a-2026-03-31.md`
+
+---
+
 ## Versiehistorie
 
 | Versie | Datum | Wijzigingen | Auteur               |
@@ -351,6 +403,7 @@ vervangen: het eenvoudige HC-ratio staafdiagram maakte plaats voor een informati
 | 1.8 | 26/03/2026 | Documentatieopkuis: WIP gearchiveerd, 4 nieuwe docs, 3 docs bijgewerkt | Danny Depecker + GHC |
 | 1.9 | 27/03/2026 | Fase 3d verfijning (subplot 3 herwerking, 570 tests) + Fase 3f opstart | Danny Depecker + GHC |
 | 2.0 | 29/03/2026 | Fase 3f/3g herstructurering: advieskader formeel naar fase 3f, implementatie doorgeschoven naar 3g, documentatie opgeschoond | Danny Depecker + GHC |
+| 2.1 | 31/03/2026 | Fase 3g afsluiting: NL/FR taalcorrecties, testfixes, 727 tests; beslissing Fase 5a PHARMA-first | Danny Depecker + GHC |
 
 ---
 *ZORGI — Danny Depecker*
