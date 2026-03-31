@@ -116,7 +116,7 @@ Copilot toont tabel: Package | Versie | CVE | Ernst | Actie
 ```
 
 > ✅ **Werkt altijd** — ook achter de ZORGI corporate proxy. Geen SSL-verbinding nodig.
-
+>
 > ⚠️ **pip-audit in lint.ps1 werkt niet op het ZORGI-netwerk** — corporate proxy blokkeert de SSL-verbinding.
 > Gebruik `/cve` als alternatief.
 
