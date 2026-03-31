@@ -1,26 +1,41 @@
 # CSAT-Compass - Kwaliteitscontrole overzicht
 
-**Versie:** 1.4  
-**Laatst bijgewerkt:** 28/03/2026
+**Versie:** 1.6
+**Laatst bijgewerkt:** 31/03/2026
 
-**Doel:** Overzicht van alle kwaliteitscontroles — wat doet het systeem automatisch, wat doe je manueel  
-**Type:** Runbook  
+**Doel:** Operationeel runbook — dagelijkse kwaliteitscontroles, commando's en FAQ
+**Type:** Runbook
 **Auteur:** Danny Depecker
 **Status:** Approved
 
-**Bestandsnaam:** kwaliteitscontrole.md  
+**Bestandsnaam:** kwaliteitscontrole.md
 **Path:** docs/03-operationeel/
+
+> **Strategisch overzicht tools & architectuur:** `docs/01-strategisch/kwaliteitsborging.md`
+> Dit bestand beschrijft uitsluitend de dagelijkse operatie: wanneer wat te doen, commando's en FAQ.
 
 ---
 
-## 1. Overzicht — één oogopslag
+## Inhoudsopgave
+
+1. [Dagelijkse flow — één oogopslag](#1-dagelijkse-flow--één-oogopslag)
+2. [Twee lagen van bescherming](#2-twee-lagen-van-bescherming)
+3. [Wat doet /git?](#3-wat-doet-git)
+4. [Wat doet /cve?](#4-wat-doet-cve)
+5. [Volledig overzicht — wat wanneer](#5-volledig-overzicht--wat-wanneer)
+6. [Configuratie — waar staat wat?](#6-configuratie--waar-staat-wat)
+7. [Veelgestelde vragen](#7-veelgestelde-vragen)
+
+---
+
+## 1. Dagelijkse flow — één oogopslag
 
 ```text
 Jij schrijft code
       ↓
-[MANUEEL — optioneel]   .\tools\lint.ps1        ← 5 checks, altijd beschikbaar
+[MANUEEL — optioneel]   .\tools\lint.ps1        ← volledige sweep op src/ en tests/
       ↓
-[MANUEEL — via /GIT]    keuze 1 / 2 / 3         ← lint alleen / commit alleen / lint + commit
+[MANUEEL — via /git]    keuze 1 / 2 / 3         ← lint alleen / commit alleen / lint + commit
       ↓
 [AUTOMATISCH]           git commit               ← pre-commit hooks lopen altijd
       ↓                                             bij commit — blokkeert bij fout
@@ -31,87 +46,17 @@ Jij schrijft code
 
 ---
 
-## 2. De tools — wat doet elk?
+## 2. Twee lagen van bescherming
 
-### 2.1 Ruff - formatter (ex Black)
-
-**Wat is het?** In de tooling verschijnt deze stap als **Ruff - formatter (ex Black)**. Technisch wordt `python -m ruff format` uitgevoerd. De formatter volgt Black-stijl, zonder Black als aparte tool te installeren.
-
-| Functie | Wat het doet | Voorbeeld |
-|---------|-------------|-----------|
-| **Linting** | Fouten, slechte patronen, ongebruikte imports | `import os` zonder gebruik → fout |
-| **Formatter** | Inspringing, witruimte, aanhalingstekens | 2 spaties → 4 spaties |
-| **Regellengte** | Max 100 tekens per regel | Lange regel → afkappen |
-| **Import-volgorde** | `isort`-stijl — stdlib → third-party → local | `from csat import x` altijd als laatste |
-| **Security** | Eenvoudige security-patronen (Bandit-lite) | `eval()` → waarschuwing |
-| **Pandas-stijl** | Best practices voor DataFrames | `.values` → `.to_numpy()` |
-
-> 💡 **Black gebruiken we niet apart** — de labelnaam is "Ruff - formatter (ex Black)", maar onderliggend draait Ruff-formatter. Eén formatter, geen conflict.
-
-### 2.2 MyPy — type checker
-
-**Wat is het?** Type checker die controleert of type-annotaties in je code kloppen zonder de code uit te voeren.
-
-```python
-def load(pillar: str) -> pd.DataFrame:  ← MyPy checkt: geeft de functie echt een DataFrame terug?
-```
-
-| Vindt het? | Voorbeeld |
-|------------|-----------|
-| ✅ Ja | Functie verwacht `str`, krijgt `int` |
-| ✅ Ja | `None` meegeven waar iets verplicht is |
-| ✅ Ja | Methode aanroepen op verkeerd type |
-| ❌ Nee | Runtime-fouten, logicafouten, performance |
-
-### 2.3 Bandit — security scan
-
-**Wat is het?** Scant Python-code op bekende beveiligingsrisico's.
-
-| Vindt het? | Voorbeeld |
-|------------|-----------|
-| ✅ Ja | Wachtwoord hardcoded in code |
-| ✅ Ja | `subprocess` met shell=True |
-| ✅ Ja | `pickle.load()` op onbetrouwbare data |
-| ✅ Ja | SQL-injectie via string-concatenatie |
-| ❌ Nee | Logicafouten, typefouten |
-
-### 2.4 pip-audit — CVE-scan packages
-
-**Wat is het?** Vergelijkt geïnstalleerde packages met de publieke CVE-database.
-
-> ⚠️ **Werkt niet op het ZORGI-netwerk** — corporate proxy blokkeert de SSL-verbinding.
-> Alternatief: typ `/cve` in GitHub Copilot Chat — werkt altijd, ook achter de proxy.
-
-### 2.5 Pre-commit syntax check
-
-**Wat is het?** Controleert of elk Python-bestand syntactisch geldig is (`py_compile`).
-
-```python
-def load(   ← ontbrekende sluithaak → pre-commit blokkeert de commit
-```
-
-### 2.6 Pre-commit merge conflict check
-
-**Wat is het?** Controleert of er geen onopgeloste merge-conflicten in bestanden zitten.
-
-```text
-    <<<<<<< HEAD       ← dit patroon → pre-commit blokkeert de commit
-    =======
-    >>>>>>> main
-```
-
----
-
-## 3. Twee lagen van bescherming
-
-Het systeem heeft **twee onafhankelijke lagen** — ze vullen elkaar aan:
+Het systeem heeft **twee onafhankelijke lagen** — ze vullen elkaar aan.
+Zie `docs/01-strategisch/kwaliteitsborging.md` voor het volledig tool-overzicht en de architectuurkeuze.
 
 ### Laag 1 — Manueel: `tools\lint.ps1`
 
 - **Wanneer:** Wanneer jíj het wil — geen automatisme
 - **Hoe:** `.\tools\lint.ps1` in de terminal
 - **Scope:** Alle bestanden in `src/` en `tests/` altijd
-- **Checks:** Ruff lint · Ruff formatter (ex Black) · MyPy type checker · Bandit · pip-audit (met ZORGI-fallback)
+- **Checks:** Ruff lint · Ruff format · MyPy · Bandit · pip-audit (met ZORGI-fallback)
 - **Optie:** `.\tools\lint.ps1 -Fix` → past Ruff-problemen automatisch aan
 
 ### Laag 2 — Automatisch: pre-commit hooks
@@ -119,7 +64,7 @@ Het systeem heeft **twee onafhankelijke lagen** — ze vullen elkaar aan:
 - **Wanneer:** Altijd, automatisch bij **elke** `git commit`
 - **Hoe:** Niets doen — werkt vanzelf na `python -m pre_commit install`
 - **Scope:** Alleen de **gewijzigde** bestanden in die commit
-- **Checks:** Ruff lint · Ruff formatter (ex Black) · MyPy type checker · Bandit · syntax · merge-conflicten
+- **Checks:** Ruff lint · Ruff format · MyPy · Bandit · Interrogate · Vulture · syntax · merge-conflicten
 - **Effect:** Bij fout → commit wordt **geblokkeerd** — je ziet welke check faalde
 
 > 💡 **Verschil scope:** `lint.ps1` checkt altijd alles. Pre-commit checkt alleen wat je gewijzigd hebt.
@@ -127,12 +72,12 @@ Het systeem heeft **twee onafhankelijke lagen** — ze vullen elkaar aan:
 
 ---
 
-## 4. Wat doet /GIT?
+## 3. Wat doet /git?
 
-`/GIT` is een GitHub Copilot custom command dat het git-proces begeleidt:
+`/git` is een GitHub Copilot custom command dat het git-proces begeleidt:
 
 ```text
-Jij typt: /GIT
+Jij typt: /git
       ↓
 Copilot vraagt: keuze 1 / 2 / 3
 
@@ -143,18 +88,18 @@ Copilot vraagt: keuze 1 / 2 / 3
         → pre-commit hooks lopen automatisch mee
 
   2 — Alleen lint
-        .\tools\lint.ps1           (alle 5 checks)
+        .\tools\lint.ps1           (volledige sweep)
         → geen commit
 
   3 — Lint, daarna committen
-        .\tools\lint.ps1           (alle 5 checks)
+        .\tools\lint.ps1           (volledige sweep)
         → als slaagt: zelfde als keuze 1
         → als faalt: stop, geen commit
 ```
 
 ---
 
-## 5. Wat doet /cve?
+## 4. Wat doet /cve?
 
 `/cve` is een GitHub Copilot custom command voor CVE-scans:
 
@@ -172,20 +117,27 @@ Copilot toont tabel: Package | Versie | CVE | Ernst | Actie
 
 > ✅ **Werkt altijd** — ook achter de ZORGI corporate proxy. Geen SSL-verbinding nodig.
 
+> ⚠️ **pip-audit in lint.ps1 werkt niet op het ZORGI-netwerk** — corporate proxy blokkeert de SSL-verbinding.
+> Gebruik `/cve` als alternatief.
+
 ---
 
-## 6. Volledig overzicht — wat wanneer
+## 5. Volledig overzicht — wat wanneer
 
 ### Wat het systeem automatisch doet
 
 | Moment | Actie | Door wie |
 |--------|-------|----------|
-| Bij elke `git commit` | Ruff lint + Ruff formatter (ex Black) | pre-commit |
+| Bij elke `git commit` | Ruff lint + Ruff format | pre-commit |
 | Bij elke `git commit` | MyPy type checker | pre-commit |
 | Bij elke `git commit` | Bandit security | pre-commit |
+| Bij elke `git commit` | Interrogate docstring-coverage | pre-commit |
+| Bij elke `git commit` | Vulture dode code | pre-commit |
 | Bij elke `git commit` | Python syntax check | pre-commit |
-| Bij elke `git commit` | Merge conflict check | pre-commit |
-| Bij `/GIT` keuze 1 of 3 | Commit message genereren | Copilot |
+| Bij elke `git commit` | Merge-conflict check | pre-commit |
+| Bij elke push/PR | Tests op Python 3.11, 3.12, 3.13 | GitHub Actions |
+| Bij elke push/PR (`.md`) | Markdown lint | GitHub Actions |
+| Bij `/git` keuze 1 of 3 | Commit message genereren | Copilot |
 
 ### Wat jij manueel doet
 
@@ -195,11 +147,11 @@ Copilot toont tabel: Package | Versie | CVE | Ernst | Actie
 | Ruff-issues automatisch fixen | Opmaak herstellen | `.\tools\lint.ps1 -Fix` |
 | Periodiek (maandelijks) | CVE-scan packages | `/cve` in Copilot Chat |
 | Bij nieuwe packages | CVE-scan na `pip install` | `/cve` in Copilot Chat |
-| Wanneer je wil committen | Git-workflow starten | `/GIT` in Copilot Chat |
+| Wanneer je wil committen | Git-workflow starten | `/git` in Copilot Chat |
 
 ---
 
-## 7. Configuratie — waar staat wat?
+## 6. Configuratie — waar staat wat?
 
 | Wat | Bestand | Wat erin staat |
 |-----|---------|---------------|
@@ -212,7 +164,7 @@ Copilot toont tabel: Package | Versie | CVE | Ernst | Actie
 
 ---
 
-## 8. Veelgestelde vragen
+## 7. Veelgestelde vragen
 
 **Pre-commit blokkeert mijn commit — wat nu?**
 Lees de foutmelding. Ruff-fouten kan je automatisch fixen: `.\tools\lint.ps1 -Fix`.
@@ -223,7 +175,8 @@ Ja, maar doe dit alleen in noodgevallen: `git commit --no-verify -m "..."`.
 Noteer altijd waarom je de checks overgeslagen hebt in de commit message.
 
 **Ruff vs Black — welke gebruik ik?**
-De zichtbare labelnaam is **Ruff - formatter (ex Black)**, maar technisch gebruiken we alleen Ruff. Black is niet apart geïnstalleerd en niet nodig — Ruff-formatter doet hetzelfde.
+Alleen Ruff. Black is niet apart geïnstalleerd en niet nodig — Ruff-formatter doet hetzelfde.
+De zichtbare labelnaam in de pre-commit output is **Ruff - formatter (ex Black)**.
 
 **MyPy klaagt over een externe library zonder types?**
 Voeg toe aan `pyproject.toml` onder `[[tool.mypy.overrides]]`:
@@ -241,10 +194,12 @@ Normaal — ZORGI corporate proxy. Gebruik `/cve` in Copilot Chat als alternatie
 
 ## Versiehistorie
 
-| Versie | Datum | Wijzigingen | Auteur               |
-| ------ | ---------- | --------------- |----------------------|
+| Versie | Datum | Wijzigingen | Auteur |
+| ------ | ---------- | ----------- | ------ |
 | 1.0 | 20/03/2026 | Initiële versie | Danny Depecker + GHC |
 | 1.1 | 28/03/2026 | Terminologie bijgewerkt: Ruff 'opmaak' hernoemd naar 'formattering (Black-stijl)' | Danny Depecker + GHC |
 | 1.2 | 28/03/2026 | Terminologie bijgewerkt: 'MyPy' hernoemd naar 'MyPy — type checker' | Danny Depecker + GHC |
-| 1.3 | 28/03/2026 | Zichtbare toolinglabels afgestemd op CLI-output: 'Black — formatter' en 'MyPy — type checker' | Danny Depecker + GHC |
-| 1.4 | 28/03/2026 | Formatter-label herzien naar 'Ruff - formatter (ex Black)' in tooling en documentatie | Danny Depecker + GHC |
+| 1.3 | 28/03/2026 | Zichtbare toolinglabels afgestemd op CLI-output | Danny Depecker + GHC |
+| 1.4 | 28/03/2026 | Formatter-label herzien naar 'Ruff - formatter (ex Black)' | Danny Depecker + GHC |
+| 1.5 | 31/03/2026 | Opgemaakt conform md-style-guide | GHC |
+| 1.6 | 31/03/2026 | §2 (tool-beschrijvingen) verwijderd — verplaatst naar kwaliteitsborging.md; secties hernummerd | GHC |
