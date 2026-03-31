@@ -1460,3 +1460,281 @@ class TestCorrelatieomslagEnKpiAchievement:
         assert "3" in bundle.executive_summary and "KPI" in bundle.executive_summary, (
             "Executive summary moet KPI-achievement zin bevatten als alle targets op schema zijn"
         )
+
+
+# ---------------------------------------------------------------------------
+# Prompt 4 — ontbrekende branches (coverage 100%)
+# ---------------------------------------------------------------------------
+
+
+class TestNarrativeBranches:
+    """Coverage-tests voor ongedekte branches in InsightsGenerator (Fase 3g — Prompt 4)."""
+
+    def _minimal(self) -> EvolutionResult:
+        """Basisresultaat zonder optionele velden."""
+        return EvolutionResult(
+            pillar="pharma",
+            baseline_label="2025",
+            current_label="2026",
+            baseline_total=10,
+            current_total=8,
+            baseline_avg_score=3.50,
+            current_avg_score=4.00,
+            delta_avg_score=0.50,
+            baseline_pct_positive=60.0,
+            current_pct_positive=75.0,
+            baseline_pct_negative=20.0,
+            current_pct_negative=10.0,
+            baseline_avg_response_days=12.0,
+            current_avg_response_days=8.0,
+            baseline_n_hospitals=5,
+            current_n_hospitals=5,
+            baseline_hc_ratio=10.0,
+            current_hc_ratio=12.0,
+            trend_is_structural=True,
+            trend_breadth="breed",
+        )
+
+    # --- Line 266: top_level == 5 (5★ heeft meeste counts) ---
+
+    def test_score_dist_top_level_5_narrative(self, insights_gen_nl: InsightsGenerator) -> None:
+        """Executive summary toont 'volle 5★' als score 5 het meest voorkomt (top_level==5, line 266)."""
+        import dataclasses
+
+        from csat.core.analysers.evolution_result import ScoreDistribution
+
+        sd = ScoreDistribution(
+            counts={1: 2, 2: 3, 3: 5, 4: 10, 5: 30},
+            percentages={1: 4.0, 2: 6.0, 3: 10.0, 4: 20.0, 5: 60.0},
+        )
+        result = dataclasses.replace(self._minimal(), score_distribution_current=sd)
+        bundle = insights_gen_nl.generate(result)
+        assert "volle 5★" in bundle.executive_summary
+
+    # --- Lines 269-273: top_level == 4 (niet 5) ---
+
+    def test_score_dist_top_level_4_narrative(self, insights_gen_nl: InsightsGenerator) -> None:
+        """Executive summary toont '4★ of hoger' als score 4 het meest voorkomt (top_level==4)."""
+        import dataclasses
+
+        from csat.core.analysers.evolution_result import ScoreDistribution
+
+        sd = ScoreDistribution(
+            counts={1: 2, 2: 3, 3: 5, 4: 30, 5: 10},
+            percentages={1: 4.0, 2: 6.0, 3: 10.0, 4: 60.0, 5: 20.0},
+        )
+        result = dataclasses.replace(self._minimal(), score_distribution_current=sd)
+        bundle = insights_gen_nl.generate(result)
+        assert "4★ of hoger" in bundle.executive_summary
+
+    # --- Lines 276-279: top_level <= 3 ---
+
+    def test_score_dist_top_level_laag_narrative(self, insights_gen_nl: InsightsGenerator) -> None:
+        """Executive summary toont 'meerderheid' als score 3 het meest voorkomt (top_level==3)."""
+        import dataclasses
+
+        from csat.core.analysers.evolution_result import ScoreDistribution
+
+        sd = ScoreDistribution(
+            counts={1: 5, 2: 8, 3: 30, 4: 4, 5: 3},
+            percentages={1: 10.0, 2: 16.0, 3: 60.0, 4: 8.0, 5: 6.0},
+        )
+        result = dataclasses.replace(self._minimal(), score_distribution_current=sd)
+        bundle = insights_gen_nl.generate(result)
+        assert "meerderheid" in bundle.executive_summary
+
+    # --- Line 508: baseline_corr > 0.05 EN current_corr < -0.05 ---
+
+    def test_correlatie_omslag_baseline_pos_current_neg(
+        self, insights_gen_nl: InsightsGenerator
+    ) -> None:
+        """'risicofactor'-bevinding gegenereerd als baseline_corr > 0,05 en current_corr < -0,05."""
+        result = self._minimal()
+        result.response_time_insight = ResponseTimeInsight(
+            avg_days=7.0,
+            correlation_score=-0.20,
+            baseline_correlation_score=0.25,
+        )
+        bundle = insights_gen_nl.generate(result)
+        titels = [f.title for f in bundle.critical_findings]
+        assert any("risicofactor" in t.lower() for t in titels), (
+            "Verwacht een 'risicofactor'-bevinding als baseline pos en current neg zijn"
+        )
+
+    # --- Line 978: stabiele trend (delta tussen -0,05 en 0,05) ---
+
+    def test_visual_analysis_stabiele_trend(self, insights_gen_nl: InsightsGenerator) -> None:
+        """subplot1_scoretrend toont 'stabiel' als delta_avg_score ≈ 0 (tussen -0,05 en 0,05)."""
+        import dataclasses
+
+        result = dataclasses.replace(
+            self._minimal(),
+            delta_avg_score=0.02,
+            monthly_timeline=[
+                MonthlyDataPoint(
+                    period="2026-01",
+                    avg_score=4.0,
+                    total_tickets=10,
+                    pct_negative=5.0,
+                    fase="H1 2026",
+                ),
+                MonthlyDataPoint(
+                    period="2026-02",
+                    avg_score=4.02,
+                    total_tickets=8,
+                    pct_negative=4.0,
+                    fase="H1 2026",
+                ),
+            ],
+        )
+        bundle = insights_gen_nl.generate(result)
+        assert "stabiel" in bundle.visual_analysis.subplot1_scoretrend
+
+    # --- Line 1195: worst.priority NIET in (Trivial, Minor) ---
+
+    def test_priority_worst_niet_laag_narrative(self, insights_gen_nl: InsightsGenerator) -> None:
+        """priority_analysis_narrative toont 'opvolging aanbevolen' als worst prioriteit Blocker is."""
+        import dataclasses
+
+        from csat.core.analysers.evolution_result import PriorityComparison
+
+        result = dataclasses.replace(
+            self._minimal(),
+            by_priority=[
+                PriorityComparison(
+                    priority="Blocker",
+                    baseline_score=3.5,
+                    baseline_pct_neg=20.0,
+                    current_score=2.5,
+                    current_pct_neg=30.0,
+                ),
+                PriorityComparison(
+                    priority="Major",
+                    baseline_score=4.0,
+                    baseline_pct_neg=10.0,
+                    current_score=4.5,
+                    current_pct_neg=5.0,
+                ),
+                PriorityComparison(
+                    priority="Trivial",
+                    baseline_score=3.0,
+                    baseline_pct_neg=25.0,
+                    current_score=4.0,
+                    current_pct_neg=10.0,
+                ),
+            ],
+        )
+        bundle = insights_gen_nl.generate(result)
+        assert "opvolging aanbevolen" in bundle.priority_analysis_narrative
+
+    # --- Lines 1203-1210: high_urgency aanwezig + avg_high >= avg_low ---
+
+    def test_priority_escalatie_werkt_narrative(self, insights_gen_nl: InsightsGenerator) -> None:
+        """priority_analysis_narrative toont escalatie-zin als Blocker/Critical hoger dan Trivial/Minor."""
+        import dataclasses
+
+        from csat.core.analysers.evolution_result import PriorityComparison
+
+        result = dataclasses.replace(
+            self._minimal(),
+            by_priority=[
+                PriorityComparison(
+                    priority="Blocker",
+                    baseline_score=3.0,
+                    baseline_pct_neg=30.0,
+                    current_score=4.8,
+                    current_pct_neg=0.0,
+                ),
+                PriorityComparison(
+                    priority="Critical",
+                    baseline_score=3.0,
+                    baseline_pct_neg=30.0,
+                    current_score=4.6,
+                    current_pct_neg=0.0,
+                ),
+                PriorityComparison(
+                    priority="Trivial",
+                    baseline_score=3.5,
+                    baseline_pct_neg=20.0,
+                    current_score=3.5,
+                    current_pct_neg=15.0,
+                ),
+                PriorityComparison(
+                    priority="Minor",
+                    baseline_score=3.5,
+                    baseline_pct_neg=20.0,
+                    current_score=4.0,
+                    current_pct_neg=10.0,
+                ),
+            ],
+        )
+        bundle = insights_gen_nl.generate(result)
+        assert "escalatieprocedure" in bundle.priority_analysis_narrative
+
+    # --- Lines 1248-1249: shortest.score_level <= 2 (paradox: lage score, korte responstijd) ---
+
+    def test_response_time_paradox_lage_score_korte_tijd(
+        self, insights_gen_nl: InsightsGenerator
+    ) -> None:
+        """response_time_narrative toont paradox als score 1/2 de kortste responstijd heeft."""
+        import dataclasses
+
+        from csat.core.analysers.evolution_result import ResponseTimeRow
+
+        result = dataclasses.replace(
+            self._minimal(),
+            response_time_by_score={
+                1: ResponseTimeRow(score_level=1, baseline_days=5.0, current_days=1.0),
+                5: ResponseTimeRow(score_level=5, baseline_days=8.0, current_days=10.0),
+            },
+        )
+        bundle = insights_gen_nl.generate(result)
+        assert "paradox" in bundle.response_time_narrative.lower()
+
+    # --- Lines 1266-1275: longest.score_level >= 4 (hoge score, lange responstijd = complexe dossiers) ---
+
+    def test_response_time_hoge_score_langste_tijd(
+        self, insights_gen_nl: InsightsGenerator
+    ) -> None:
+        """response_time_narrative toont 'complexere dossiers' als score 4/5 de langste responstijd heeft
+        + positieve correlatie wordt toegevoegd aan narrative (lines 1266-1275)."""
+        import dataclasses
+
+        from csat.core.analysers.evolution_result import ResponseTimeRow
+
+        result = dataclasses.replace(
+            self._minimal(),
+            response_time_by_score={
+                2: ResponseTimeRow(score_level=2, baseline_days=5.0, current_days=2.0),
+                4: ResponseTimeRow(score_level=4, baseline_days=8.0, current_days=12.0),
+            },
+            response_time_insight=ResponseTimeInsight(
+                avg_days=8.0,
+                correlation_score=0.15,  # r > 0.1 → positieve correlatie-tekst (line 1267-1273)
+            ),
+        )
+        bundle = insights_gen_nl.generate(result)
+        assert "complexere dossiers" in bundle.response_time_narrative
+        assert "positieve correlatie" in bundle.response_time_narrative
+
+    def test_response_time_negatieve_correlatie_narrative(
+        self, insights_gen_nl: InsightsGenerator
+    ) -> None:
+        """response_time_narrative toont negatieve correlatie-tekst als r < -0.1 (lines 1274-1275)."""
+        import dataclasses
+
+        from csat.core.analysers.evolution_result import ResponseTimeRow
+
+        result = dataclasses.replace(
+            self._minimal(),
+            response_time_by_score={
+                3: ResponseTimeRow(score_level=3, baseline_days=6.0, current_days=3.0),
+                5: ResponseTimeRow(score_level=5, baseline_days=10.0, current_days=15.0),
+            },
+            response_time_insight=ResponseTimeInsight(
+                avg_days=8.0,
+                correlation_score=-0.25,  # r < -0.1 → negatieve correlatie-tekst (line 1274-1275)
+            ),
+        )
+        bundle = insights_gen_nl.generate(result)
+        assert "negatieve correlatie" in bundle.response_time_narrative
