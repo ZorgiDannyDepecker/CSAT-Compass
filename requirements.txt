@@ -27,6 +27,9 @@ streamlit>=1.32.0
 python-dotenv>=1.0.0
 loguru>=0.7.0
 
+# --- Security overrides (transitieve afhankelijkheden gepind wegens CVE) ---
+pygments>=2.20.0  # CVE-2026-4539: ReDoS in AdlLexer — fix in 2.20.0
+
 # --- Testing ---
 pytest>=7.4.0
 pytest-cov>=4.1.0
