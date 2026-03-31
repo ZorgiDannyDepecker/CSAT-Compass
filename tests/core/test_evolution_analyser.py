@@ -1209,8 +1209,27 @@ class TestFase3gResponseTimeInsight:
         assert insight.avg_days == 0.0
         assert insight.correlation_score is None
 
+    def test_baseline_correlation_score_type(self, evolution_df: pd.DataFrame) -> None:
+        """baseline_correlation_score is float of None — nooit een ander type."""
+        analyser = make_analyser(evolution_df)
+        current_df = analyser._get_df_for_periods(CURRENT)
+        baseline_df = analyser._get_df_for_periods(BASELINE)
+        insight = analyser._calc_response_time_insight(current_df, baseline_df)
+        assert insight.baseline_correlation_score is None or isinstance(
+            insight.baseline_correlation_score, float
+        )
 
-class TestFase3gNegativeCases:
+    def test_baseline_correlation_score_none_bij_te_weinig_datapunten(
+        self, evolution_df: pd.DataFrame
+    ) -> None:
+        """baseline_correlation_score is None als er minder dan 5 datapunten zijn."""
+        analyser = make_analyser(evolution_df)
+        current_df = analyser._get_df_for_periods(CURRENT)
+        # Geef een baseline_df mee met slechts 2 rijen → < 5 datapunten
+        tiny_baseline = analyser._get_df_for_periods(BASELINE).head(2).copy()
+        insight = analyser._calc_response_time_insight(current_df, tiny_baseline)
+        assert insight.baseline_correlation_score is None
+
     """Tests voor _calc_negative_cases."""
 
     def test_negative_cases_aantal(self, evolution_df: pd.DataFrame) -> None:

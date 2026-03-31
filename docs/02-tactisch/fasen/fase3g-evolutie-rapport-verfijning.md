@@ -1,12 +1,12 @@
 # CSAT-Compass — Fase 3g: Evolutierapport verfijning
 
-**Versie:** 3.0
-**Laatst bijgewerkt:** 29/03/2026
+**Versie:** 4.0
+**Laatst bijgewerkt:** 30/03/2026
 
 **Doel:** Implementatie van release 1 voor de verfijning en verrijking van de evolutie-markdown-rapporten
 **Type:** Implementatie
 **Auteur:** Danny Depecker + Claude Desktop + GHC
-**Status:** In planning — scope bevestigd en gecorrigeerd
+**Status:** Grotendeels geïmplementeerd — 3 chirurgische aanvullingen resterend (zie §9)
 
 **Bestandsnaam:** fase3g-evolutie-rapport-verfijning.md
 **Path:** docs/02-tactisch/fasen/
@@ -178,15 +178,64 @@ EvolutionAnalyser.analyse() / MonthlyAnalyser
 
 ---
 
-## 8. Referenties
+## 9. Implementatiestatus (30/03/2026)
+
+Na volledige pipeline-review op 30/03/2026 is vastgesteld dat GHC alle release 1 scope
+reeds heeft geïmplementeerd. De onderstaande tabel toont de werkelijke status per component.
+
+### 9.1 Voltooide componenten
+
+| Component | Bestand | Status |
+|---|---|---|
+| KPI-targets (7) | `src/csat/config/settings.py` | ✅ Geïmplementeerd |
+| Dataklassen fase 3g | `src/csat/core/analysers/evolution_result.py` | ✅ Geïmplementeerd |
+| Alle berekeningen fase 3g | `src/csat/core/analysers/evolution_analyser.py` | ✅ Geïmplementeerd |
+| Interpreterende laag | `src/csat/core/insights/insights_generator.py` | ✅ Geïmplementeerd |
+| InsightsGenerator integratie | `src/csat/core/exporters/evolution_exporter.py` | ✅ Geïmplementeerd |
+| NL template (alle secties) | `docs/templates/evolutie-nl.md.j2` | ✅ Geïmplementeerd |
+| i18n NL (insights-sleutels) | `src/csat/i18n/nl.json` | ✅ Geïmplementeerd |
+
+### 9.2 Resterende aanvullingen
+
+De 3 resterende gaps zijn gedocumenteerd in `WIP/ghc-prompts-fase3g-interpreterende-laag.md`.
+
+| Gap | Bestand | Impact |
+|---|---|---|
+| `baseline_correlation_score` veld ontbreekt | `evolution_result.py` | Basisvereiste voor omslag-detectie |
+| Baseline-correlatie niet berekend | `evolution_analyser.py` | Basisvereiste voor omslag-detectie |
+| Correlatie-omslag bevinding + KPI-achievement narrative | `insights_generator.py` | Sectie 2 + executive summary |
+
+Na uitvoering stijgt de kwaliteitspariteit met de CD-referentiedocumenten van ~60% naar ~75-80%.
+
+### 9.3 Template-uitbreidingen (30/03/2026 — rechtstreeks via CD)
+
+Na vergelijking van de gegenereerde output met de CD-referentiedocumenten zijn 3 aanvullende
+template-aanpassingen doorgevoerd. Alle wijzigingen zijn rechtstreeks toegepast (geen GHC-prompt
+nodig) omdat het zuivere template- en i18n-wijzigingen zijn zonder Python-logica.
+
+| Element | Sectie | Wijziging |
+|---|---|---|
+| Mediaan + Std. deviatie + % Neutraal | §3 Kerncijfers | 3 rijen toegevoegd (conditioneel op `baseline_summary`) |
+| Delta score kolom | §5 Analyse per type | Extra kolom `(current_score - baseline_score)` |
+| % Negatief baseline + huidig | §6 Analyse per prioriteit | 2 extra kolommen `baseline_pct_neg` / `current_pct_neg` |
+
+Betrokken bestanden: `docs/templates/evolutie-nl.md.j2`, `src/csat/i18n/nl.json`,
+`src/csat/i18n/fr.json`, `tests/core/test_evolution_exporter.py` (klasse `TestKerncijfersUitbreidingen`).
+De resterende ~20-25% is het inherente verschil tussen keyword-matching thema-percentages
+en de NLP-gedreven thema-analyse van de CD-versie — een bewuste architectuurkeuze (beslissing 1).
+
+---
+
+## 10. Referenties
 
 - Fase 3f: `docs/02-tactisch/fasen/fase3f-evolutie-advieskader.md` **(v3.0 — normatief kader)**
 - Fase 3b: `docs/02-tactisch/fasen/fase3b-evolutie-analyser.md`
 - Fase 3c: `docs/02-tactisch/fasen/fase3c-evolutie-exporter.md`
 - EvolutionResult: `src/csat/core/analysers/evolution_result.py`
-- InsightsGenerator: `src/csat/core/insights/insights_generator.py` (nieuw in fase 3g — gedeeld)
+- InsightsGenerator: `src/csat/core/insights/insights_generator.py` (gedeeld — fase 3g)
 - Templates: `docs/templates/evolutie-nl.md.j2` + `evolutie-fr.md.j2`
 - i18n: `src/csat/i18n/nl.json` + `fr.json`
+- GHC-prompts: `WIP/ghc-prompts-fase3g-interpreterende-laag.md`
 
 ---
 
@@ -197,3 +246,4 @@ EvolutionAnalyser.analyse() / MonthlyAnalyser
 | 1.0 | 27/03/2026 | Initiële versie — framework aangemaakt, inhoud TBD | Danny Depecker |
 | 2.0 | 29/03/2026 | Hernoemd van fase 3f naar fase 3g; scope bevestigd op basis van GHC-advies | Danny Depecker + GHC |
 | 3.0 | 29/03/2026 | Scope gecorrigeerd op basis van alle 12 DDP-beslissingen: volledige comments + ticket-ID's (besl. 2+3), scoreverdeling (besl. 12), visuele analyse (besl. 8), eigenaar per aanbeveling (besl. 9), matrix-absorptie (besl. 11), 7 KPI-targets (besl. 5), gedeelde InsightsGenerator (besl. 7), comment-policy geëxpliciteerd | Danny Depecker + CD + GHC |
+| 4.0 | 30/03/2026 | Implementatiestatus bijgewerkt na pipeline-review: alle 7 lagen geïmplementeerd; 3 resterende aanvullingen gedocumenteerd in §9 en WIP/ghc-prompts-fase3g-interpreterende-laag.md | Danny Depecker + CD |

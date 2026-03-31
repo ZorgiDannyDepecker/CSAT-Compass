@@ -193,6 +193,7 @@ class EvolutionExporter:
         return {
             "t": t,
             "lang": self._lang,
+            "pillar_id": result.pillar,
             "generated_date": generated_date,
             "pillar_name": pillar_name,
             "baseline_label": result.baseline_label,

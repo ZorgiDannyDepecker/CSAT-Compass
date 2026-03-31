@@ -56,3 +56,8 @@ ZORGI_LIGHT_PURPLE = "#a06b8a"
 # Bewuste uitzondering op ZORGI Design System.
 # Ref: fase3d-evolutie-visualisatie.md §4.4 (Optie B)
 ZORGI_FUNC_POSITIVE = "#2e7d32"
+# Chart/plot achtergrond — matplotlib figuur- en subplot-achtergrond.
+# Lichter dan ZORGI_ULTRA_LIGHT (#d7e7f3) voor betere leesbaarheid op papier.
+# Behoudt de ZORGI-blauwtint (B=254 dominant) in tegenstelling tot neutraal grijs.
+# Gridlijnen blijven op ZORGI_ULTRA_LIGHT voor subtiel contrast op deze achtergrond.
+ZORGI_CHART_BG = "#f7fbfe"

@@ -294,7 +294,7 @@ class EvolutionAnalyser:
         score_dist_current = self._calc_score_distribution(current_df)
 
         # Responstijdanalyse met correlatie
-        response_time_insight = self._calc_response_time_insight(current_df)
+        response_time_insight = self._calc_response_time_insight(current_df, baseline_df)
 
         # Negatieve cases met volledige context (huidige periode)
         negative_cases = self._calc_negative_cases(current_df)
@@ -879,7 +879,9 @@ class EvolutionAnalyser:
             narrative=narrative,
         )
 
-    def _calc_response_time_insight(self, df: pd.DataFrame) -> ResponseTimeInsight:
+    def _calc_response_time_insight(  # noqa: C901
+        self, df: pd.DataFrame, baseline_df: pd.DataFrame | None = None
+    ) -> ResponseTimeInsight:
         """
         Bereken uitgebreide responstijdstatistieken incl. correlatie (KRITIEK gap).
 
@@ -937,6 +939,25 @@ class EvolutionAnalyser:
             if not neg.empty:
                 avg_negative = round(float(neg["_days"].mean()), 1)
 
+        # Baseline-correlatie (voor correlatie-omslag detectie)
+        baseline_correlation: float | None = None
+        if baseline_df is not None and not baseline_df.empty:
+            b_created = pd.to_datetime(baseline_df["created"])
+            b_sat = pd.to_datetime(baseline_df["satisfaction_date"])
+            b_days = (b_sat - b_created).dt.days
+            b_df2 = baseline_df.copy()
+            b_df2["_days"] = b_days
+            b_scored = b_df2[
+                b_df2["score"].notna() & b_df2["_days"].notna() & (b_df2["_days"] >= 0)
+            ]
+            if len(b_scored) >= 5:
+                try:
+                    b_corr = b_scored["score"].corr(b_scored["_days"])
+                    if pd.notna(b_corr):
+                        baseline_correlation = round(float(b_corr), 3)
+                except Exception as exc:
+                    logger.debug(f"Baseline correlatie-berekening mislukt: {exc}")
+
         return ResponseTimeInsight(
             avg_days=avg_d,
             median_days=median_d,
@@ -945,6 +966,7 @@ class EvolutionAnalyser:
             correlation_score=correlation,
             avg_positive_days=avg_positive,
             avg_negative_days=avg_negative,
+            baseline_correlation_score=baseline_correlation,
         )
 
     def _calc_negative_cases(self, df: pd.DataFrame) -> list[NegativeCase]:

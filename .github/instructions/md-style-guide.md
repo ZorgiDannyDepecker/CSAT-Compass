@@ -1,7 +1,7 @@
 # Documentatie Style Guide
 
-**Versie:** 4.0
-**Laatst bijgewerkt:** 17/03/2026
+**Versie:** 4.4
+**Laatst bijgewerkt:** 30/03/2026
 **Overgedragen naar PHARMA-Conventions:** 24/03/2026
 
 **Doel:** Consistente opmaak en stijl voor alle projectdocumentatie
@@ -146,6 +146,90 @@ Aanbevolen: 80-100 karakters per regel.
 - **Bold:** `**tekst**` — sterke nadruk
 - **Inline code:** `` `commando` `` — voor code, variabelen, commando's
 - **Blockquote:** `>` — voor citaten of callouts
+
+### 4.1 Alinea-scheiding (lege regels verplicht)
+
+> ⚠️ **Markdown-gedrag:** Een enkele regelafstand wordt **niet** als alinea-scheiding gezien — de renderer plakt aangrenzende regels aan elkaar vast. Gebruik altijd een **lege regel** om blokken te scheiden.
+
+**Regel:** Plaats een lege regel tussen elk tekstblok — ook als het logisch voelt om dat niet te doen.
+
+| Situatie | ❌ Fout | ✅ Correct |
+| --- | --- | --- |
+| Paragraaf → italic meta-regel | `tekst.\n*meta*` | `tekst.\n\n*meta*` |
+| Italic meta-regel → heading | `*meta*\n### Kop` | `*meta*\n\n### Kop` |
+| Paragraaf → heading | `tekst.\n### Kop` | `tekst.\n\n### Kop` |
+| Paragraaf → lijst | `tekst.\n- item` | `tekst.\n\n- item` |
+
+**Voorbeeld:**
+
+```markdown
+❌ Fout — alles komt op één regel:
+De score steeg van 3,48 naar 4,37.
+*Causale factor: Score-evolutie over analyseperiode*
+### Volgende sectie
+
+✅ Correct — elk blok gescheiden door lege regel:
+De score steeg van 3,48 naar 4,37.
+
+*Causale factor: Score-evolutie over analyseperiode*
+
+### Volgende sectie
+```
+
+### 4.2 Zinnen op een nieuwe regel (verplicht)
+
+> ⚠️ **Leesbaarheidsregel:** Elke zin krijgt een eigen regel. Gebruik **2 spaties + newline** (Markdown line break) na elke punt aan het einde van een zin.
+
+**Regel:** Na elke zin (eindpunt gevolgd door een nieuwe zin) twee spaties toevoegen vóór de regelafstand.
+
+| Situatie | ❌ Fout | ✅ Correct |
+| --- | --- | --- |
+| Twee zinnen op één regel | `Zin één. Zin twee.` | `Zin één.` + newline + `Zin twee.` |
+| Meerdere zinnen in paragraaf | `A. B. C.` | `A.` + newline + `B.` + newline + `C.` |
+
+**Voorbeeld:**
+
+```markdown
+❌ Fout — alles op één regel:
+De score steeg van 3,48 naar 4,37. Van de 46 responses scoort 65,2% een volle 5★. Responstijd en score zijn gecorreleerd.
+
+✅ Correct — elke zin op een nieuwe regel:
+De score steeg van 3,48 naar 4,37.  
+Van de 46 responses scoort 65,2% een volle 5★.  
+Responstijd en score zijn gecorreleerd.
+```
+
+**In broncode (Python generators):** gebruik `".\n\n"` als separator tussen zinnen in gegenereerde tekst.
+
+```python
+# ❌ Fout
+f"Eerste zin. Tweede zin."
+
+# ✅ Correct
+f"Eerste zin.\n\nTweede zin."
+```
+
+### 4.3 Meta-labels als blockquote (PDF-vereiste)
+
+> ⚠️ **PDF-renderer regel:** Inline italic zoals `*label: waarde*` op een nieuwe regel wordt in PDF-renderers samengetrokken met de vorige paragraaf. Gebruik altijd een **blockquote** (`>`) voor meta-labels die visueel gescheiden moeten zijn.
+
+| Situatie | ❌ Fout | ✅ Correct |
+| --- | --- | --- |
+| Causale factor | `*Causale factor: ...*` | `> 🔍 *Causale factor: ...*` |
+| Noot / opmerking | `*Noot: ...*` | `> ℹ️ *Noot: ...*` |
+| Bron / referentie | `*Bron: ...*` | `> 📎 *Bron: ...*` |
+
+**In Jinja2-templates:**
+
+```jinja
+{# ❌ Fout — kleeft aan vorige paragraaf in PDF #}
+{% if f.causal_factor %}*Causale factor: {{ f.causal_factor }}*{% endif %}
+
+{# ✅ Correct — altijd block-level, eigen regel in elke renderer #}
+{% if f.causal_factor %}
+> 🔍 *Causale factor: {{ f.causal_factor }}*
+{% endif %}
+```
 
 ---
 
@@ -296,3 +380,6 @@ applyTo: '**/*.py,**/*.ps1'  # Python én PowerShell
 | 3.0 | 02/03/2026 | Gegeneraliseerde template structuur | Danny Depecker + Claude |
 | 4.0 | 17/03/2026 | Generiek gemaakt; auteur-veld uitgebreid; Mermaid + YAML secties toegevoegd | Danny Depecker + Claude |
 | 4.1 | 24/03/2026 | Gecentraliseerd in PHARMA-Conventions | Danny Depecker |
+| 4.2 | 30/03/2026 | Sectie 4.1 toegevoegd: alinea-scheiding met lege regels verplicht | Danny Depecker + GHC |
+| 4.3 | 30/03/2026 | Sectie 4.2 toegevoegd: elke zin op nieuwe regel; Python generator-conventie gedocumenteerd | Danny Depecker + GHC |
+| 4.4 | 30/03/2026 | Sectie 4.3 toegevoegd: meta-labels als blockquote voor PDF-compatibiliteit; Jinja2-voorbeeld toegevoegd | Danny Depecker + GHC |

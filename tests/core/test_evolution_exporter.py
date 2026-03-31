@@ -533,7 +533,88 @@ class TestGetalnotatie:
 
 
 # ---------------------------------------------------------------------------
-# 9. Recurring themes — voorbeeld + actiehint (fase 3g scope)
+# 9. Kerncijfers uitbreidingen — mediaan, std dev, neutraal, delta type, pct neg prioriteit
+# ---------------------------------------------------------------------------
+
+
+class TestKerncijfersUitbreidingen:
+    """Tests voor de 5 ontbrekende kolommen uit de CD-referentiedocumenten."""
+
+    def test_render_bevat_mediaan(self, exporter_nl, evolution_result):
+        """Mediaan verschijnt in de kerncijfertabel als baseline_summary aanwezig is."""
+        result = exporter_nl.render(evolution_result)
+        assert "Mediaan" in result
+
+    def test_render_bevat_std_dev(self, exporter_nl, evolution_result):
+        """Standaard deviatie verschijnt in de kerncijfertabel."""
+        result = exporter_nl.render(evolution_result)
+        assert "Standaard deviatie" in result
+
+    def test_render_bevat_pct_neutraal(self, exporter_nl, evolution_result):
+        """% Neutraal (3★) rij verschijnt in de kerncijfertabel."""
+        result = exporter_nl.render(evolution_result)
+        assert "Neutraal" in result
+
+    def test_render_mediaan_niet_aanwezig_zonder_summary(self, exporter_nl, evolution_result):
+        """Zonder baseline_summary en current_summary verschijnen de rijen niet."""
+        import dataclasses
+
+        result_no_summary = dataclasses.replace(
+            evolution_result,
+            baseline_summary=None,
+            current_summary=None,
+        )
+        rendered = exporter_nl.render(result_no_summary)
+        assert "Standaard deviatie" not in rendered
+
+    def test_render_issue_type_bevat_delta_kolom(self, exporter_nl, evolution_result):
+        """Sectie 5 bevat een Delta-kolom voor issue types."""
+        result = exporter_nl.render(evolution_result)
+        # De delta-kolom kop staat in de header van sectie 5
+        # We zoeken naar de patroon: sectie 5 met Delta in de tabelheader
+        lines = result.split("\n")
+        issue_type_section = False
+        header_with_delta = False
+        for line in lines:
+            if "Analyse per type" in line:
+                issue_type_section = True
+            if issue_type_section and "Delta" in line and "|" in line:
+                header_with_delta = True
+                break
+            if issue_type_section and line.startswith("## ") and "Analyse per type" not in line:
+                break
+        assert header_with_delta, "Delta-kolom ontbreekt in sectie 5 (issue type)"
+
+    def test_render_prioriteit_bevat_pct_negatief_kolommen(self, exporter_nl, evolution_result):
+        """Sectie 6 bevat % Negatief kolommen voor baseline én huidig."""
+        result = exporter_nl.render(evolution_result)
+        lines = result.split("\n")
+        priority_section = False
+        header_with_pct_neg = False
+        for line in lines:
+            if "Analyse per prioriteit" in line:
+                priority_section = True
+            if (
+                priority_section
+                and "% Negatief" in line
+                and "|" in line
+                and (line.count("% Negatief") >= 2 or line.count("Negatief") >= 2)
+            ):
+                # Controleer dat er twee keer % Negatief in de header staat
+                header_with_pct_neg = True
+                break
+            if priority_section and line.startswith("## ") and "Analyse per prioriteit" not in line:
+                break
+        assert header_with_pct_neg, "% Negatief-kolommen ontbreken in sectie 6 (prioriteit)"
+
+    def test_render_fr_bevat_mediane(self, exporter_fr, evolution_result):
+        """FR-template toont Médiane als vertaling."""
+        result = exporter_fr.render(evolution_result)
+        assert "Médiane" in result
+
+
+# ---------------------------------------------------------------------------
+# 10. Recurring themes — voorbeeld + actiehint (fase 3g scope)
 # ---------------------------------------------------------------------------
 
 
@@ -567,7 +648,7 @@ class TestRenderRecurringThemes:
     def test_nog_aanwezig_thema_toont_actiehint(
         self, exporter_nl: EvolutionExporter, evolution_result: EvolutionResult
     ) -> None:
-        """NOG_AANWEZIG thema met action_hint → actiehint verschijnt in rapport."""
+        """NOG_AANWEZIG thema → actiehint verschijnt in rapport (via i18n als beschikbaar)."""
         import dataclasses
 
         from csat.core.analysers.evolution_result import ThemeEvolution
@@ -586,7 +667,9 @@ class TestRenderRecurringThemes:
             ],
         )
         rendered = exporter_nl.render(result)
-        assert "Activeer proactieve statusupdates." in rendered
+        # Template geeft voorrang aan t.evolution.theme_action_hints[theme_key] (i18n)
+        # boven de hardgecodeerde action_hint — beide zijn geldig, i18n wint
+        assert "proactieve statusupdates" in rendered or "Activeer" in rendered
 
     def test_opgelost_thema_toont_geen_voorbeeld_sectie(
         self, exporter_nl: EvolutionExporter, evolution_result: EvolutionResult

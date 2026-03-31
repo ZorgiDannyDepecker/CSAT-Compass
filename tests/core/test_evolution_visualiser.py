@@ -202,13 +202,13 @@ class TestRender:
         plt.close(fig)
 
     def test_render_figuur_facecolor(self, evolution_result: EvolutionResult) -> None:
-        """Figuurachtergrond moet Ultra Light Blue (#d7e7f3) zijn."""
+        """Figuurachtergrond moet ZORGI_CHART_BG (#f7fbfe) zijn — iets lichter dan ZORGI_ULTRA_LIGHT."""
         from matplotlib.colors import to_hex
 
         vis = EvolutionVisualiser(evolution_result)
         fig = vis.render()
         kleur = to_hex(fig.get_facecolor())
-        assert kleur.lower() == "#d7e7f3"
+        assert kleur.lower() == "#f7fbfe"
         plt.close(fig)
 
     def test_render_suptitle_bevat_pijlernaam(self, evolution_result: EvolutionResult) -> None:

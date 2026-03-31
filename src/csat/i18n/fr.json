@@ -48,7 +48,7 @@
     "hc_count": "Tickets H/C"
   },
   "notes": {
-    "reactiegraad_na": "Le taux de réponse n'est pas mesurable : V_CSAT_1 ne contient que les tickets évalués (voir ADR-006).",
+    "reactiegraad_na": "Le taux de réponse n'est pas mesurable : V_CSAT_1 ne contient que les tickets évalués.",
     "onbekend_hospitals": "Les tickets sans identification d'hôpital sont affichés comme 'ONBEKEND' — suivi requis avec l'équipe PHARMA (qualité des données)."
   },
   "matrix": {
@@ -118,7 +118,10 @@
       "avg_response_days": "Délai moy. de réponse (jours)",
       "n_hospitals": "Nombre d'hôpitaux",
       "hc_ratio": "Taux High/Critical",
-      "score_distribution": "Distribution des scores"
+      "score_distribution": "Distribution des scores",
+      "median_score": "Médiane",
+      "std_dev_score": "Écart-type",
+      "pct_neutral": "% Neutre (3★)"
     },
     "status": {
       "ok": "✅ OK",
@@ -135,6 +138,13 @@
       "communicatie": "Communication",
       "urgentie": "Urgence",
       "automatisering": "Automatisation"
+    },
+    "theme_action_hints": {
+      "responstijd": "Vérifier le respect des SLA et envisager des alertes de délai pour les tickets ouverts depuis plus de 5 jours ouvrables.",
+      "onvolledig": "Mettre en place une confirmation de résolution lors de la clôture : accord du client requis avant fermeture.",
+      "communicatie": "Activer des mises à jour de statut proactives pour les tickets de longue durée (> 5 jours ouvrables) : notification automatique lors d'un changement de statut.",
+      "urgentie": "Revoir la politique d'escalade : garantir un contact direct avec le client pour les tickets haute urgence dans un délai d'1 jour ouvrable.",
+      "automatisering": "Évaluer les opportunités d'automatisation dans le workflow de tickets pour éliminer les étapes manuelles répétitives."
     },
     "trend": {
       "structural": "Structurel",

@@ -160,3 +160,4 @@ src/csat/utils/zorgi_theme.py                      ← pure constanten, geen fra
 | 1.8 | 27/03/2026 | Fase 3f toegevoegd (in planning); mermaid diagram + t-shirt tabel bijgewerkt | Danny Depecker + GHC |
 | 1.9 | 29/03/2026 | Fase 3f hergedefinieerd als advieskader; implementatiefase doorgeschoven naar 3g; tabellen, afhankelijkheden en totaalinschatting bijgewerkt | Danny Depecker + GHC |
 | 2.0 | 29/03/2026 | Fase 3f/3g links gecorrigeerd naar v3.0 in `fasen/` (was: archief GHC-versie); fase 3f beschrijving aangevuld met "12 beslissingen DDP"; noot over samenvoeging CD+GHC toegevoegd | Danny Depecker + CD |
+| 2.1 | 31/03/2026 | Sectie "Mapstructuur: scripts / src / tools" toegevoegd (runner/library-patroon, ADR-013) | Danny Depecker + GHC |

@@ -25,6 +25,7 @@ from csat.utils.branding import COLORS, apply_matplotlib_theme
 from csat.utils.zorgi_theme import (
     ZORGI_BODY_TEXT,
     ZORGI_BORDEAUX,
+    ZORGI_CHART_BG,
     ZORGI_DARK_BLUE,
     ZORGI_FUNC_POSITIVE,
     ZORGI_GREY_BLUE,
@@ -255,8 +256,8 @@ class EvolutionVisualiser:
                 "axes.labelcolor": ZORGI_BODY_TEXT,
                 "xtick.color": ZORGI_BODY_TEXT,
                 "ytick.color": ZORGI_BODY_TEXT,
-                "axes.facecolor": ZORGI_ULTRA_LIGHT,
-                "figure.facecolor": ZORGI_ULTRA_LIGHT,
+                "axes.facecolor": ZORGI_CHART_BG,
+                "figure.facecolor": ZORGI_CHART_BG,
                 "axes.titlesize": 11,
                 "axes.labelsize": 9,
                 "xtick.labelsize": 8.5,
@@ -268,7 +269,7 @@ class EvolutionVisualiser:
         r = self._result
 
         fig = plt.figure(figsize=(_FIG_WIDTH, _FIG_HEIGHT))
-        fig.patch.set_facecolor(ZORGI_ULTRA_LIGHT)
+        fig.patch.set_facecolor(ZORGI_CHART_BG)
 
         # 45/55 verdeling: rechterkolom iets breder voor ziekenhuisnamen
         gs = gridspec.GridSpec(
@@ -287,7 +288,7 @@ class EvolutionVisualiser:
 
         # Globale achtergrond, spines en gridlines — identiek op alle 4 subplots
         for ax in (ax1, ax2, ax3, ax4):
-            ax.set_facecolor(ZORGI_ULTRA_LIGHT)
+            ax.set_facecolor(ZORGI_CHART_BG)
             for spine in ax.spines.values():
                 spine.set_edgecolor(ZORGI_GREY_BLUE)
                 spine.set_linewidth(0.6)

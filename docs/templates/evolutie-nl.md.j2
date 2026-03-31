@@ -9,8 +9,16 @@
 
 {{ insights.executive_summary }}
 
-{% if score_distribution_current and score_distribution_current.compact_label %}
-> 📊 **Scoreverdeling {{ current_label }}:** {{ score_distribution_current.compact_label }}
+{% if score_distribution_current and score_distribution_current.counts %}
+> 📊 **Scoreverdeling {{ current_label }}**
+
+| Score | Aantal | % |
+| --- | --- | --- |
+| 5★ | {{ score_distribution_current.counts[5] }} | {{ score_distribution_current.percentages[5] | fmt(1) }}% |
+| 4★ | {{ score_distribution_current.counts[4] }} | {{ score_distribution_current.percentages[4] | fmt(1) }}% |
+| 3★ | {{ score_distribution_current.counts[3] }} | {{ score_distribution_current.percentages[3] | fmt(1) }}% |
+| 2★ | {{ score_distribution_current.counts[2] }} | {{ score_distribution_current.percentages[2] | fmt(1) }}% |
+| 1★ | {{ score_distribution_current.counts[1] }} | {{ score_distribution_current.percentages[1] | fmt(1) }}% |
 {% endif %}
 
 ---
@@ -22,7 +30,10 @@
 ### {{ f.title }}
 
 {{ f.description }}
-{% if f.causal_factor %}*Causale factor: {{ f.causal_factor }}*{% endif %}
+
+{% if f.causal_factor %}
+> 🔍 *Causale factor: {{ f.causal_factor }}*
+{% endif %}
 
 {% endfor %}
 {% else %}
@@ -37,14 +48,18 @@
 | --- | --- | --- | --- | --- |
 | {{ t.kpi.total_tickets }} | {{ baseline_total | fmt(0) }} | {{ current_total | fmt(0) }} | — | — |
 | {{ t.kpi.avg_score }} | {{ baseline_avg_score | fmt(2) }} | {{ current_avg_score | fmt(2) }} | {{ delta_avg_score | fmt_delta(2) }} | {{ kpi_status_avg_current }} |
+{% if baseline_summary and current_summary %}
+| {{ t.evolution.kpi.median_score }} | {{ baseline_summary.median_score | fmt(2) }} | {{ current_summary.median_score | fmt(2) }} | — | — |
+| {{ t.evolution.kpi.std_dev_score }} | {{ baseline_summary.std_dev_score | fmt(2) }} | {{ current_summary.std_dev_score | fmt(2) }} | — | — |
+{% endif %}
 | {{ t.evolution.kpi.pct_positive }} | {{ baseline_pct_positive | fmt(1) }}% | {{ current_pct_positive | fmt(1) }}% | {{ delta_pct_pos | fmt_delta(1) }}% | — |
+{% if baseline_summary and current_summary %}
+| {{ t.evolution.kpi.pct_neutral }} | {{ baseline_summary.pct_neutral | fmt(1) }}% | {{ current_summary.pct_neutral | fmt(1) }}% | — | — |
+{% endif %}
 | {{ t.evolution.kpi.pct_negative }} | {{ baseline_pct_negative | fmt(1) }}% | {{ current_pct_negative | fmt(1) }}% | {{ delta_pct_neg | fmt_delta(1) }}% | — |
 | {{ t.kpi.high_critical_ratio }} | {{ baseline_hc_ratio | fmt(1) }}% | {{ current_hc_ratio | fmt(1) }}% | {{ delta_hc | fmt_delta(1) }}% | {{ kpi_status_hc_current }} |
 | {{ t.evolution.kpi.avg_response_days }} | {{ baseline_avg_response_days | fmt(1) }} d | {{ current_avg_response_days | fmt(1) }} d | {{ delta_response | fmt_delta(1) }} d | — |
 | {{ t.evolution.kpi.n_hospitals }} | {{ baseline_n_hospitals }} | {{ current_n_hospitals }} | — | — |
-{% if score_distribution_baseline and score_distribution_current %}
-| {{ t.evolution.kpi.score_distribution }} | {{ score_distribution_baseline.compact_label }} | {{ score_distribution_current.compact_label }} | — | — |
-{% endif %}
 
 {% if benchmark_h2 %}
 ### Dubbele benchmark
@@ -84,19 +99,27 @@
 
 ## 5. {{ t.evolution.sections.issue_type }}
 
-| {{ t.evolution.table.issue_type }} | {{ t.evolution.table.avg_score }} ({{ baseline_label }}) | {{ t.evolution.table.pct_negative }} ({{ baseline_label }}) | {{ t.evolution.table.avg_score }} ({{ current_label }}) | {{ t.evolution.table.pct_negative }} ({{ current_label }}) |
-| --- | --- | --- | --- | --- |
-{% for it in by_issue_type %}| {{ it.issue_type }} | {% if it.baseline_score > 0 %}{{ it.baseline_score | fmt(2) }}{% else %}—{% endif %} | {{ it.baseline_pct_neg | fmt(1) }}% | {% if it.current_score > 0 %}{{ it.current_score | fmt(2) }}{% else %}—{% endif %} | {{ it.current_pct_neg | fmt(1) }}% |
+| {{ t.evolution.table.issue_type }} | {{ t.evolution.table.avg_score }} ({{ baseline_label }}) | {{ t.evolution.table.pct_negative }} ({{ baseline_label }}) | {{ t.evolution.table.avg_score }} ({{ current_label }}) | {{ t.evolution.table.pct_negative }} ({{ current_label }}) | {{ t.evolution.table.delta }} |
+| --- | --- | --- | --- | --- | --- |
+{% for it in by_issue_type %}| {{ it.issue_type }} | {% if it.baseline_score > 0 %}{{ it.baseline_score | fmt(2) }}{% else %}—{% endif %} | {{ it.baseline_pct_neg | fmt(1) }}% | {% if it.current_score > 0 %}{{ it.current_score | fmt(2) }}{% else %}—{% endif %} | {{ it.current_pct_neg | fmt(1) }}% | {% if it.baseline_score > 0 and it.current_score > 0 %}{{ (it.current_score - it.baseline_score) | fmt_delta(2) }}{% else %}—{% endif %} |
 {% endfor %}
+{{ "\n" }}
+{% if insights.type_analysis_narrative %}
+> 💡 {{ insights.type_analysis_narrative }}
+{% endif %}
 
 ---
 
 ## 6. {{ t.evolution.sections.priority }}
 
-| {{ t.evolution.table.priority }} | {{ t.evolution.table.avg_score }} ({{ baseline_label }}) | {{ t.evolution.table.avg_score }} ({{ current_label }}) | {{ t.evolution.table.delta }} |
-| --- | --- | --- | --- |
-{% for pc in by_priority %}| {{ pc.priority }} | {% if pc.baseline_score > 0 %}{{ pc.baseline_score | fmt(2) }}{% else %}—{% endif %} | {% if pc.current_score > 0 %}{{ pc.current_score | fmt(2) }}{% else %}—{% endif %} | {% if pc.baseline_score > 0 and pc.current_score > 0 %}{{ (pc.current_score - pc.baseline_score) | fmt_delta(2) }}{% else %}—{% endif %} |
+| {{ t.evolution.table.priority }} | {{ t.evolution.table.avg_score }} ({{ baseline_label }}) | {{ t.evolution.table.pct_negative }} ({{ baseline_label }}) | {{ t.evolution.table.avg_score }} ({{ current_label }}) | {{ t.evolution.table.pct_negative }} ({{ current_label }}) | {{ t.evolution.table.delta }} |
+| --- | --- | --- | --- | --- | --- |
+{% for pc in by_priority %}| {{ pc.priority }} | {% if pc.baseline_score > 0 %}{{ pc.baseline_score | fmt(2) }}{% else %}—{% endif %} | {{ pc.baseline_pct_neg | fmt(1) }}% | {% if pc.current_score > 0 %}{{ pc.current_score | fmt(2) }}{% else %}—{% endif %} | {{ pc.current_pct_neg | fmt(1) }}% | {% if pc.baseline_score > 0 and pc.current_score > 0 %}{{ (pc.current_score - pc.baseline_score) | fmt_delta(2) }}{% else %}—{% endif %} |
 {% endfor %}
+{{ "\n" }}
+{% if insights.priority_analysis_narrative %}
+> 💡 {{ insights.priority_analysis_narrative }}
+{% endif %}
 
 ---
 
@@ -122,6 +145,10 @@
 | --- | --- | --- |
 {% for score in [1,2,3,4,5] %}{% if score in response_time_by_score %}| {{ "★" * score }}{{ "☆" * (5 - score) }} | {% if response_time_by_score[score].baseline_days is not none %}{{ response_time_by_score[score].baseline_days | fmt(1) }} d{% else %}—{% endif %} | {% if response_time_by_score[score].current_days is not none %}{{ response_time_by_score[score].current_days | fmt(1) }} d{% else %}—{% endif %} |
 {% endif %}{% endfor %}
+{{ "\n" }}
+{% if insights.response_time_narrative %}
+> 💡 {{ insights.response_time_narrative }}
+{% endif %}
 
 ---
 
@@ -136,18 +163,52 @@
 {% endfor %}
 {% endif %}
 
+{% if hospitals_disappeared %}
+### Verdwenen ziekenhuizen ({{ hospitals_disappeared | length }})
+{% set sorted_d = hospitals_disappeared | sort %}
+{% set nd = sorted_d | length %}
+{% if nd > 10 %}
+{% set half = ((nd + 1) // 2) %}
+| | |
+| :-- | :-- |
+{% for i in range(half) %}
+| {{ sorted_d[i] }} | {% if i + half < nd %}{{ sorted_d[i + half] }}{% endif %} |
+{% endfor %}
+{% else %}
+| |
+| :-- |
+{% for h in sorted_d -%}
+| {{ h }} |
+{% endfor %}
+{% endif %}
+{% endif %}
+
+{% if hospitals_new %}
+### Nieuwe ziekenhuizen ({{ hospitals_new | length }})
+{% set sorted_n = hospitals_new | sort %}
+{% set nn = sorted_n | length %}
+{% if nn > 10 %}
+{% set half = ((nn + 1) // 2) %}
+| | |
+| :-- | :-- |
+{% for i in range(half) %}
+| {{ sorted_n[i] }} | {% if i + half < nn %}{{ sorted_n[i + half] }}{% endif %} |
+{% endfor %}
+{% else %}
+| |
+| :-- |
+{% for h in sorted_n -%}
+| {{ h }} |
+{% endfor %}
+{% endif %}
+{% endif %}
+
 ### Volledig ziekenhuizenoverzicht
 
 | {{ t.evolution.table.hospital }} | {{ t.evolution.table.avg_score }} ({{ baseline_label }}) | {{ t.evolution.table.avg_score }} ({{ current_label }}) | {{ t.evolution.table.delta }} |
 | --- | --- | --- | --- |
 {% for h in hospital_comparison %}| {{ h.hospital }} | {% if h.baseline_score > 0 %}{{ h.baseline_score | fmt(2) }}{% else %}—{% endif %} | {% if h.current_score is not none %}{{ h.current_score | fmt(2) }}{% else %}—{% endif %} | {% if h.baseline_score > 0 and h.current_score is not none %}{{ (h.current_score - h.baseline_score) | fmt_delta(2) }}{% else %}—{% endif %} |
 {% endfor %}
-{% if hospitals_disappeared %}
-> ↓ **Verdwenen in {{ current_label }}:** {{ hospitals_disappeared | join(", ") }}
-{% endif %}
-{% if hospitals_new %}
-> ↑ **Nieuw in {{ current_label }}:** {{ hospitals_new | join(", ") }}
-{% endif %}
 
 ---
 
@@ -158,7 +219,7 @@
 
 | {{ t.evolution.table.ticket_id }} | {{ t.evolution.table.hospital }} | Type | Score | {{ t.evolution.table.response_days }} | {{ t.evolution.table.category }} |
 | --- | --- | --- | --- | --- | --- |
-{% for c in negative_cases %}| {{ c.ticket_id }} | {{ c.hospital }} | {{ c.issue_type }} | {{ "★" * c.score }}{{ "☆" * (5 - c.score) }} | {% if c.response_days is not none %}{{ c.response_days | fmt(1) }} d{% else %}—{% endif %} | {{ c.category }} |
+{% for c in negative_cases %}| {{ c.ticket_id }} | {{ c.hospital }} | {{ c.issue_type }} | {{ "★" * c.score }}{{ "☆" * (5 - c.score) }} | {% if c.response_days is not none %}{{ c.response_days | fmt(1) }} d{% else %}—{% endif %} | {{ t.evolution.theme[c.category] if c.category in t.evolution.theme else c.category }} |
 {% endfor %}
 
 ### Volledige comments
@@ -166,7 +227,7 @@
 {% for c in negative_cases %}
 **{{ c.ticket_id }}** — {{ c.hospital }} ({{ "★" * c.score }}{{ "☆" * (5 - c.score) }})
 
-> {{ c.comment if c.comment else "*Geen comment opgegeven.*" }}
+> {{ (c.comment if c.comment else "*Geen comment opgegeven.*") | replace('\n', '  \n> ') | replace('\r\n', '  \n> ') | replace('\r', '  \n> ') }}
 
 {% endfor %}
 {% else %}
@@ -189,7 +250,9 @@
 {% if theme.example %}
 > 💬 *"{{ theme.example }}"*
 {% endif %}
-{% if theme.action_hint %}
+{% if theme.theme_key in t.evolution.theme_action_hints %}
+💡 {{ t.evolution.theme_action_hints[theme.theme_key] }}
+{% elif theme.action_hint %}
 💡 {{ theme.action_hint }}
 {% endif %}
 
@@ -226,6 +289,8 @@
 
 ## 13. {{ t.evolution.sections.visual_analysis }}
 
+![CSAT Evolutie-grafiek {{ current_label }}](evolutie-{{ pillar_id }}-{{ current_label }}-{{ lang }}.png)
+
 {% if insights.visual_analysis %}
 **Subplot 1 — Scoretrend:** {{ insights.visual_analysis.subplot1_scoretrend }}
 
@@ -236,7 +301,6 @@
 **Subplot 4 — Ziekenhuisbenchmark:** {{ insights.visual_analysis.subplot4_hospitals }}
 {% endif %}
 
-> 📈 Grafiek: `output/evolutie-{{ current_label }}-nl.png` (indien gegenereerd met `--chart`)
 
 ---
 
@@ -271,28 +335,22 @@
 
 {% if kort_acties %}
 ### ⚡ {{ t.evolution.recommendation.horizon.kort }} (< 1 maand)
-
-{% for a in kort_acties %}
-- [ ] {{ a.action }}{% if a.owner %} *({{ a.owner }})*{% endif %}
-
+{% for a in kort_acties -%}
+- [ ] {{ a.action }}{% if a.owner %} *({{ a.owner }})*{% endif %}{{ "" }}
 {% endfor %}
 {% endif %}
 
 {% if mid_acties %}
 ### 🗓️ {{ t.evolution.recommendation.horizon.middellang }} (1–3 maanden)
-
-{% for a in mid_acties %}
-- [ ] {{ a.action }}{% if a.owner %} *({{ a.owner }})*{% endif %}
-
+{% for a in mid_acties -%}
+- [ ] {{ a.action }}{% if a.owner %} *({{ a.owner }})*{% endif %}{{ "" }}
 {% endfor %}
 {% endif %}
 
 {% if lang_acties %}
 ### 📅 {{ t.evolution.recommendation.horizon.lang }} (3+ maanden)
-
-{% for a in lang_acties %}
-- [ ] {{ a.action }}{% if a.owner %} *({{ a.owner }})*{% endif %}
-
+{% for a in lang_acties -%}
+- [ ] {{ a.action }}{% if a.owner %} *({{ a.owner }})*{% endif %}{{ "" }}
 {% endfor %}
 {% endif %}
 {% else %}
@@ -324,17 +382,20 @@
 {% endif %}
 
 {% if hospitals_disappeared %}
-📋 **Ontbrekende ziekenhuizen** — {{ hospitals_disappeared | length }} {% if hospitals_disappeared | length == 1 %}ziekenhuis is{% else %}ziekenhuizen zijn{% endif %} actief in de baseline maar niet in {{ current_label }}: {{ hospitals_disappeared | join(", ") }}. Controleer of dit te wijten is aan data-aanlevering of stopzetting.
+📋 **Ontbrekende ziekenhuizen** — {{ hospitals_disappeared | length }} {% if hospitals_disappeared | length == 1 %}ziekenhuis is{% else %}ziekenhuizen zijn{% endif %} actief in de baseline maar niet in {{ current_label }}.  
+Controleer of dit te wijten is aan data-aanlevering of stopzetting.  
+→ *Zie § 8 — Verdwenen ziekenhuizen voor het volledig overzicht.*
 {% endif %}
 
 {% if negative_themes %}
 {% set resolved = negative_themes | selectattr("status", "eq", "OPGELOST") | list %}
 {% set new_themes = negative_themes | selectattr("status", "eq", "NIEUW") | list %}
 {% if resolved %}
-✅ **Opgeloste aandachtspunten** — {{ resolved | length }} feedbackthema{% if resolved | length > 1 %}'s{% endif %} {% if resolved | length == 1 %}is{% else %}zijn{% endif %} opgelost: {{ resolved | map(attribute="theme_key") | join(", ") }}.
+✅ **Opgeloste aandachtspunten** — {{ resolved | length }} feedbackthema{% if resolved | length > 1 %}'s{% endif %} {% if resolved | length == 1 %}is{% else %}zijn{% endif %} opgelost: {% for item in resolved %}{{ t.evolution.theme[item.theme_key] }}{% if not loop.last %}, {% endif %}{% endfor %}.
 {% endif %}
+
 {% if new_themes %}
-🔴 **Nieuw aandachtspunt** — het thema "{{ new_themes | map(attribute="theme_key") | join('", "') }}" verschijnt voor het eerst in {{ current_label }}. Opvolging aanbevolen.
+🔴 **Nieuw aandachtspunt** — het thema "{% for item in new_themes %}{{ t.evolution.theme[item.theme_key] }}{% if not loop.last %}", "{% endif %}{% endfor %}" verschijnt voor het eerst in {{ current_label }}. Opvolging aanbevolen.
 {% endif %}
 {% endif %}
 

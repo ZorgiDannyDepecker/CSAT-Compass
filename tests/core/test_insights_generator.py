@@ -15,8 +15,10 @@ from csat.core.analysers.evolution_analyser import EvolutionAnalyser
 from csat.core.analysers.evolution_result import (
     EvolutionResult,
     HospitalComparison,
+    KpiTarget,
     MonthlyDataPoint,
     NegativeCase,
+    ResponseTimeInsight,
     ThemeEvolution,
 )
 from csat.core.insights import InsightsBundle, InsightsGenerator
@@ -317,6 +319,41 @@ class TestExecutiveSummary:
         bundle = gen.generate(result)
         assert len(bundle.executive_summary) > 0
 
+    def test_kpi_achievement_alle_targets_gehaald(self, nl_translations: dict) -> None:
+        """Als alle KPI-targets on_track zijn, bevat de summary de achievement-zin."""
+        from csat.core.analysers.evolution_result import KpiTarget
+
+        result = EvolutionResult(
+            pillar="pharma",
+            baseline_label="2025",
+            current_label="2026",
+            baseline_total=20,
+            current_total=20,
+            baseline_avg_score=3.5,
+            current_avg_score=4.5,
+            delta_avg_score=1.0,
+            baseline_pct_positive=60.0,
+            current_pct_positive=88.0,
+            baseline_pct_negative=20.0,
+            current_pct_negative=5.0,
+            baseline_avg_response_days=15.0,
+            current_avg_response_days=6.0,
+            baseline_n_hospitals=5,
+            current_n_hospitals=5,
+            baseline_hc_ratio=20.0,
+            current_hc_ratio=10.0,
+            trend_is_structural=True,
+            trend_breadth="breed",
+            kpi_targets=[
+                KpiTarget("avg_score_min", 3.5, 4.0, 4.5, "op_schema", True),
+                KpiTarget("pct_positive_min", 60.0, 75.0, 88.0, "op_schema", True),
+                KpiTarget("pct_negative_max", 20.0, 15.0, 5.0, "op_schema", True),
+            ],
+        )
+        gen = InsightsGenerator(nl_translations, lang="nl", seed=1)
+        summary = gen.generate(result).executive_summary
+        assert "Alle 3 KPI-targets" in summary or "KPI-targets" in summary
+
 
 # ---------------------------------------------------------------------------
 # 4. Critical findings
@@ -415,6 +452,80 @@ class TestCriticalFindings:
         gen = InsightsGenerator(nl_translations, lang="nl", seed=1)
         findings = gen.generate(minimal_result).critical_findings
         assert isinstance(findings, list)
+
+    def test_correlatie_omslag_neg_naar_pos_geeft_bevinding(self, nl_translations: dict) -> None:
+        """Baseline r < -0.05 en huidig r > 0.05 → correlatie-omslag bevinding aanwezig."""
+        from csat.core.analysers.evolution_result import ResponseTimeInsight
+
+        result = EvolutionResult(
+            pillar="pharma",
+            baseline_label="2025",
+            current_label="2026",
+            baseline_total=20,
+            current_total=20,
+            baseline_avg_score=3.5,
+            current_avg_score=4.2,
+            delta_avg_score=0.7,
+            baseline_pct_positive=55.0,
+            current_pct_positive=80.0,
+            baseline_pct_negative=20.0,
+            current_pct_negative=8.0,
+            baseline_avg_response_days=12.0,
+            current_avg_response_days=5.0,
+            baseline_n_hospitals=4,
+            current_n_hospitals=4,
+            baseline_hc_ratio=10.0,
+            current_hc_ratio=10.0,
+            trend_is_structural=True,
+            trend_breadth="breed",
+            response_time_insight=ResponseTimeInsight(
+                avg_days=5.0,
+                correlation_score=0.25,  # huidig positief
+                baseline_correlation_score=-0.30,  # baseline negatief
+            ),
+        )
+        gen = InsightsGenerator(nl_translations, lang="nl", seed=1)
+        findings = gen.generate(result).critical_findings
+        titles = [f.title for f in findings]
+        assert any("omslag" in t.lower() or "🔄" in t for t in titles)
+
+    def test_correlatie_geen_omslag_zelfde_teken_geen_bevinding(
+        self, nl_translations: dict
+    ) -> None:
+        """Beide correlaties positief → geen correlatie-omslag bevinding."""
+        from csat.core.analysers.evolution_result import ResponseTimeInsight
+
+        result = EvolutionResult(
+            pillar="pharma",
+            baseline_label="2025",
+            current_label="2026",
+            baseline_total=20,
+            current_total=20,
+            baseline_avg_score=3.8,
+            current_avg_score=4.2,
+            delta_avg_score=0.4,
+            baseline_pct_positive=60.0,
+            current_pct_positive=80.0,
+            baseline_pct_negative=15.0,
+            current_pct_negative=8.0,
+            baseline_avg_response_days=10.0,
+            current_avg_response_days=5.0,
+            baseline_n_hospitals=4,
+            current_n_hospitals=4,
+            baseline_hc_ratio=10.0,
+            current_hc_ratio=10.0,
+            trend_is_structural=True,
+            trend_breadth="breed",
+            response_time_insight=ResponseTimeInsight(
+                avg_days=5.0,
+                correlation_score=0.20,  # huidig positief
+                baseline_correlation_score=0.15,  # baseline ook positief — geen omslag
+            ),
+        )
+        gen = InsightsGenerator(nl_translations, lang="nl", seed=1)
+        findings = gen.generate(result).critical_findings
+        titles = [f.title for f in findings]
+        assert not any("omslag" in t.lower() or "🔄" in t for t in titles)
 
 
 # ---------------------------------------------------------------------------
@@ -1247,3 +1358,105 @@ class TestInsightsEdgeCases:
         template = "Ticket {0} is belangrijk."
         result = insights_gen_nl._pick(template)
         assert result == template
+
+
+# ---------------------------------------------------------------------------
+# Prompt 3 — correlatie-omslag + KPI-achievement narrative
+# ---------------------------------------------------------------------------
+
+
+class TestCorrelatieomslagEnKpiAchievement:
+    """Tests voor correlatie-omslag bevinding en KPI-achievement narrative (Fase 3g Prompt 3)."""
+
+    def _base_result(self) -> EvolutionResult:
+        """Minimaal EvolutionResult als basis voor parametrische tests."""
+        return EvolutionResult(
+            pillar="pharma",
+            baseline_label="2025",
+            current_label="2026",
+            baseline_total=10,
+            current_total=8,
+            baseline_avg_score=3.50,
+            current_avg_score=4.20,
+            delta_avg_score=0.70,
+            baseline_pct_positive=60.0,
+            current_pct_positive=80.0,
+            baseline_pct_negative=20.0,
+            current_pct_negative=8.0,
+            baseline_avg_response_days=12.0,
+            current_avg_response_days=7.0,
+            baseline_n_hospitals=5,
+            current_n_hospitals=5,
+            baseline_hc_ratio=10.0,
+            current_hc_ratio=12.0,
+            trend_is_structural=True,
+            trend_breadth="breed",
+        )
+
+    def test_correlatie_omslag_bevinding_bij_neg_naar_pos(
+        self, insights_gen_nl: InsightsGenerator
+    ) -> None:
+        """Correlatie-omslag bevinding wordt gegenereerd als baseline_corr < -0,05 en current_corr > 0,05."""
+        result = self._base_result()
+        result.response_time_insight = ResponseTimeInsight(
+            avg_days=7.0,
+            correlation_score=0.118,
+            baseline_correlation_score=-0.356,
+        )
+        bundle = insights_gen_nl.generate(result)
+        titels = [f.title for f in bundle.critical_findings]
+        assert any("omslag" in t.lower() or "inversion" in t.lower() for t in titels), (
+            "Verwacht een correlatie-omslag bevinding bij overgang neg → pos"
+        )
+
+    def test_geen_correlatie_omslag_bij_zelfde_teken(
+        self, insights_gen_nl: InsightsGenerator
+    ) -> None:
+        """Geen correlatie-omslag bevinding als beide correlaties hetzelfde teken hebben."""
+        result = self._base_result()
+        result.response_time_insight = ResponseTimeInsight(
+            avg_days=7.0,
+            correlation_score=0.150,
+            baseline_correlation_score=0.200,
+        )
+        bundle = insights_gen_nl.generate(result)
+        titels = [f.title for f in bundle.critical_findings]
+        assert not any("omslag" in t.lower() for t in titels), (
+            "Geen correlatie-omslag bevinding verwacht als beide correlaties positief zijn"
+        )
+
+    def test_kpi_achievement_narrative_alle_targets_op_schema(
+        self, insights_gen_nl: InsightsGenerator
+    ) -> None:
+        """Executive summary bevat KPI-achievement zin als alle targets op schema zijn."""
+        result = self._base_result()
+        result.kpi_targets = [
+            KpiTarget(
+                name="avg_score_min",
+                baseline=3.5,
+                target=4.0,
+                current=4.2,
+                status="op_schema",
+                on_track=True,
+            ),
+            KpiTarget(
+                name="pct_positive_min",
+                baseline=60.0,
+                target=75.0,
+                current=80.0,
+                status="op_schema",
+                on_track=True,
+            ),
+            KpiTarget(
+                name="hc_ratio_max",
+                baseline=10.0,
+                target=15.0,
+                current=12.0,
+                status="op_schema",
+                on_track=True,
+            ),
+        ]
+        bundle = insights_gen_nl.generate(result)
+        assert "3" in bundle.executive_summary and "KPI" in bundle.executive_summary, (
+            "Executive summary moet KPI-achievement zin bevatten als alle targets op schema zijn"
+        )

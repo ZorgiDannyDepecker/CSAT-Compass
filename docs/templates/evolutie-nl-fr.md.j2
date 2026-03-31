@@ -1,0 +1,760 @@
+<div class="rapport-header">
+<h1>🧭 CSAT-Compass — {{ pillar_name }}</h1>
+<p class="rapport-meta">Evolutie-analyse / Analyse d'évolution | {{ baseline_label }} → {{ current_label }} — {{ generated_date }}</p>
+</div>
+
+---
+
+{# ═══════════════════════════════════════════════════════════════════════════ #}
+{#  NEDERLANDSTALIG DEEL                                                       #}
+{# ═══════════════════════════════════════════════════════════════════════════ #}
+{% set t = t_nl %}
+{% set day_unit = 'd' %}
+
+## 1. {{ t.evolution.sections.executive_summary }}
+
+{{ insights.executive_summary }}
+
+{% if score_distribution_current and score_distribution_current.counts %}
+> 📊 **Scoreverdeling {{ current_label }}**
+
+| Score | Aantal | % |
+| --- | --- | --- |
+| 5★ | {{ score_distribution_current.counts[5] }} | {{ score_distribution_current.percentages[5] | fmt(1) }}% |
+| 4★ | {{ score_distribution_current.counts[4] }} | {{ score_distribution_current.percentages[4] | fmt(1) }}% |
+| 3★ | {{ score_distribution_current.counts[3] }} | {{ score_distribution_current.percentages[3] | fmt(1) }}% |
+| 2★ | {{ score_distribution_current.counts[2] }} | {{ score_distribution_current.percentages[2] | fmt(1) }}% |
+| 1★ | {{ score_distribution_current.counts[1] }} | {{ score_distribution_current.percentages[1] | fmt(1) }}% |
+{% endif %}
+
+---
+
+## 2. {{ t.evolution.sections.critical_findings }}
+
+{% if insights.critical_findings %}
+{% for f in insights.critical_findings %}
+### {{ f.title }}
+
+{{ f.description }}
+
+{% if f.causal_factor %}
+> 🔍 *Causale factor: {{ f.causal_factor }}*
+{% endif %}
+
+{% endfor %}
+{% else %}
+*Geen kritieke bevindingen gedetecteerd in de geanalyseerde periode.*
+{% endif %}
+
+---
+
+## 3. {{ t.evolution.sections.summary }}
+
+| KPI | {{ t.evolution.table.baseline }} ({{ baseline_label }}) | {{ t.evolution.table.current }} ({{ current_label }}) | {{ t.evolution.table.delta }} | {{ t.kpi.status }} |
+| --- | --- | --- | --- | --- |
+| {{ t.kpi.total_tickets }} | {{ baseline_total | fmt(0) }} | {{ current_total | fmt(0) }} | — | — |
+| {{ t.kpi.avg_score }} | {{ baseline_avg_score | fmt(2) }} | {{ current_avg_score | fmt(2) }} | {{ delta_avg_score | fmt_delta(2) }} | {{ kpi_status_avg_current }} |
+{% if baseline_summary and current_summary %}
+| {{ t.evolution.kpi.median_score }} | {{ baseline_summary.median_score | fmt(2) }} | {{ current_summary.median_score | fmt(2) }} | — | — |
+| {{ t.evolution.kpi.std_dev_score }} | {{ baseline_summary.std_dev_score | fmt(2) }} | {{ current_summary.std_dev_score | fmt(2) }} | — | — |
+{% endif %}
+| {{ t.evolution.kpi.pct_positive }} | {{ baseline_pct_positive | fmt(1) }}% | {{ current_pct_positive | fmt(1) }}% | {{ delta_pct_pos | fmt_delta(1) }}% | — |
+{% if baseline_summary and current_summary %}
+| {{ t.evolution.kpi.pct_neutral }} | {{ baseline_summary.pct_neutral | fmt(1) }}% | {{ current_summary.pct_neutral | fmt(1) }}% | — | — |
+{% endif %}
+| {{ t.evolution.kpi.pct_negative }} | {{ baseline_pct_negative | fmt(1) }}% | {{ current_pct_negative | fmt(1) }}% | {{ delta_pct_neg | fmt_delta(1) }}% | — |
+| {{ t.kpi.high_critical_ratio }} | {{ baseline_hc_ratio | fmt(1) }}% | {{ current_hc_ratio | fmt(1) }}% | {{ delta_hc | fmt_delta(1) }}% | {{ kpi_status_hc_current }} |
+| {{ t.evolution.kpi.avg_response_days }} | {{ baseline_avg_response_days | fmt(1) }} {{ day_unit }} | {{ current_avg_response_days | fmt(1) }} {{ day_unit }} | {{ delta_response | fmt_delta(1) }} {{ day_unit }} | — |
+| {{ t.evolution.kpi.n_hospitals }} | {{ baseline_n_hospitals }} | {{ current_n_hospitals }} | — | — |
+
+{% if benchmark_h2 %}
+### {{ t.evolution.sections.benchmark }}
+
+| Meting | Volledig {{ baseline_label }} | {{ benchmark_h2.label }} | {{ current_label }} |
+| --- | --- | --- | --- |
+| Gem. score | {{ baseline_avg_score | fmt(2) }} | {{ benchmark_h2.avg_score | fmt(2) }} | {{ current_avg_score | fmt(2) }} |
+| % Positief | {{ baseline_pct_positive | fmt(1) }}% | {{ benchmark_h2.pct_positive | fmt(1) }}% | {{ current_pct_positive | fmt(1) }}% |
+| % Negatief | {{ baseline_pct_negative | fmt(1) }}% | {{ benchmark_h2.pct_negative | fmt(1) }}% | {{ current_pct_negative | fmt(1) }}% |
+| Gem. responstijd | {{ baseline_avg_response_days | fmt(1) }} {{ day_unit }} | {{ benchmark_h2.avg_response_days | fmt(1) }} {{ day_unit }} | {{ current_avg_response_days | fmt(1) }} {{ day_unit }} |
+| HC-ratio | {{ baseline_hc_ratio | fmt(1) }}% | {{ benchmark_h2.hc_ratio | fmt(1) }}% | {{ current_hc_ratio | fmt(1) }}% |
+| Totaal tickets | {{ baseline_total }} | {{ benchmark_h2.total }} | {{ current_total }} |
+{% endif %}
+
+### KPI-status overzicht
+
+| KPI | {{ t.kpi.status }} ({{ baseline_label }}) | {{ t.kpi.status }} ({{ current_label }}) |
+| --- | --- | --- |
+| {{ t.kpi.avg_score }} | {{ kpi_status_avg_baseline }} | {{ kpi_status_avg_current }} |
+| {{ t.kpi.high_critical_ratio }} | {{ kpi_status_hc_baseline }} | {{ kpi_status_hc_current }} |
+| Trend | — | {{ kpi_status_trend }} |
+
+> ⚠️ {{ t.notes.reactiegraad_na }}
+
+---
+
+## 4. {{ t.evolution.sections.monthly_timeline }}
+
+{{ insights.turning_point_analysis }}
+
+| {{ t.evolution.table.period }} | {{ t.evolution.table.avg_score }} | {{ t.evolution.table.pct_negative }} | {{ t.kpi.total_tickets }} | Fase |
+| --- | --- | --- | --- | --- |
+{% for dp in monthly_timeline %}| {{ dp.period }} | {% if dp.avg_score > 0 %}{{ dp.avg_score | fmt(2) }}{% else %}—{% endif %} | {{ dp.pct_negative | fmt(1) }}% | {{ dp.total_tickets }} | {{ dp.fase }} |
+{% endfor %}
+
+---
+
+## 5. {{ t.evolution.sections.issue_type }}
+
+| {{ t.evolution.table.issue_type }} | {{ t.evolution.table.avg_score }} ({{ baseline_label }}) | {{ t.evolution.table.pct_negative }} ({{ baseline_label }}) | {{ t.evolution.table.avg_score }} ({{ current_label }}) | {{ t.evolution.table.pct_negative }} ({{ current_label }}) | {{ t.evolution.table.delta }} |
+| --- | --- | --- | --- | --- | --- |
+{% for it in by_issue_type %}| {{ it.issue_type }} | {% if it.baseline_score > 0 %}{{ it.baseline_score | fmt(2) }}{% else %}—{% endif %} | {{ it.baseline_pct_neg | fmt(1) }}% | {% if it.current_score > 0 %}{{ it.current_score | fmt(2) }}{% else %}—{% endif %} | {{ it.current_pct_neg | fmt(1) }}% | {% if it.baseline_score > 0 and it.current_score > 0 %}{{ (it.current_score - it.baseline_score) | fmt_delta(2) }}{% else %}—{% endif %} |
+{% endfor %}
+
+---
+
+## 6. {{ t.evolution.sections.priority }}
+
+| {{ t.evolution.table.priority }} | {{ t.evolution.table.avg_score }} ({{ baseline_label }}) | {{ t.evolution.table.pct_negative }} ({{ baseline_label }}) | {{ t.evolution.table.avg_score }} ({{ current_label }}) | {{ t.evolution.table.pct_negative }} ({{ current_label }}) | {{ t.evolution.table.delta }} |
+| --- | --- | --- | --- | --- | --- |
+{% for pc in by_priority %}| {{ pc.priority }} | {% if pc.baseline_score > 0 %}{{ pc.baseline_score | fmt(2) }}{% else %}—{% endif %} | {{ pc.baseline_pct_neg | fmt(1) }}% | {% if pc.current_score > 0 %}{{ pc.current_score | fmt(2) }}{% else %}—{% endif %} | {{ pc.current_pct_neg | fmt(1) }}% | {% if pc.baseline_score > 0 and pc.current_score > 0 %}{{ (pc.current_score - pc.baseline_score) | fmt_delta(2) }}{% else %}—{% endif %} |
+{% endfor %}
+
+---
+
+## 7. {{ t.evolution.sections.response_time }}
+
+{% if response_time_insight %}
+| Meting | {{ current_label }} |
+| --- | --- |
+| Gem. responstijd | {{ response_time_insight.avg_days | fmt(1) }} {{ day_unit }} |
+| Mediaan | {{ response_time_insight.median_days | fmt(1) }} {{ day_unit }} |
+| Min — Max | {{ response_time_insight.min_days | fmt(1) }} — {{ response_time_insight.max_days | fmt(1) }} {{ day_unit }} |
+{% if response_time_insight.correlation_score is not none %}| Correlatie (r) responstijd ↔ score | {{ response_time_insight.correlation_score | fmt(3) }} |
+{% endif %}
+{% if response_time_insight.avg_positive_days is not none %}| Gem. bij positieve scores (≥ 4★) | {{ response_time_insight.avg_positive_days | fmt(1) }} {{ day_unit }} |
+{% endif %}
+{% if response_time_insight.avg_negative_days is not none %}| Gem. bij negatieve scores (≤ 2★) | {{ response_time_insight.avg_negative_days | fmt(1) }} {{ day_unit }} |
+{% endif %}
+{% endif %}
+
+### Responstijd per score-niveau
+
+| {{ t.evolution.table.score_level }} | {{ t.evolution.table.response_days }} ({{ baseline_label }}) | {{ t.evolution.table.response_days }} ({{ current_label }}) |
+| --- | --- | --- |
+{% for score in [1,2,3,4,5] %}{% if score in response_time_by_score %}| {{ "★" * score }}{{ "☆" * (5 - score) }} | {% if response_time_by_score[score].baseline_days is not none %}{{ response_time_by_score[score].baseline_days | fmt(1) }} {{ day_unit }}{% else %}—{% endif %} | {% if response_time_by_score[score].current_days is not none %}{{ response_time_by_score[score].current_days | fmt(1) }} {{ day_unit }}{% else %}—{% endif %} |
+{% endif %}{% endfor %}
+
+---
+
+## 8. {{ t.evolution.sections.hospitals }}
+
+{% if hospital_shortlist %}
+### {{ t.evolution.sections.hospital_shortlist }}
+
+| {{ t.evolution.table.hospital }} | {{ t.evolution.table.avg_score }} ({{ baseline_label }}) | {{ t.evolution.table.avg_score }} ({{ current_label }}) | {{ t.evolution.table.delta }} |
+| --- | --- | --- | --- |
+{% for h in hospital_shortlist %}| {{ h.hospital }} | {% if h.baseline_score > 0 %}{{ h.baseline_score | fmt(2) }}{% else %}—{% endif %} | {% if h.current_score is not none %}{{ h.current_score | fmt(2) }}{% else %}—{% endif %} | {% if h.baseline_score > 0 and h.current_score is not none %}{{ (h.current_score - h.baseline_score) | fmt_delta(2) }}{% else %}—{% endif %} |
+{% endfor %}
+{% endif %}
+
+{% if hospitals_disappeared %}
+### Verdwenen ziekenhuizen ({{ hospitals_disappeared | length }})
+{% set sorted_d = hospitals_disappeared | sort %}
+{% set nd = sorted_d | length %}
+{% if nd > 10 %}{% set half = ((nd + 1) // 2) %}
+| | |
+| :-- | :-- |
+{% for i in range(half) %}| {{ sorted_d[i] }} | {% if i + half < nd %}{{ sorted_d[i + half] }}{% endif %} |
+{% endfor %}{% else %}
+| |
+| :-- |
+{% for h in sorted_d -%}| {{ h }} |
+{% endfor %}{% endif %}
+{% endif %}
+
+{% if hospitals_new %}
+### Nieuwe ziekenhuizen ({{ hospitals_new | length }})
+{% set sorted_n = hospitals_new | sort %}
+{% set nn = sorted_n | length %}
+{% if nn > 10 %}{% set half = ((nn + 1) // 2) %}
+| | |
+| :-- | :-- |
+{% for i in range(half) %}| {{ sorted_n[i] }} | {% if i + half < nn %}{{ sorted_n[i + half] }}{% endif %} |
+{% endfor %}{% else %}
+| |
+| :-- |
+{% for h in sorted_n -%}| {{ h }} |
+{% endfor %}{% endif %}
+{% endif %}
+
+### Volledig ziekenhuizenoverzicht
+
+| {{ t.evolution.table.hospital }} | {{ t.evolution.table.avg_score }} ({{ baseline_label }}) | {{ t.evolution.table.avg_score }} ({{ current_label }}) | {{ t.evolution.table.delta }} |
+| --- | --- | --- | --- |
+{% for h in hospital_comparison %}| {{ h.hospital }} | {% if h.baseline_score > 0 %}{{ h.baseline_score | fmt(2) }}{% else %}—{% endif %} | {% if h.current_score is not none %}{{ h.current_score | fmt(2) }}{% else %}—{% endif %} | {% if h.baseline_score > 0 and h.current_score is not none %}{{ (h.current_score - h.baseline_score) | fmt_delta(2) }}{% else %}—{% endif %} |
+{% endfor %}
+
+---
+
+## 9. {{ t.evolution.sections.negative_feedback }}
+
+{% if negative_cases %}
+> ℹ️ Alle tickets met score ≤ 2★ in {{ current_label }}. Ticket-ID's en ziekenhuisnamen zijn volledig weergegeven (beslissing 3). Enige sanitizing: ZORGI-medewerkersnamen.
+
+| {{ t.evolution.table.ticket_id }} | {{ t.evolution.table.hospital }} | Type | Score | {{ t.evolution.table.response_days }} | {{ t.evolution.table.category }} |
+| --- | --- | --- | --- | --- | --- |
+{% for c in negative_cases %}| {{ c.ticket_id }} | {{ c.hospital }} | {{ c.issue_type }} | {{ "★" * c.score }}{{ "☆" * (5 - c.score) }} | {% if c.response_days is not none %}{{ c.response_days | fmt(1) }} {{ day_unit }}{% else %}—{% endif %} | {{ c.category }} |
+{% endfor %}
+
+### Volledige comments
+
+{% for c in negative_cases %}
+**{{ c.ticket_id }}** — {{ c.hospital }} ({{ "★" * c.score }}{{ "☆" * (5 - c.score) }})
+
+> {{ c.comment if c.comment else "*Geen comment opgegeven.*" }}
+
+{% endfor %}
+{% else %}
+*Geen negatieve tickets (≤ 2★) in {{ current_label }}.*
+{% endif %}
+
+---
+
+## 10. {{ t.evolution.sections.themes }}
+
+{% if negative_themes %}
+| {{ t.evolution.table.theme }} | {{ t.evolution.table.pct_comments }} ({{ baseline_label }}) | {{ t.evolution.table.pct_comments }} ({{ current_label }}) | {{ t.evolution.table.status }} |
+| --- | --- | --- | --- |
+{% for theme in negative_themes %}| {{ t.evolution.theme[theme.theme_key] }} | {{ theme.pct_baseline | fmt(1) }}% | {{ theme.pct_current | fmt(1) }}% | {{ t.evolution.theme[theme.status | lower] }} |
+{% endfor %}
+{% for theme in negative_themes %}
+{% if theme.status != "OPGELOST" and (theme.example or theme.action_hint) %}
+**{{ t.evolution.theme[theme.theme_key] }}** *({{ t.evolution.theme[theme.status | lower] }})*
+{% if theme.example %}> 💬 *"{{ theme.example }}"*
+{% endif %}
+{% if theme.action_hint %}💡 {{ theme.action_hint }}
+{% endif %}
+{% endif %}
+{% endfor %}
+{% else %}
+*Geen negatieve feedbackthema's gedetecteerd in de geanalyseerde periode.*
+{% endif %}
+
+---
+
+## 11. {{ t.evolution.sections.positive_developments }}
+
+{% if insights.positive_developments %}
+{% for pd in insights.positive_developments %}
+- **{{ pd.title }}** — {{ pd.description }}
+{% endfor %}
+{% else %}
+*Geen significante positieve ontwikkelingen gedetecteerd in deze periode.*
+{% endif %}
+
+---
+
+## 12. {{ t.evolution.sections.kpi_target_tracking }}
+
+{% if kpi_targets %}
+| KPI | Baseline ({{ baseline_label }}) | {{ t.evolution.table.target }} | Huidig ({{ current_label }}) | {{ t.kpi.status }} | {{ t.evolution.table.on_track }} |
+| --- | --- | --- | --- | --- | --- |
+{% for kt in kpi_targets %}| {{ kpi_target_name(kt.name) }} | {{ kt.baseline | fmt(2) }} | {{ kt.target | fmt(2) }} | {{ kt.current | fmt(2) }} | {{ target_status_label(kt.status) }} | {% if kt.on_track %}✅{% else %}❌{% endif %} |
+{% endfor %}
+{% endif %}
+
+---
+
+## 13. {{ t.evolution.sections.visual_analysis }}
+
+{% if insights.visual_analysis %}
+**Subplot 1 — Scoretrend:** {{ insights.visual_analysis.subplot1_scoretrend }}
+
+**Subplot 2 — Maandvolume:** {{ insights.visual_analysis.subplot2_volume }}
+
+**Subplot 3 — Prioriteitscompositie:** {{ insights.visual_analysis.subplot3_priority }}
+
+**Subplot 4 — Ziekenhuisbenchmark:** {{ insights.visual_analysis.subplot4_hospitals }}
+{% endif %}
+
+---
+
+## 14. {{ t.evolution.sections.recommendations }}
+
+{% if insights.recommendations %}
+{% for rec in insights.recommendations %}
+### {{ loop.index }}. {{ rec.title }}
+
+{{ rec.description }}
+
+| | |
+| --- | --- |
+| **Verwachte impact** | {{ rec.expected_impact }} |
+| **Tijdlijn** | {{ t.evolution.recommendation.timeline[rec.timeline] }} |
+| **Eigenaar** | {{ rec.owner }} |
+| **Prioriteit** | {{ t.evolution.recommendation.priority[rec.priority] }} |
+
+{% endfor %}
+{% else %}
+*Geen strategische aanbevelingen gegenereerd.*
+{% endif %}
+
+---
+
+## 15. {{ t.evolution.sections.follow_up }}
+
+{% if insights.follow_up_actions %}
+{% set kort_acties = insights.follow_up_actions | selectattr("horizon", "eq", "kort") | list %}
+{% set mid_acties = insights.follow_up_actions | selectattr("horizon", "eq", "middellang") | list %}
+{% set lang_acties = insights.follow_up_actions | selectattr("horizon", "eq", "lang") | list %}
+{% if kort_acties %}
+### ⚡ {{ t.evolution.recommendation.horizon.kort }} (< 1 maand)
+{% for a in kort_acties -%}
+- [ ] {{ a.action }}{% if a.owner %} *({{ a.owner }})*{% endif %}{{ "" }}
+{% endfor %}
+{% endif %}
+{% if mid_acties %}
+### 🗓️ {{ t.evolution.recommendation.horizon.middellang }} (1–3 maanden)
+{% for a in mid_acties -%}
+- [ ] {{ a.action }}{% if a.owner %} *({{ a.owner }})*{% endif %}{{ "" }}
+{% endfor %}
+{% endif %}
+{% if lang_acties %}
+### 📅 {{ t.evolution.recommendation.horizon.lang }} (3+ maanden)
+{% for a in lang_acties -%}
+- [ ] {{ a.action }}{% if a.owner %} *({{ a.owner }})*{% endif %}{{ "" }}
+{% endfor %}
+{% endif %}
+{% else %}
+*Geen follow-up acties gegenereerd.*
+{% endif %}
+
+---
+
+## 16. {{ t.evolution.sections.conclusion }}
+
+**Trend:** {% if trend_is_structural %}{{ t.evolution.trend.structural }}{% else %}{{ t.evolution.trend.temporary }}{% endif %} — {{ trend_breadth_label }}
+
+{% if delta_avg_score >= 0.5 and trend_breadth == "breed" %}
+✅ **Structurele verbetering** — de gemiddelde CSAT-score steeg met {{ delta_avg_score | fmt_delta(2) }} punten en dit is zichtbaar bij de meerderheid van de ziekenhuizen. De positieve trend is breed gedragen en robuust.
+{% elif delta_avg_score >= 0.5 and trend_breadth == "beperkt" %}
+💡 **Selectieve verbetering** — de score steeg globaal met {{ delta_avg_score | fmt_delta(2) }} punten, maar slechts bij een minderheid van de ziekenhuizen. Verdere opvolging nodig om de verbetering te verbreden.
+{% elif delta_avg_score >= 0.5 %}
+🔄 **Verbetering in evolutie** — de score steeg met {{ delta_avg_score | fmt_delta(2) }} punten. De breedte van de verbetering is gemengd — verdere opvolging aanbevolen.
+{% elif delta_avg_score >= 0 %}
+→ **Stabiele situatie** — de score bleef relatief stabiel ({{ delta_avg_score | fmt_delta(2) }}). Geen significante achteruitgang, maar ook geen doorbraak.
+{% else %}
+⚠️ **Achteruitgang** — de gemiddelde score daalde met {{ delta_avg_score | fmt_delta(2) }} punten. Opvolging en bijsturing zijn aanbevolen.
+{% endif %}
+
+{% if current_hc_ratio > 25.0 %}
+🔴 **HC-ratio aandacht vereist** — de High/Critical-ratio bedraagt {{ current_hc_ratio | fmt(1) }}% in {{ current_label }}. Dit overschrijdt de drempel van 25% aanzienlijk. Prioritaire opvolging vereist.
+{% elif current_hc_ratio > 15.0 %}
+⚠️ **HC-ratio boven drempel** — de High/Critical-ratio ({{ current_hc_ratio | fmt(1) }}%) overschrijdt de drempel van 15%. Opvolging aanbevolen.
+{% endif %}
+
+{% if hospitals_disappeared %}
+📋 **Ontbrekende ziekenhuizen** — {{ hospitals_disappeared | length }} {% if hospitals_disappeared | length == 1 %}ziekenhuis is{% else %}ziekenhuizen zijn{% endif %} actief in de baseline maar niet in {{ current_label }}.
+Controleer of dit te wijten is aan data-aanlevering of stopzetting.
+→ *Zie § 8 — Verdwenen ziekenhuizen voor het volledig overzicht.*
+{% endif %}
+
+{% if negative_themes %}
+{% set resolved = negative_themes | selectattr("status", "eq", "OPGELOST") | list %}
+{% set new_themes = negative_themes | selectattr("status", "eq", "NIEUW") | list %}
+{% if resolved %}
+✅ **Opgeloste aandachtspunten** — {{ resolved | length }} feedbackthema{% if resolved | length > 1 %}'s{% endif %} {% if resolved | length == 1 %}is{% else %}zijn{% endif %} opgelost: {{ resolved | map(attribute="theme_key") | join(", ") }}.
+{% endif %}
+
+{% if new_themes %}
+🔴 **Nieuw aandachtspunt** — het thema "{{ new_themes | map(attribute="theme_key") | join('", "') }}" verschijnt voor het eerst in {{ current_label }}. Opvolging aanbevolen.
+{% endif %}
+{% endif %}
+
+---
+
+## Versiehistorie
+
+| Versie | Datum | Wijzigingen | Auteur |
+| --- | --- | --- | --- |
+| 1.0 | {{ generated_date }} | {{ t.history.initial }} | GHC |
+
+---
+
+<div class="page-break"></div>
+
+---
+
+{# ═══════════════════════════════════════════════════════════════════════════ #}
+{#  PARTIE FRANÇAISE                                                           #}
+{# ═══════════════════════════════════════════════════════════════════════════ #}
+{% set t = t_fr %}
+{% set day_unit = 'j' %}
+
+## 1. {{ t.evolution.sections.executive_summary }}
+
+{{ insights_fr.executive_summary }}
+
+{% if score_distribution_current and score_distribution_current.counts %}
+> 📊 **Distribution des scores {{ current_label }}**
+
+| Score | Nombre | % |
+| --- | --- | --- |
+| 5★ | {{ score_distribution_current.counts[5] }} | {{ score_distribution_current.percentages[5] | fmt(1) }}% |
+| 4★ | {{ score_distribution_current.counts[4] }} | {{ score_distribution_current.percentages[4] | fmt(1) }}% |
+| 3★ | {{ score_distribution_current.counts[3] }} | {{ score_distribution_current.percentages[3] | fmt(1) }}% |
+| 2★ | {{ score_distribution_current.counts[2] }} | {{ score_distribution_current.percentages[2] | fmt(1) }}% |
+| 1★ | {{ score_distribution_current.counts[1] }} | {{ score_distribution_current.percentages[1] | fmt(1) }}% |
+{% endif %}
+
+---
+
+## 2. {{ t.evolution.sections.critical_findings }}
+
+{% if insights_fr.critical_findings %}
+{% for f in insights_fr.critical_findings %}
+### {{ f.title }}
+
+{{ f.description }}
+
+{% if f.causal_factor %}
+> 🔍 *Facteur causal : {{ f.causal_factor }}*
+{% endif %}
+
+{% endfor %}
+{% else %}
+*Aucun constat critique détecté dans la période analysée.*
+{% endif %}
+
+---
+
+## 3. {{ t.evolution.sections.summary }}
+
+| KPI | {{ t.evolution.table.baseline }} ({{ baseline_label }}) | {{ t.evolution.table.current }} ({{ current_label }}) | {{ t.evolution.table.delta }} | {{ t.kpi.status }} |
+| --- | --- | --- | --- | --- |
+| {{ t.kpi.total_tickets }} | {{ baseline_total | fmt(0) }} | {{ current_total | fmt(0) }} | — | — |
+| {{ t.kpi.avg_score }} | {{ baseline_avg_score | fmt(2) }} | {{ current_avg_score | fmt(2) }} | {{ delta_avg_score | fmt_delta(2) }} | {{ kpi_status_avg_current }} |
+{% if baseline_summary and current_summary %}
+| {{ t.evolution.kpi.median_score }} | {{ baseline_summary.median_score | fmt(2) }} | {{ current_summary.median_score | fmt(2) }} | — | — |
+| {{ t.evolution.kpi.std_dev_score }} | {{ baseline_summary.std_dev_score | fmt(2) }} | {{ current_summary.std_dev_score | fmt(2) }} | — | — |
+{% endif %}
+| {{ t.evolution.kpi.pct_positive }} | {{ baseline_pct_positive | fmt(1) }}% | {{ current_pct_positive | fmt(1) }}% | {{ delta_pct_pos | fmt_delta(1) }}% | — |
+{% if baseline_summary and current_summary %}
+| {{ t.evolution.kpi.pct_neutral }} | {{ baseline_summary.pct_neutral | fmt(1) }}% | {{ current_summary.pct_neutral | fmt(1) }}% | — | — |
+{% endif %}
+| {{ t.evolution.kpi.pct_negative }} | {{ baseline_pct_negative | fmt(1) }}% | {{ current_pct_negative | fmt(1) }}% | {{ delta_pct_neg | fmt_delta(1) }}% | — |
+| {{ t.kpi.high_critical_ratio }} | {{ baseline_hc_ratio | fmt(1) }}% | {{ current_hc_ratio | fmt(1) }}% | {{ delta_hc | fmt_delta(1) }}% | {{ kpi_status_hc_current }} |
+| {{ t.evolution.kpi.avg_response_days }} | {{ baseline_avg_response_days | fmt(1) }} {{ day_unit }} | {{ current_avg_response_days | fmt(1) }} {{ day_unit }} | {{ delta_response | fmt_delta(1) }} {{ day_unit }} | — |
+| {{ t.evolution.kpi.n_hospitals }} | {{ baseline_n_hospitals }} | {{ current_n_hospitals }} | — | — |
+
+{% if benchmark_h2 %}
+### {{ t.evolution.sections.benchmark }}
+
+| Mesure | {{ baseline_label }} complet | {{ benchmark_h2.label }} | {{ current_label }} |
+| --- | --- | --- | --- |
+| Score moy. | {{ baseline_avg_score | fmt(2) }} | {{ benchmark_h2.avg_score | fmt(2) }} | {{ current_avg_score | fmt(2) }} |
+| % Positif | {{ baseline_pct_positive | fmt(1) }}% | {{ benchmark_h2.pct_positive | fmt(1) }}% | {{ current_pct_positive | fmt(1) }}% |
+| % Négatif | {{ baseline_pct_negative | fmt(1) }}% | {{ benchmark_h2.pct_negative | fmt(1) }}% | {{ current_pct_negative | fmt(1) }}% |
+| Délai moy. | {{ baseline_avg_response_days | fmt(1) }} {{ day_unit }} | {{ benchmark_h2.avg_response_days | fmt(1) }} {{ day_unit }} | {{ current_avg_response_days | fmt(1) }} {{ day_unit }} |
+| Taux H/C | {{ baseline_hc_ratio | fmt(1) }}% | {{ benchmark_h2.hc_ratio | fmt(1) }}% | {{ current_hc_ratio | fmt(1) }}% |
+| Total tickets | {{ baseline_total }} | {{ benchmark_h2.total }} | {{ current_total }} |
+{% endif %}
+
+### {{ t.evolution.sections.kpi_status }}
+
+| KPI | {{ t.kpi.status }} ({{ baseline_label }}) | {{ t.kpi.status }} ({{ current_label }}) |
+| --- | --- | --- |
+| {{ t.kpi.avg_score }} | {{ kpi_status_avg_baseline }} | {{ kpi_status_avg_current }} |
+| {{ t.kpi.high_critical_ratio }} | {{ kpi_status_hc_baseline }} | {{ kpi_status_hc_current }} |
+| Tendance | — | {{ kpi_status_trend }} |
+
+> ⚠️ {{ t.notes.reactiegraad_na }}
+
+---
+
+## 4. {{ t.evolution.sections.monthly_timeline }}
+
+{{ insights_fr.turning_point_analysis }}
+
+| {{ t.evolution.table.period }} | {{ t.evolution.table.avg_score }} | {{ t.evolution.table.pct_negative }} | {{ t.kpi.total_tickets }} | Phase |
+| --- | --- | --- | --- | --- |
+{% for dp in monthly_timeline %}| {{ dp.period }} | {% if dp.avg_score > 0 %}{{ dp.avg_score | fmt(2) }}{% else %}—{% endif %} | {{ dp.pct_negative | fmt(1) }}% | {{ dp.total_tickets }} | {{ dp.fase }} |
+{% endfor %}
+
+---
+
+## 5. {{ t.evolution.sections.issue_type }}
+
+| {{ t.evolution.table.issue_type }} | {{ t.evolution.table.avg_score }} ({{ baseline_label }}) | {{ t.evolution.table.pct_negative }} ({{ baseline_label }}) | {{ t.evolution.table.avg_score }} ({{ current_label }}) | {{ t.evolution.table.pct_negative }} ({{ current_label }}) | {{ t.evolution.table.delta }} |
+| --- | --- | --- | --- | --- | --- |
+{% for it in by_issue_type %}| {{ it.issue_type }} | {% if it.baseline_score > 0 %}{{ it.baseline_score | fmt(2) }}{% else %}—{% endif %} | {{ it.baseline_pct_neg | fmt(1) }}% | {% if it.current_score > 0 %}{{ it.current_score | fmt(2) }}{% else %}—{% endif %} | {{ it.current_pct_neg | fmt(1) }}% | {% if it.baseline_score > 0 and it.current_score > 0 %}{{ (it.current_score - it.baseline_score) | fmt_delta(2) }}{% else %}—{% endif %} |
+{% endfor %}
+
+---
+
+## 6. {{ t.evolution.sections.priority }}
+
+| {{ t.evolution.table.priority }} | {{ t.evolution.table.avg_score }} ({{ baseline_label }}) | {{ t.evolution.table.pct_negative }} ({{ baseline_label }}) | {{ t.evolution.table.avg_score }} ({{ current_label }}) | {{ t.evolution.table.pct_negative }} ({{ current_label }}) | {{ t.evolution.table.delta }} |
+| --- | --- | --- | --- | --- | --- |
+{% for pc in by_priority %}| {{ pc.priority }} | {% if pc.baseline_score > 0 %}{{ pc.baseline_score | fmt(2) }}{% else %}—{% endif %} | {{ pc.baseline_pct_neg | fmt(1) }}% | {% if pc.current_score > 0 %}{{ pc.current_score | fmt(2) }}{% else %}—{% endif %} | {{ pc.current_pct_neg | fmt(1) }}% | {% if pc.baseline_score > 0 and pc.current_score > 0 %}{{ (pc.current_score - pc.baseline_score) | fmt_delta(2) }}{% else %}—{% endif %} |
+{% endfor %}
+
+---
+
+## 7. {{ t.evolution.sections.response_time }}
+
+{% if response_time_insight %}
+| Mesure | {{ current_label }} |
+| --- | --- |
+| Délai moy. de réponse | {{ response_time_insight.avg_days | fmt(1) }} {{ day_unit }} |
+| Médiane | {{ response_time_insight.median_days | fmt(1) }} {{ day_unit }} |
+| Min — Max | {{ response_time_insight.min_days | fmt(1) }} — {{ response_time_insight.max_days | fmt(1) }} {{ day_unit }} |
+{% if response_time_insight.correlation_score is not none %}| Corrélation (r) délai ↔ score | {{ response_time_insight.correlation_score | fmt(3) }} |
+{% endif %}
+{% if response_time_insight.avg_positive_days is not none %}| Moy. scores positifs (≥ 4★) | {{ response_time_insight.avg_positive_days | fmt(1) }} {{ day_unit }} |
+{% endif %}
+{% if response_time_insight.avg_negative_days is not none %}| Moy. scores négatifs (≤ 2★) | {{ response_time_insight.avg_negative_days | fmt(1) }} {{ day_unit }} |
+{% endif %}
+{% endif %}
+
+### Délai de réponse par niveau de score
+
+| {{ t.evolution.table.score_level }} | {{ t.evolution.table.response_days }} ({{ baseline_label }}) | {{ t.evolution.table.response_days }} ({{ current_label }}) |
+| --- | --- | --- |
+{% for score in [1,2,3,4,5] %}{% if score in response_time_by_score %}| {{ "★" * score }}{{ "☆" * (5 - score) }} | {% if response_time_by_score[score].baseline_days is not none %}{{ response_time_by_score[score].baseline_days | fmt(1) }} {{ day_unit }}{% else %}—{% endif %} | {% if response_time_by_score[score].current_days is not none %}{{ response_time_by_score[score].current_days | fmt(1) }} {{ day_unit }}{% else %}—{% endif %} |
+{% endif %}{% endfor %}
+
+---
+
+## 8. {{ t.evolution.sections.hospitals }}
+
+{% if hospital_shortlist %}
+### {{ t.evolution.sections.hospital_shortlist }}
+
+| {{ t.evolution.table.hospital }} | {{ t.evolution.table.avg_score }} ({{ baseline_label }}) | {{ t.evolution.table.avg_score }} ({{ current_label }}) | {{ t.evolution.table.delta }} |
+| --- | --- | --- | --- |
+{% for h in hospital_shortlist %}| {{ h.hospital }} | {% if h.baseline_score > 0 %}{{ h.baseline_score | fmt(2) }}{% else %}—{% endif %} | {% if h.current_score is not none %}{{ h.current_score | fmt(2) }}{% else %}—{% endif %} | {% if h.baseline_score > 0 and h.current_score is not none %}{{ (h.current_score - h.baseline_score) | fmt_delta(2) }}{% else %}—{% endif %} |
+{% endfor %}
+{% endif %}
+
+{% if hospitals_disappeared %}
+### Hôpitaux absents ({{ hospitals_disappeared | length }})
+{% set sorted_d = hospitals_disappeared | sort %}
+{% set nd = sorted_d | length %}
+{% if nd > 10 %}{% set half = ((nd + 1) // 2) %}
+| | |
+| :-- | :-- |
+{% for i in range(half) %}| {{ sorted_d[i] }} | {% if i + half < nd %}{{ sorted_d[i + half] }}{% endif %} |
+{% endfor %}{% else %}
+| |
+| :-- |
+{% for h in sorted_d -%}| {{ h }} |
+{% endfor %}{% endif %}
+{% endif %}
+
+{% if hospitals_new %}
+### Nouveaux hôpitaux ({{ hospitals_new | length }})
+{% set sorted_n = hospitals_new | sort %}
+{% set nn = sorted_n | length %}
+{% if nn > 10 %}{% set half = ((nn + 1) // 2) %}
+| | |
+| :-- | :-- |
+{% for i in range(half) %}| {{ sorted_n[i] }} | {% if i + half < nn %}{{ sorted_n[i + half] }}{% endif %} |
+{% endfor %}{% else %}
+| |
+| :-- |
+{% for h in sorted_n -%}| {{ h }} |
+{% endfor %}{% endif %}
+{% endif %}
+
+### Vue d'ensemble complète
+
+| {{ t.evolution.table.hospital }} | {{ t.evolution.table.avg_score }} ({{ baseline_label }}) | {{ t.evolution.table.avg_score }} ({{ current_label }}) | {{ t.evolution.table.delta }} |
+| --- | --- | --- | --- |
+{% for h in hospital_comparison %}| {{ h.hospital }} | {% if h.baseline_score > 0 %}{{ h.baseline_score | fmt(2) }}{% else %}—{% endif %} | {% if h.current_score is not none %}{{ h.current_score | fmt(2) }}{% else %}—{% endif %} | {% if h.baseline_score > 0 and h.current_score is not none %}{{ (h.current_score - h.baseline_score) | fmt_delta(2) }}{% else %}—{% endif %} |
+{% endfor %}
+
+---
+
+## 9. {{ t.evolution.sections.negative_feedback }}
+
+{% if negative_cases %}
+> ℹ️ Tous les tickets avec score ≤ 2★ dans {{ current_label }}. ID tickets et noms d'hôpitaux affichés intégralement (décision 3). Seule sanitization : noms des collaborateurs ZORGI.
+
+| {{ t.evolution.table.ticket_id }} | {{ t.evolution.table.hospital }} | Type | Score | {{ t.evolution.table.response_days }} | {{ t.evolution.table.category }} |
+| --- | --- | --- | --- | --- | --- |
+{% for c in negative_cases %}| {{ c.ticket_id }} | {{ c.hospital }} | {{ c.issue_type }} | {{ "★" * c.score }}{{ "☆" * (5 - c.score) }} | {% if c.response_days is not none %}{{ c.response_days | fmt(1) }} {{ day_unit }}{% else %}—{% endif %} | {{ c.category }} |
+{% endfor %}
+
+### Commentaires complets
+
+{% for c in negative_cases %}
+**{{ c.ticket_id }}** — {{ c.hospital }} ({{ "★" * c.score }}{{ "☆" * (5 - c.score) }})
+
+> {{ c.comment if c.comment else "*Aucun commentaire fourni.*" }}
+
+{% endfor %}
+{% else %}
+*Aucun ticket négatif (≤ 2★) dans {{ current_label }}.*
+{% endif %}
+
+---
+
+## 10. {{ t.evolution.sections.themes }}
+
+{% if negative_themes %}
+| {{ t.evolution.table.theme }} | {{ t.evolution.table.pct_comments }} ({{ baseline_label }}) | {{ t.evolution.table.pct_comments }} ({{ current_label }}) | {{ t.evolution.table.status }} |
+| --- | --- | --- | --- |
+{% for theme in negative_themes %}| {{ t.evolution.theme[theme.theme_key] }} | {{ theme.pct_baseline | fmt(1) }}% | {{ theme.pct_current | fmt(1) }}% | {{ t.evolution.theme[theme.status | lower] }} |
+{% endfor %}
+{% for theme in negative_themes %}
+{% if theme.status != "OPGELOST" and (theme.example or theme.action_hint) %}
+**{{ t.evolution.theme[theme.theme_key] }}** *({{ t.evolution.theme[theme.status | lower] }})*
+{% if theme.example %}> 💬 *"{{ theme.example }}"*
+{% endif %}
+{% if theme.action_hint %}💡 {{ theme.action_hint }}
+{% endif %}
+{% endif %}
+{% endfor %}
+{% else %}
+*Aucun thème de feedback négatif détecté dans la période analysée.*
+{% endif %}
+
+---
+
+## 11. {{ t.evolution.sections.positive_developments }}
+
+{% if insights_fr.positive_developments %}
+{% for pd in insights_fr.positive_developments %}
+- **{{ pd.title }}** — {{ pd.description }}
+{% endfor %}
+{% else %}
+*Aucune évolution positive significative détectée dans cette période.*
+{% endif %}
+
+---
+
+## 12. {{ t.evolution.sections.kpi_target_tracking }}
+
+{% if kpi_targets %}
+| KPI | Baseline ({{ baseline_label }}) | {{ t.evolution.table.target }} | Actuel ({{ current_label }}) | {{ t.kpi.status }} | {{ t.evolution.table.on_track }} |
+| --- | --- | --- | --- | --- | --- |
+{% for kt in kpi_targets %}| {{ kpi_target_name_fr(kt.name) }} | {{ kt.baseline | fmt(2) }} | {{ kt.target | fmt(2) }} | {{ kt.current | fmt(2) }} | {{ target_status_label_fr(kt.status) }} | {% if kt.on_track %}✅{% else %}❌{% endif %} |
+{% endfor %}
+{% endif %}
+
+---
+
+## 13. {{ t.evolution.sections.visual_analysis }}
+
+{% if insights_fr.visual_analysis %}
+**Subplot 1 — Tendance des scores :** {{ insights_fr.visual_analysis.subplot1_scoretrend }}
+
+**Subplot 2 — Volume mensuel :** {{ insights_fr.visual_analysis.subplot2_volume }}
+
+**Subplot 3 — Composition par priorité :** {{ insights_fr.visual_analysis.subplot3_priority }}
+
+**Subplot 4 — Benchmark hôpitaux :** {{ insights_fr.visual_analysis.subplot4_hospitals }}
+{% endif %}
+
+---
+
+## 14. {{ t.evolution.sections.recommendations }}
+
+{% if insights_fr.recommendations %}
+{% for rec in insights_fr.recommendations %}
+### {{ loop.index }}. {{ rec.title }}
+
+{{ rec.description }}
+
+| | |
+| --- | --- |
+| **Impact attendu** | {{ rec.expected_impact }} |
+| **Délai** | {{ t.evolution.recommendation.timeline[rec.timeline] }} |
+| **Responsable** | {{ rec.owner }} |
+| **Priorité** | {{ t.evolution.recommendation.priority[rec.priority] }} |
+
+{% endfor %}
+{% else %}
+*Aucune recommandation stratégique générée.*
+{% endif %}
+
+---
+
+## 15. {{ t.evolution.sections.follow_up }}
+
+{% if insights_fr.follow_up_actions %}
+{% set kort_acties = insights_fr.follow_up_actions | selectattr("horizon", "eq", "kort") | list %}
+{% set mid_acties = insights_fr.follow_up_actions | selectattr("horizon", "eq", "middellang") | list %}
+{% set lang_acties = insights_fr.follow_up_actions | selectattr("horizon", "eq", "lang") | list %}
+{% if kort_acties %}
+### ⚡ {{ t.evolution.recommendation.horizon.kort }} (< 1 mois)
+{% for a in kort_acties -%}
+- [ ] {{ a.action }}{% if a.owner %} *({{ a.owner }})*{% endif %}{{ "" }}
+{% endfor %}
+{% endif %}
+{% if mid_acties %}
+### 🗓️ {{ t.evolution.recommendation.horizon.middellang }} (1–3 mois)
+{% for a in mid_acties -%}
+- [ ] {{ a.action }}{% if a.owner %} *({{ a.owner }})*{% endif %}{{ "" }}
+{% endfor %}
+{% endif %}
+{% if lang_acties %}
+### 📅 {{ t.evolution.recommendation.horizon.lang }} (3+ mois)
+{% for a in lang_acties -%}
+- [ ] {{ a.action }}{% if a.owner %} *({{ a.owner }})*{% endif %}{{ "" }}
+{% endfor %}
+{% endif %}
+{% else %}
+*Aucune action de suivi générée.*
+{% endif %}
+
+---
+
+## 16. {{ t.evolution.sections.conclusion }}
+
+**Tendance :** {% if trend_is_structural %}{{ t.evolution.trend.structural }}{% else %}{{ t.evolution.trend.temporary }}{% endif %} — {{ trend_breadth_label }}
+
+{% if delta_avg_score >= 0.5 and trend_breadth == "breed" %}
+✅ **Amélioration structurelle** — le score CSAT moyen a progressé de {{ delta_avg_score | fmt_delta(2) }} points et cette amélioration est visible dans la majorité des hôpitaux. La tendance positive est largement partagée et robuste.
+{% elif delta_avg_score >= 0.5 and trend_breadth == "beperkt" %}
+💡 **Amélioration sélective** — le score a progressé de {{ delta_avg_score | fmt_delta(2) }} points globalement, mais seulement dans une minorité d'hôpitaux. Un suivi complémentaire est nécessaire pour étendre cette amélioration.
+{% elif delta_avg_score >= 0.5 %}
+🔄 **Amélioration en cours** — le score a progressé de {{ delta_avg_score | fmt_delta(2) }} points. L'étendue de l'amélioration est mixte — un suivi est recommandé.
+{% elif delta_avg_score >= 0 %}
+→ **Situation stable** — le score est resté relativement stable ({{ delta_avg_score | fmt_delta(2) }}). Pas de détérioration significative, mais pas de percée non plus.
+{% else %}
+⚠️ **Détérioration** — le score moyen a baissé de {{ delta_avg_score | fmt_delta(2) }} points. Un suivi et des mesures correctives sont recommandés.
+{% endif %}
+
+{% if current_hc_ratio > 25.0 %}
+🔴 **Taux H/C — attention requise** — le taux High/Critical s'élève à {{ current_hc_ratio | fmt(1) }}% dans {{ current_label }}, ce qui dépasse significativement le seuil de 25%. Un suivi prioritaire est requis.
+{% elif current_hc_ratio > 15.0 %}
+⚠️ **Taux H/C au-dessus du seuil** — le taux High/Critical ({{ current_hc_ratio | fmt(1) }}%) dépasse le seuil de 15%. Un suivi est recommandé.
+{% endif %}
+
+{% if hospitals_disappeared %}
+📋 **Hôpitaux manquants** — {{ hospitals_disappeared | length }} hôpital{% if hospitals_disappeared | length > 1 %}s{% endif %} présent{% if hospitals_disappeared | length > 1 %}s{% endif %} dans la baseline {% if hospitals_disappeared | length == 1 %}est absent{% else %}sont absents{% endif %} dans {{ current_label }}.
+Vérifiez si cela est dû à la transmission des données ou à un arrêt.
+→ *Voir § 8 — Hôpitaux absents pour la liste complète.*
+{% endif %}
+
+{% if negative_themes %}
+{% set resolved = negative_themes | selectattr("status", "eq", "OPGELOST") | list %}
+{% set new_themes = negative_themes | selectattr("status", "eq", "NIEUW") | list %}
+{% if resolved %}
+✅ **Points d'attention résolus** — {{ resolved | length }} thème{% if resolved | length > 1 %}s{% endif %} de feedback {% if resolved | length == 1 %}a été résolu{% else %}ont été résolus{% endif %} : {{ resolved | map(attribute="theme_key") | join(", ") }}.
+{% endif %}
+
+{% if new_themes %}
+🔴 **Nouveau point d'attention** — le thème "{{ new_themes | map(attribute="theme_key") | join('", "') }}" apparaît pour la première fois dans {{ current_label }}. Un suivi est recommandé.
+{% endif %}
+{% endif %}
+
+---
+
+## Historique des versions
+
+| Version | Date | Modifications | Auteur |
+| --- | --- | --- | --- |
+| 1.0 | {{ generated_date }} | {{ t.history.initial }} | GHC |

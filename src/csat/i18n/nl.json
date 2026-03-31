@@ -118,7 +118,10 @@
       "avg_response_days": "Gem. responstijd (dagen)",
       "n_hospitals": "Aantal ziekenhuizen",
       "hc_ratio": "High/Critical-ratio",
-      "score_distribution": "Scoreverdeling"
+      "score_distribution": "Scoreverdeling",
+      "median_score": "Mediaan",
+      "std_dev_score": "Standaard deviatie",
+      "pct_neutral": "% Neutraal (3★)"
     },
     "status": {
       "ok": "✅ OK",
@@ -135,6 +138,13 @@
       "communicatie": "Communicatie",
       "urgentie": "Urgentie",
       "automatisering": "Automatisering"
+    },
+    "theme_action_hints": {
+      "responstijd": "Controleer SLA-naleving en overweeg responstijd-alerts voor tickets met een openstaande tijd > 5 werkdagen.",
+      "onvolledig": "Implementeer een oplossingsbevestiging bij ticket-afhandeling: klantaccord vereist vóór sluiting.",
+      "communicatie": "Activeer proactieve statusupdates bij langlopende tickets (> 5 werkdagen): automatische melding bij statuswijziging.",
+      "urgentie": "Review escalatiebeleid: zorg voor direct klantcontact bij hoge-urgentie tickets binnen 1 werkdag.",
+      "automatisering": "Evalueer automatiseringsopportuniteiten in de ticketworkflow om repetitieve manuele stappen te elimineren."
     },
     "trend": {
       "structural": "Structureel",

@@ -27,6 +27,7 @@
 10. [ADR-010 — ZORGI Design System integratie en kleurbeleid](#10-adr-010--zorgi-design-system-integratie-en-kleurbeleid)
 11. [ADR-011 — satisfaction_date als CSAT-periodegroepering](#11-adr-011--satisfaction_date-als-csat-periodegroepering)
 12. [ADR-012 — Nieuwe instappers uitsluiten uit delta-ranking (subplot 4)](#12-adr-012--nieuwe-instappers-uitsluiten-uit-delta-ranking-subplot-4)
+13. [ADR-013 — Runner/library-structuur (scripts vs src vs tools)](#13-adr-013--runnerlibrarystructuur-scripts-vs-src-vs-tools)
 
 ---
 
@@ -649,6 +650,66 @@ Uitgesloten ziekenhuizen worden gelogd via `logger.info` als "nieuwe instappers"
 
 ---
 
+## 13. ADR-013 — Runner/library-structuur (scripts vs src vs tools)
+
+**Datum:** 31/03/2026
+**Status:** ✅ Approved
+
+### Context
+
+CSAT-Compass heeft drie mappen met uitvoerbare code: `scripts/`, `src/csat/` en `tools/`.
+Zonder expliciete afbakening dreigt business logic te versnipperen over mappen,
+wat hergebruik en testbaarheid belemmert.
+De vraag stelde zich of alle `.py`-bestanden in `scripts/` niet eerder thuishoren in `src/csat/`.
+
+### Beslissing
+
+**Runner/library-patroon:** strikte scheiding van verantwoordelijkheden.
+
+| Map | Rol | Taal |
+| --- | --- | --- |
+| `scripts/` | CLI-entrypoints — dunne wrappers, orkestratie, `argparse` | Python |
+| `src/csat/` | Library — alle herbruikbare business logic, analyse, export, visualisatie | Python |
+| `tools/` | Dev-tooling — lint, sync, geen productielogica | PowerShell |
+
+**Richtlijn:**
+
+- Scripts importeren vanuit `src/csat/` via `sys.path.insert(0, ROOT / "src")`.
+- Scripts bevatten **geen** business logic — enkel argument-parsing en het aanroepen van `src/csat/`.
+- `src/csat/` importeert **nooit** vanuit `scripts/`.
+- `tools/` bevat geen Python-productiecode.
+
+**Beslisregel voor nieuwe code:**
+
+```text
+Nieuwe functie/klasse/logica?      → src/csat/
+Nieuw CLI-entrypoint (terminal)?   → scripts/
+Nieuw dev-hulpmiddel (PowerShell)? → tools/
+```
+
+### Alternatieven overwogen
+
+| Optie | Reden afgewezen |
+| --- | --- |
+| Alles in `src/csat/cli/` | `pyproject.toml`-entrypoints vereist; extra complexiteit zonder meerwaarde in huidige fase |
+| Scripts rechtstreeks in root | Rommelig; geen duidelijke scheiding voor nieuwe teamleden |
+| Alles naar `src/` verplaatsen | Scripts zijn geen library-code — ze orkestreren; verplaatsing lost niets op |
+
+### Consequenties
+
+- Nieuwe CLI-functionaliteit → altijd eerst library-code in `src/csat/`, dan wrapper in `scripts/`
+- 100% testbaarheid gegarandeerd: tests importeren direct vanuit `src/csat/` — geen `argparse`-overhead
+- `scripts/README.md` documenteert alle entrypoints met rol en manual-verwijzing
+
+### Betrokken bestanden
+
+| Bestand | Rol |
+| --- | --- |
+| `scripts/README.md` | Overzicht van alle CLI-entrypoints (nieuw aangemaakt) |
+| `docs/02-tactisch/implementatie-gids.md` | Sectie "Mapstructuur: scripts / src / tools" toegevoegd |
+
+---
+
 ## Versiehistorie
 
 | Versie | Datum | Wijzigingen | Auteur |
@@ -662,3 +723,4 @@ Uitgesloten ziekenhuizen worden gelogd via `logger.info` als "nieuwe instappers"
 | 1.6 | 25/03/2026 | ADR-011 toegevoegd: satisfaction_date als CSAT-periodegroepering | Danny Depecker + GHC |
 | 1.7 | 25/03/2026 | ADR-012 toegevoegd: nieuwe instappers uitsluiten uit delta-ranking subplot 4 | Danny Depecker + GHC |
 | 1.8 | 25/03/2026 | ADR-012 uitgebreid: ZORGI_BORDEAUX kleurverantwoording + zorgi_theme.py als betrokken bestand | Danny Depecker + GHC |
+| 1.9 | 31/03/2026 | ADR-013 toegevoegd: runner/library-structuur scripts vs src vs tools | Danny Depecker + GHC |

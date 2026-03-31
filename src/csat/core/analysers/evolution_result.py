@@ -132,6 +132,8 @@ class ResponseTimeInsight:
     min_days: float = 0.0
     max_days: float = 0.0
     correlation_score: float | None = None  # Pearson r (responstijd ↔ score)
+    baseline_correlation_score: float | None = None
+    # Pearson r voor de baseline-periode — nodig voor correlatie-omslag detectie in InsightsGenerator
     avg_positive_days: float | None = None  # Gem. responstijd bij score >= 4
     avg_negative_days: float | None = None  # Gem. responstijd bij score <= 2
 
