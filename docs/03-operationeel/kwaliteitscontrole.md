@@ -95,9 +95,9 @@ def load(   ← ontbrekende sluithaak → pre-commit blokkeert de commit
 **Wat is het?** Controleert of er geen onopgeloste merge-conflicten in bestanden zitten.
 
 ```text
-<<<<<<< HEAD       ← dit patroon → pre-commit blokkeert de commit
-=======
->>>>>>> main
+    <<<<<<< HEAD       ← dit patroon → pre-commit blokkeert de commit
+    =======
+    >>>>>>> main
 ```
 
 ---

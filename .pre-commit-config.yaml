@@ -60,6 +60,26 @@ repos:
         types: [python]
 
       # -----------------------------------------------------------------------
+      # Interrogate — docstring-coverage
+      # -----------------------------------------------------------------------
+      - id: interrogate
+        name: Interrogate — docstring-coverage
+        entry: python -m interrogate src/csat/
+        language: system
+        types: [python]
+        pass_filenames: false
+
+      # -----------------------------------------------------------------------
+      # Vulture — dode code detectie
+      # -----------------------------------------------------------------------
+      - id: vulture
+        name: Vulture — dode code
+        entry: python -m vulture src/csat/ vulture_whitelist.py --min-confidence 80
+        language: system
+        types: [python]
+        pass_filenames: false
+
+      # -----------------------------------------------------------------------
       # Geen merge-conflicten
       # -----------------------------------------------------------------------
       - id: check-merge-conflict

@@ -1,0 +1,53 @@
+# =============================================================================
+# Dependabot — automatische dependency-updates
+# Controleert wekelijks op nieuwe versies van pip-packages en GitHub Actions.
+# Opent automatisch een PR bij updates — CI draait dan automatisch mee.
+# =============================================================================
+
+version: 2
+
+updates:
+
+  # --- Python dependencies (pip) ---
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Europe/Brussels"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "python"
+    groups:
+      # Bundel alle linting/testing tools in één PR — minder ruis
+      dev-tools:
+        patterns:
+          - "ruff"
+          - "mypy"
+          - "bandit"
+          - "pytest*"
+          - "pre-commit"
+          - "pip-audit"
+          - "pandas-stubs"
+          - "pytest-randomly"
+    ignore:
+      # Grote major-versiewijzigingen manueel evalueren
+      - dependency-name: "pandas"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "sqlalchemy"
+        update-types: ["version-update:semver-major"]
+
+  # --- GitHub Actions workflows ---
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Europe/Brussels"
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+      - "github-actions"

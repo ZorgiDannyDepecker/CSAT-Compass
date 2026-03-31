@@ -80,7 +80,7 @@ exclude = [".venv", "archive", "data", "output"]
 minversion = "7.0"
 testpaths = ["tests"]
 pythonpath = ["src"]
-addopts = "-ra -q --strict-markers --cov=src/csat --cov-report=term-missing --cov-report=html --cov-report=xml"
+addopts = "-ra -q --strict-markers --cov=src/csat --cov-report=term-missing --cov-report=html --cov-report=xml -p randomly --randomly-seed=last"
 python_files = ["test_*.py", "*_test.py"]
 markers = [
     "unit: unit tests — snel, geen externe afhankelijkheden",
@@ -115,3 +115,34 @@ exclude_lines = [
     "if TYPE_CHECKING:",
     "@(abc\\.)?abstractmethod",
 ]
+
+# =============================================================================
+# Interrogate — docstring-coverage
+# =============================================================================
+
+[tool.interrogate]
+ignore-init-method = true      # __init__ hoeft geen docstring
+ignore-init-module = true      # __init__.py hoeft geen module-docstring
+ignore-magic = true            # __repr__, __str__ etc. overgeslagen
+ignore-semiprivate = false     # _methodes mógen een docstring hebben
+ignore-private = true          # __dubbel_underscore overgeslagen
+ignore-property-decorators = true
+ignore-module = false
+ignore-nested-functions = true
+fail-under = 80                # Drempel: 80% — realistisch voor productie-code
+verbose = 0
+quiet = false
+whitelist-regex = []
+color = true
+omit-covered-files = false
+exclude = ["setup.py", "docs", "tests", "scripts", ".venv", "archive"]
+
+# =============================================================================
+# Vulture — dode code detectie
+# =============================================================================
+
+[tool.vulture]
+min_confidence = 80            # Alleen meldingen met hoge zekerheid (minder valse positieven)
+paths = ["src/csat", "vulture_whitelist.py"]
+exclude = [".venv", "archive", "data", "output", "logs"]
+sort_by_size = true            # Grootste ongebruikte blokken eerst — meeste impact bovenaan
