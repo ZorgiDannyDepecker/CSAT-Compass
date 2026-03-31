@@ -1,7 +1,7 @@
 # scripts/ — CLI-entrypoints
 
 **Doel:** Dunne CLI-wrappers die `src/csat/` aanroepen en maandelijkse workflows orkestreren.
-**Patroon:** runner/library — zie [ADR-013](../docs/01-strategisch/architectuur-beslissingen.md#13-adr-013--runnerlibrarystructuur-scripts-vs-src-vs-tools).
+**Patroon:** runner/library — zie [ADR-013](../docs/01-strategisch/architectuur-beslissingen.md#13-adr-013--runnerlibrary-structuur-scripts-vs-src-vs-tools).
 
 ---
 
