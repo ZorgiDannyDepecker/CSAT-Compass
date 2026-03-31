@@ -103,7 +103,7 @@
       "executive_summary": "Executive Summary",
       "critical_findings": "Kritieke bevindingen",
       "positive_developments": "Positieve ontwikkelingen",
-      "negative_feedback": "Negatieve feedback — deep-dive",
+      "negative_feedback": "Negatieve feedback — diepgaande analyse",
       "kpi_target_tracking": "KPI target tracking",
       "visual_analysis": "Visuele analyse",
       "recommendations": "Strategische aanbevelingen",
@@ -120,7 +120,7 @@
       "hc_ratio": "High/Critical-ratio",
       "score_distribution": "Scoreverdeling",
       "median_score": "Mediaan",
-      "std_dev_score": "Standaard deviatie",
+      "std_dev_score": "Standaarddeviatie",
       "pct_neutral": "% Neutraal (3★)"
     },
     "status": {
@@ -144,14 +144,14 @@
       "onvolledig": "Implementeer een oplossingsbevestiging bij ticket-afhandeling: klantaccord vereist vóór sluiting.",
       "communicatie": "Activeer proactieve statusupdates bij langlopende tickets (> 5 werkdagen): automatische melding bij statuswijziging.",
       "urgentie": "Review escalatiebeleid: zorg voor direct klantcontact bij hoge-urgentie tickets binnen 1 werkdag.",
-      "automatisering": "Evalueer automatiseringsopportuniteiten in de ticketworkflow om repetitieve manuele stappen te elimineren."
+      "automatisering": "Evalueer automatiseringsopportuniteiten in de ticketstroom om repetitieve handmatige stappen te elimineren."
     },
     "trend": {
       "structural": "Structureel",
       "temporary": "Tijdelijk / onduidelijk",
-      "breed": "Breed — meerdere ziekenhuizen",
-      "beperkt": "Beperkt — enkelen",
-      "gemengd": "Gemengd"
+      "breed": "breed",
+      "beperkt": "beperkt",
+      "gemengd": "gemengd"
     },
     "table": {
       "period": "Periode",

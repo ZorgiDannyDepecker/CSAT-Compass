@@ -32,7 +32,7 @@
 {{ f.description }}
 
 {% if f.causal_factor %}
-> 🔍 *Causale factor: {{ f.causal_factor }}*
+> 🔍 *Oorzaak: {{ f.causal_factor }}*
 {% endif %}
 
 {% endfor %}
@@ -215,7 +215,7 @@
 ## 9. {{ t.evolution.sections.negative_feedback }}
 
 {% if negative_cases %}
-> ℹ️ Alle tickets met score ≤ 2★ in {{ current_label }}. Ticket-ID's en ziekenhuisnamen zijn volledig weergegeven (beslissing 3). Enige sanitizing: ZORGI-medewerkersnamen.
+> ℹ️ Alle tickets met score ≤ 2★ in {{ current_label }}. Ticket-ID's en ziekenhuisnamen zijn volledig weergegeven (beslissing 3). Enige anonimisering: ZORGI-medewerkersnamen.
 
 | {{ t.evolution.table.ticket_id }} | {{ t.evolution.table.hospital }} | Type | Score | {{ t.evolution.table.response_days }} | {{ t.evolution.table.category }} |
 | --- | --- | --- | --- | --- | --- |
@@ -308,7 +308,7 @@
 
 {% if insights.recommendations %}
 {% for rec in insights.recommendations %}
-### {{ loop.index }}. {{ rec.title }}
+### 14.{{ loop.index }}. {{ rec.title }}
 
 {{ rec.description }}
 
@@ -361,7 +361,7 @@
 
 ## 16. {{ t.evolution.sections.conclusion }}
 
-**Trend:** {% if trend_is_structural %}{{ t.evolution.trend.structural }}{% else %}{{ t.evolution.trend.temporary }}{% endif %} — {{ trend_breadth_label }}
+**Trend:** {% if trend_is_structural %}{{ t.evolution.trend.structural }}{% else %}{{ t.evolution.trend.temporary }}{% endif %} – {{ trend_breadth_label }}
 
 {% if delta_avg_score >= 0.5 and trend_breadth == "breed" %}
 ✅ **Structurele verbetering** — de gemiddelde CSAT-score steeg met {{ delta_avg_score | fmt_delta(2) }} punten en dit is zichtbaar bij de meerderheid van de ziekenhuizen. De positieve trend is breed gedragen en robuust.
@@ -376,7 +376,7 @@
 {% endif %}
 
 {% if current_hc_ratio > 25.0 %}
-🔴 **HC-ratio aandacht vereist** — de High/Critical-ratio bedraagt {{ current_hc_ratio | fmt(1) }}% in {{ current_label }}. Dit overschrijdt de drempel van 25% aanzienlijk. Prioritaire opvolging vereist.
+🔴 **HC-ratio aandacht vereist** — de High/Critical-ratio bedraagt {{ current_hc_ratio | fmt(1) }}% in {{ current_label }}. Dit overschrijdt het KPI-target van 15% aanzienlijk. Prioritaire opvolging vereist.
 {% elif current_hc_ratio > 15.0 %}
 ⚠️ **HC-ratio boven drempel** — de High/Critical-ratio ({{ current_hc_ratio | fmt(1) }}%) overschrijdt de drempel van 15%. Opvolging aanbevolen.
 {% endif %}

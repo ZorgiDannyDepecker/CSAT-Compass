@@ -32,7 +32,7 @@
 {{ f.description }}
 
 {% if f.causal_factor %}
-> 🔍 *Facteur causal : {{ f.causal_factor }}*
+> 🔍 *Cause : {{ f.causal_factor }}*
 {% endif %}
 
 {% endfor %}
@@ -215,7 +215,7 @@
 ## 9. {{ t.evolution.sections.negative_feedback }}
 
 {% if negative_cases %}
-> ℹ️ Tous les tickets avec score ≤ 2★ dans {{ current_label }}. ID tickets et noms d'hôpitaux affichés intégralement (décision 3). Seule sanitization : noms des collaborateurs ZORGI.
+> ℹ️ Tous les tickets avec score ≤ 2★ dans {{ current_label }}. ID tickets et noms d'hôpitaux affichés intégralement (décision 3). Seule anonymisation : noms des collaborateurs ZORGI.
 
 | {{ t.evolution.table.ticket_id }} | {{ t.evolution.table.hospital }} | Type | Score | {{ t.evolution.table.response_days }} | {{ t.evolution.table.category }} |
 | --- | --- | --- | --- | --- | --- |
@@ -307,7 +307,7 @@
 
 {% if insights.recommendations %}
 {% for rec in insights.recommendations %}
-### {{ loop.index }}. {{ rec.title }}
+### 14.{{ loop.index }}. {{ rec.title }}
 
 {{ rec.description }}
 
@@ -360,7 +360,7 @@
 
 ## 16. {{ t.evolution.sections.conclusion }}
 
-**Tendance :** {% if trend_is_structural %}{{ t.evolution.trend.structural }}{% else %}{{ t.evolution.trend.temporary }}{% endif %} — {{ trend_breadth_label }}
+**Tendance :** {% if trend_is_structural %}{{ t.evolution.trend.structural }}{% else %}{{ t.evolution.trend.temporary }}{% endif %} – {{ trend_breadth_label }}
 
 {% if delta_avg_score >= 0.5 and trend_breadth == "breed" %}
 ✅ **Amélioration structurelle** — le score CSAT moyen a progressé de {{ delta_avg_score | fmt_delta(2) }} points et cette amélioration est visible dans la majorité des hôpitaux. La tendance positive est largement partagée et robuste.
@@ -375,7 +375,7 @@
 {% endif %}
 
 {% if current_hc_ratio > 25.0 %}
-🔴 **Taux H/C — attention requise** — le taux High/Critical s'élève à {{ current_hc_ratio | fmt(1) }}% dans {{ current_label }}, ce qui dépasse significativement le seuil de 25%. Un suivi prioritaire est requis.
+🔴 **Taux H/C — attention requise** — le taux High/Critical s'élève à {{ current_hc_ratio | fmt(1) }}% dans {{ current_label }}, ce qui dépasse significativement l'objectif KPI de 15%. Un suivi prioritaire est requis.
 {% elif current_hc_ratio > 15.0 %}
 ⚠️ **Taux H/C au-dessus du seuil** — le taux High/Critical ({{ current_hc_ratio | fmt(1) }}%) dépasse le seuil de 15%. Un suivi est recommandé.
 {% endif %}

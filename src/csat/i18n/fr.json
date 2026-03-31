@@ -144,14 +144,14 @@
       "onvolledig": "Mettre en place une confirmation de résolution lors de la clôture : accord du client requis avant fermeture.",
       "communicatie": "Activer des mises à jour de statut proactives pour les tickets de longue durée (> 5 jours ouvrables) : notification automatique lors d'un changement de statut.",
       "urgentie": "Revoir la politique d'escalade : garantir un contact direct avec le client pour les tickets haute urgence dans un délai d'1 jour ouvrable.",
-      "automatisering": "Évaluer les opportunités d'automatisation dans le workflow de tickets pour éliminer les étapes manuelles répétitives."
+      "automatisering": "Évaluer les opportunités d'automatisation dans le flux de tickets pour éliminer les étapes manuelles répétitives."
     },
     "trend": {
       "structural": "Structurel",
       "temporary": "Temporaire / indéterminé",
-      "breed": "Large — plusieurs hôpitaux",
-      "beperkt": "Limité — quelques-uns",
-      "gemengd": "Mixte"
+      "breed": "large",
+      "beperkt": "limité",
+      "gemengd": "mixte"
     },
     "table": {
       "period": "Période",

@@ -264,17 +264,17 @@ class InsightsGenerator:
                 top_pct = sd.percentages.get(top_level, 0.0)
                 if top_level == 5:
                     narrative = self._ls(
-                        f"Van de {n} responses scoort {_fmt_nl(top_pct, 1)}% een volle 5★.",
+                        f"Van de {n} antwoorden scoort {_fmt_nl(top_pct, 1)}% een volle 5★.",
                         f"Sur {n} réponses, {_fmt_nl(top_pct, 1)}% donnent la note maximale de 5★.",
                     )
                 elif top_level >= 4:
                     narrative = self._ls(
-                        f"Van de {n} responses beoordeelt {_fmt_nl(top_pct, 1)}% het ticket positief ({top_level}★ of hoger).",
+                        f"Van de {n} antwoorden beoordeelt {_fmt_nl(top_pct, 1)}% het ticket positief ({top_level}★ of hoger).",
                         f"Sur {n} réponses, {_fmt_nl(top_pct, 1)}% évaluent le ticket positivement ({top_level}★ ou plus).",
                     )
                 else:
                     narrative = self._ls(
-                        f"Van de {n} responses is de meerderheid ({_fmt_nl(top_pct, 1)}%) geconcentreerd rond {top_level}★.",
+                        f"Van de {n} antwoorden is de meerderheid ({_fmt_nl(top_pct, 1)}%) geconcentreerd rond {top_level}★.",
                         f"Sur {n} réponses, la majorité ({_fmt_nl(top_pct, 1)}%) se concentre autour de {top_level}★.",
                     )
                 parts.append(narrative)
@@ -377,7 +377,7 @@ class InsightsGenerator:
                     ),
                     description=self._ls(
                         (
-                            f"De gemiddelde CSAT-score {trend_word} van "
+                            f"De gemiddelde CSAT-score is {trend_word} van "
                             f"{_fmt_nl(result.baseline_avg_score, 2)} naar "
                             f"{_fmt_nl(result.current_avg_score, 2)} "
                             f"({result.baseline_label} → {result.current_label}).  \n"
@@ -393,7 +393,7 @@ class InsightsGenerator:
                     ),
                     severity="hoog" if sev == "significant" else sev,
                     causal_factor=self._ls(
-                        "Score-evolutie over analyseperiode",
+                        "Score-evolutie over de analyseperiode",
                         "Évolution du score sur la période analysée",
                     ),
                 )
@@ -475,7 +475,7 @@ class InsightsGenerator:
                 findings.append(
                     CriticalFinding(
                         title=self._ls(
-                            "🔄 Correlatie-omslag: responstijd niet meer de hoofdoorzaak",
+                            "🔄 Omslag in correlatie: responstijd niet meer de hoofdoorzaak",
                             "🔄 Inversion de corrélation : le délai n'est plus la cause principale",
                         ),
                         description=self._ls(
@@ -485,7 +485,7 @@ class InsightsGenerator:
                                 f"lange wachttijden veroorzaakten ontevredenheid.  \n"
                                 f"In {result.current_label} is die correlatie omgeslagen naar "
                                 f"positief (r={_fmt_nl(c_corr, 3)}): snelle maar onvolledige "
-                                f"afhandelingen zijn nu de nieuwe oorzaak van negatieve scores.  \n"
+                                f"afhandelingen vormen nu de belangrijkste oorzaak van negatieve scores.  \n"
                                 f"Dit is een fundamenteel andere en beter beheersbare uitdaging."
                             ),
                             (
@@ -493,7 +493,7 @@ class InsightsGenerator:
                                 f"(r={_fmt_nl(b_corr, 3)}) : les longs délais causaient l'insatisfaction.  \n"
                                 f"Dans {result.current_label}, cette corrélation est devenue positive "
                                 f"(r={_fmt_nl(c_corr, 3)}) : des clôtures rapides mais incomplètes "
-                                f"sont désormais la nouvelle cause de scores négatifs.  \n"
+                                f"constituent désormais la principale cause de scores négatifs.  \n"
                                 f"C'est un défi fondamentalement différent et mieux maîtrisable."
                             ),
                         ),
@@ -508,7 +508,7 @@ class InsightsGenerator:
                 findings.append(
                     CriticalFinding(
                         title=self._ls(
-                            "⚠️ Correlatie-omslag: responstijd opnieuw een risicofactor",
+                            "⚠️ Omslag in correlatie: responstijd opnieuw een risicofactor",
                             "⚠️ Inversion de corrélation : le délai redevient un facteur de risque",
                         ),
                         description=self._ls(
@@ -549,7 +549,7 @@ class InsightsGenerator:
                             f"{_fmt_nl(result.current_pct_negative, 1)}% van de gescoorde tickets "
                             f"is negatief (≤ 2★) in {result.current_label}.  \n"
                             f"Baseline was {_fmt_nl(result.baseline_pct_negative, 1)}%.  \n"
-                            f"Zie de negatieve feedback deep-dive voor details."
+                            f"Zie de diepgaande analyse van de negatieve feedback voor details."
                         ),
                         (
                             f"{_fmt_nl(result.current_pct_negative, 1)}% des tickets évalués "
@@ -605,7 +605,7 @@ class InsightsGenerator:
                     ),
                     description=self._ls(
                         (
-                            f"{n} ziekenhuis{'' if n == 1 else 'en'} uit de baseline "
+                            f"{n} {'ziekenhuis' if n == 1 else 'ziekenhuizen'} uit de baseline "
                             f"{'is' if n == 1 else 'zijn'} niet aanwezig in {result.current_label}.  \n"
                             f"Controleer of dit data-aanlevering of stopzetting betreft.  \n"
                             f"→ *Zie § 8 — Verdwenen ziekenhuizen voor het volledig overzicht.*"
@@ -643,7 +643,7 @@ class InsightsGenerator:
             devs.append(
                 PositiveDevelopment(
                     title=self._ls(
-                        "Scoreverbeter­ing t.o.v. baseline",
+                        "Scoreverbetering t.o.v. baseline",
                         "Amélioration du score vs baseline",
                     ),
                     description=self._ls(
@@ -781,7 +781,7 @@ class InsightsGenerator:
                         f"Suivi des {n} tickets négatifs",
                     ),
                     description=self._ls(
-                        f"Er zijn {n} negatieve tickets (≤ 2★) in {result.current_label}.  \nZie de deep-dive sectie voor ticket-ID's, ziekenhuizen en volledige comments.",
+                        f"Er zijn {n} negatieve tickets (≤ 2★) in {result.current_label}.  \nZie de diepgaande analyse voor ticket-ID's, ziekenhuizen en volledige comments.",
                         f"Il y a {n} tickets négatifs (≤ 2★) dans {result.current_label}.  \nVoir la section analyse approfondie pour les ID, hôpitaux et commentaires complets.",
                     ),
                     expected_impact=self._ls(
@@ -799,7 +799,7 @@ class InsightsGenerator:
             recs.append(
                 Recommendation(
                     title=self._ls(
-                        f"Heractivering {n} ontbrekend{'e' if n > 1 else ''} ziekenhuis{'en' if n > 1 else ''}",
+                        f"Heractivering {n} ontbrekend{'e' if n > 1 else ''} {'ziekenhuis' if n == 1 else 'ziekenhuizen'}",
                         f"Réactivation de {n} {'hôpitaux' if n > 1 else 'hôpital'} manquant{'s' if n > 1 else ''}",
                     ),
                     description=self._ls(
@@ -878,7 +878,7 @@ class InsightsGenerator:
             actions.append(
                 FollowUpAction(
                     action=self._ls(
-                        f"Contacteer de {len(result.negative_cases)} negatief scorende klanten (zie deep-dive sectie) — herstelgesprek plannen.",
+                        f"Contacteer de {len(result.negative_cases)} negatief scorende klanten (zie diepgaande analyse) — herstelgesprek plannen.",
                         f"Contacter les {len(result.negative_cases)} clients ayant donné une note négative (voir section analyse approfondie) — planifier un entretien de rétablissement.",
                     ),
                     horizon="kort",
