@@ -858,19 +858,19 @@ class EvolutionAnalyser:
             top_level = max(range(1, 6), key=lambda k: counts.get(k, 0))
             top_pct = percentages.get(top_level, 0.0)
             if top_level == 5:
-                narrative = f"Van de {n} responses scoort {_fmt_nl(top_pct, 1)}% een volle 5★."
+                narrative = f"Van de {n} antwoorden scoort {_fmt_nl(top_pct, 1)}% een volle 5★."
             elif top_level >= 4:
                 narrative = (
-                    f"Van de {n} responses beoordeelt {_fmt_nl(top_pct, 1)}% het ticket "
+                    f"Van de {n} antwoorden beoordeelt {_fmt_nl(top_pct, 1)}% het ticket "
                     f"positief ({top_level}★ of hoger)."
                 )
             else:
                 narrative = (
-                    f"Van de {n} responses is de meerderheid ({_fmt_nl(top_pct, 1)}%) "
+                    f"Van de {n} antwoorden is de meerderheid ({_fmt_nl(top_pct, 1)}%) "
                     f"geconcentreerd rond {top_level}★."
                 )
         else:
-            narrative = "Geen gescoorde responses beschikbaar."
+            narrative = "Geen gescoorde antwoorden beschikbaar."
 
         return ScoreDistribution(
             counts=counts,

@@ -1170,13 +1170,13 @@ class TestCoverageOntbrekendesPaden:
     def test_score_distribution_lege_df_geeft_geen_gescoord_narrative(
         self, nl_translations: dict, evolution_df: pd.DataFrame
     ) -> None:
-        """Lege df → narrative = 'Geen gescoorde responses beschikbaar.'"""
+        """Lege df → narrative = 'Geen gescoorde antwoorden beschikbaar.'"""
         from csat.core.analysers.evolution_analyser import EvolutionAnalyser
 
         analyser = EvolutionAnalyser(evolution_df, pillar_key="pharma")
         empty = evolution_df.iloc[0:0].copy()
         sd = analyser._calc_score_distribution(empty)
-        assert sd.narrative == "Geen gescoorde responses beschikbaar."
+        assert sd.narrative == "Geen gescoorde antwoorden beschikbaar."
 
     # --- avg_negative_days met negatieve tickets (line 887 in analyser) ---
 

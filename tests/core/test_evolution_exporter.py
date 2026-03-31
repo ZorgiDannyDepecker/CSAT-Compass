@@ -546,9 +546,9 @@ class TestKerncijfersUitbreidingen:
         assert "Mediaan" in result
 
     def test_render_bevat_std_dev(self, exporter_nl, evolution_result):
-        """Standaard deviatie verschijnt in de kerncijfertabel."""
+        """Standaarddeviatie verschijnt in de kerncijfertabel."""
         result = exporter_nl.render(evolution_result)
-        assert "Standaard deviatie" in result
+        assert "Standaarddeviatie" in result
 
     def test_render_bevat_pct_neutraal(self, exporter_nl, evolution_result):
         """% Neutraal (3★) rij verschijnt in de kerncijfertabel."""
@@ -565,7 +565,7 @@ class TestKerncijfersUitbreidingen:
             current_summary=None,
         )
         rendered = exporter_nl.render(result_no_summary)
-        assert "Standaard deviatie" not in rendered
+        assert "Standaarddeviatie" not in rendered
 
     def test_render_issue_type_bevat_delta_kolom(self, exporter_nl, evolution_result):
         """Sectie 5 bevat een Delta-kolom voor issue types."""

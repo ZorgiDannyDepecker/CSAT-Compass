@@ -120,7 +120,7 @@ class ScoreDistribution:
     counts: dict[int, int] = field(default_factory=dict)
     percentages: dict[int, float] = field(default_factory=dict)
     compact_label: str = ""  # "5★:30 (62,5%) | 4★:10 (20,8%) | ..."
-    narrative: str = ""  # "Van de 48 responses scoort 62,5% een volle 5★"
+    narrative: str = ""  # "Van de 48 antwoorden scoort 62,5% een volle 5★"
 
 
 @dataclass
