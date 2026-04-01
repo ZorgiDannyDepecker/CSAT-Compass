@@ -321,15 +321,24 @@ class EvolutionVisualiser:
         fig.subplots_adjust(top=0.93, bottom=0.08, left=0.08, right=0.97, hspace=0.50, wspace=0.40)
         return fig
 
-    def export(self, output_path: Path, year: str | None = None, timestamp: bool = True) -> Path:
+    def export(
+        self,
+        output_path: Path,
+        year: str | None = None,
+        timestamp: bool = True,
+        ts_suffix: str | None = None,
+    ) -> Path:
         """
         Render de figuur en schrijf naar output_path/evolutie-{pillar}-{jaar}-{lang}[_{ts}].png.
 
         Args:
             output_path: Map waar het PNG-bestand geschreven wordt
             year:        Jaarlabel voor bestandsnaam (standaard: afgeleid van current_label)
-            timestamp:   Voeg datum/tijd toe aan bestandsnaam (standaard: True)
-                         Formaat: _YYYYMMDD-HHMM  bv. _20260325-1238
+            timestamp:   Voeg datum/tijd toe aan bestandsnaam (standaard: True).
+                         Wordt genegeerd als ts_suffix opgegeven is.
+            ts_suffix:   Expliciete tijdstempel-suffix (bv. '_20260401-1435').
+                         Gebruik dit om exact dezelfde suffix als de bijbehorende MD te garanderen.
+                         None = val terug op timestamp-parameter.
 
         Returns:
             Absoluut pad naar het gegenereerde PNG-bestand
@@ -342,7 +351,10 @@ class EvolutionVisualiser:
         jaar = year or _extract_year(self._result.current_label) or "2026"
         jaar_safe = jaar.replace(" ", "-").replace("/", "-")
 
-        ts = f"_{datetime.now().astimezone().strftime('%Y%m%d-%H%M')}" if timestamp else ""
+        if ts_suffix is not None:
+            ts = ts_suffix
+        else:
+            ts = f"_{datetime.now().astimezone().strftime('%Y%m%d-%H%M')}" if timestamp else ""
 
         output_path = Path(output_path)
         output_path.mkdir(parents=True, exist_ok=True)

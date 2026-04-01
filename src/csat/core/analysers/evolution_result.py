@@ -71,6 +71,15 @@ class HospitalComparison:
 
 
 @dataclass
+class HospitalMigration:
+    """Ziekenhuis dat verdween (baseline→huidig) of nieuw verscheen (huidig)."""
+
+    hospital: str
+    total_tickets: int  # aantal tickets in de relevante periode
+    anchor_date: str | None  # verdwenen: laatste datum; nieuw: eerste datum (YYYY-MM-DD)
+
+
+@dataclass
 class ThemeEvolution:
     """Evolutie van een negatief feedbackthema (keyword matching op comment-veld)."""
 
@@ -229,8 +238,10 @@ class EvolutionResult:
 
     # --- Ziekenhuizen (sectie 7) ---
     hospital_comparison: list[HospitalComparison] = field(default_factory=list)
-    hospitals_disappeared: list[str] = field(default_factory=list)  # baseline → verdwenen
-    hospitals_new: list[str] = field(default_factory=list)  # nieuw in huidig
+    hospitals_disappeared: list[HospitalMigration] = field(
+        default_factory=list
+    )  # baseline → verdwenen
+    hospitals_new: list[HospitalMigration] = field(default_factory=list)  # nieuw in huidig
 
     # --- Thema's (sectie 8) ---
     negative_themes: list[ThemeEvolution] = field(default_factory=list)
@@ -267,3 +278,9 @@ class EvolutionResult:
 
     # Ziekenhuisretentie % (hoeveel baseline-ziekenhuizen nog aanwezig)
     hospital_retention_pct: float = field(default=100.0)
+
+    # Top 5 / Bottom 5 ziekenhuizen op huidige score (min. 5 tickets in current)
+    hospital_top5: list[HospitalComparison] = field(default_factory=list)
+    hospital_bottom5: list[HospitalComparison] = field(default_factory=list)
+    hospital_ranking_min_tickets: int = field(default=5)  # drempel top5 (statistisch relevant)
+    hospital_bottom_min_tickets: int = field(default=1)  # drempel bottom5 (elk laag ticket telt)

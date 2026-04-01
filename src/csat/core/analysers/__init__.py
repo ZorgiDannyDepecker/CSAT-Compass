@@ -3,6 +3,7 @@ from csat.core.analysers.evolution_analyser import EvolutionAnalyser
 from csat.core.analysers.evolution_result import (
     EvolutionResult,
     HospitalComparison,
+    HospitalMigration,
     IssueTypeComparison,
     KpiStatus,
     MonthlyDataPoint,
@@ -17,6 +18,7 @@ __all__ = [
     "EvolutionAnalyser",
     "EvolutionResult",
     "HospitalComparison",
+    "HospitalMigration",
     "IssueTypeComparison",
     "KpiResult",
     "KpiStatus",

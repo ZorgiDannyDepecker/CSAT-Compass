@@ -154,60 +154,62 @@
 
 ## 8. {{ t.evolution.sections.hospitals }}
 
+{% if hospital_top5 %}
+### Top 5: beste score
+
+*(Minimum {{ hospital_ranking_min_tickets }} antwoorden vereist voor statistisch relevante vergelijking)*
+
+| {{ t.evolution.table.hospital }} | {{ t.evolution.table.n_tickets }} ({{ baseline_label }}) | {{ t.evolution.table.avg_score }} ({{ baseline_label }}) | {{ t.evolution.table.n_tickets }} ({{ current_label }}) | {{ t.evolution.table.avg_score }} ({{ current_label }}) | Status |
+| --- | --- | --- | --- | --- | --- |
+{% for h in hospital_top5 %}| {{ h.hospital }} | {{ h.baseline_total }} | {% if h.baseline_score > 0 %}{{ h.baseline_score | fmt(2) }}{% else %}—{% endif %} | {{ h.current_total }} | **{{ h.current_score | fmt(2) }}★** | {{ hospital_status(h.current_score) }} |
+{% endfor %}
+{% endif %}
+
+{% if hospital_bottom5 %}
+### Bottom 5: slechtste score
+
+*(Alle ziekenhuizen met minstens {{ hospital_bottom_min_tickets }} antwoord(en) in {{ current_label }})*
+
+| {{ t.evolution.table.hospital }} | {{ t.evolution.table.n_tickets }} ({{ baseline_label }}) | {{ t.evolution.table.avg_score }} ({{ baseline_label }}) | {{ t.evolution.table.n_tickets }} ({{ current_label }}) | {{ t.evolution.table.avg_score }} ({{ current_label }}) | Status |
+| --- | --- | --- | --- | --- | --- |
+{% for h in hospital_bottom5 %}| {{ h.hospital }} | {{ h.baseline_total }} | {% if h.baseline_score > 0 %}{{ h.baseline_score | fmt(2) }}{% else %}—{% endif %} | {{ h.current_total }} | **{{ h.current_score | fmt(2) }}★** | {{ hospital_status(h.current_score) }} |
+{% endfor %}
+{% endif %}
+
 {% if hospital_shortlist %}
 ### {{ t.evolution.sections.hospital_shortlist }}
 
-| {{ t.evolution.table.hospital }} | {{ t.evolution.table.avg_score }} ({{ baseline_label }}) | {{ t.evolution.table.avg_score }} ({{ current_label }}) | {{ t.evolution.table.delta }} |
-| --- | --- | --- | --- |
-{% for h in hospital_shortlist %}| {{ h.hospital }} | {% if h.baseline_score > 0 %}{{ h.baseline_score | fmt(2) }}{% else %}—{% endif %} | {% if h.current_score is not none %}{{ h.current_score | fmt(2) }}{% else %}—{% endif %} | {% if h.baseline_score > 0 and h.current_score is not none %}{{ (h.current_score - h.baseline_score) | fmt_delta(2) }}{% else %}—{% endif %} |
+| {{ t.evolution.table.hospital }} | {{ t.evolution.table.n_tickets }} ({{ baseline_label }}) | {{ t.evolution.table.avg_score }} ({{ baseline_label }}) | {{ t.evolution.table.n_tickets }} ({{ current_label }}) | {{ t.evolution.table.avg_score }} ({{ current_label }}) | {{ t.evolution.table.delta }} |
+| --- | --- | --- | --- | --- | --- |
+{% for h in hospital_shortlist %}| {{ h.hospital }} | {{ h.baseline_total }} | {% if h.baseline_score > 0 %}{{ h.baseline_score | fmt(2) }}{% else %}—{% endif %} | {{ h.current_total }} | {% if h.current_score is not none %}{{ h.current_score | fmt(2) }}{% else %}—{% endif %} | {% if h.baseline_score > 0 and h.current_score is not none %}{{ (h.current_score - h.baseline_score) | fmt_delta(2) }}{% else %}—{% endif %} |
 {% endfor %}
 {% endif %}
 
 {% if hospitals_disappeared %}
 ### Verdwenen ziekenhuizen ({{ hospitals_disappeared | length }})
-{% set sorted_d = hospitals_disappeared | sort %}
-{% set nd = sorted_d | length %}
-{% if nd > 10 %}
-{% set half = ((nd + 1) // 2) %}
-| | |
-| :-- | :-- |
-{% for i in range(half) %}
-| {{ sorted_d[i] }} | {% if i + half < nd %}{{ sorted_d[i + half] }}{% endif %} |
+
+| {{ t.evolution.table.hospital }} | {{ t.evolution.table.n_tickets }} ({{ baseline_label }}) | Laatste datum |
+| :-- | --- | --- |
+{% for h in hospitals_disappeared | sort(attribute='hospital') -%}
+| {{ h.hospital }} | {{ h.total_tickets }} | {{ h.anchor_date if h.anchor_date else '—' }} |
 {% endfor %}
-{% else %}
-| |
-| :-- |
-{% for h in sorted_d -%}
-| {{ h }} |
-{% endfor %}
-{% endif %}
 {% endif %}
 
 {% if hospitals_new %}
 ### Nieuwe ziekenhuizen ({{ hospitals_new | length }})
-{% set sorted_n = hospitals_new | sort %}
-{% set nn = sorted_n | length %}
-{% if nn > 10 %}
-{% set half = ((nn + 1) // 2) %}
-| | |
-| :-- | :-- |
-{% for i in range(half) %}
-| {{ sorted_n[i] }} | {% if i + half < nn %}{{ sorted_n[i + half] }}{% endif %} |
+
+| {{ t.evolution.table.hospital }} | {{ t.evolution.table.n_tickets }} ({{ current_label }}) | Eerste datum |
+| :-- | --- | --- |
+{% for h in hospitals_new | sort(attribute='hospital') -%}
+| {{ h.hospital }} | {{ h.total_tickets }} | {{ h.anchor_date if h.anchor_date else '—' }} |
 {% endfor %}
-{% else %}
-| |
-| :-- |
-{% for h in sorted_n -%}
-| {{ h }} |
-{% endfor %}
-{% endif %}
 {% endif %}
 
 ### Volledig ziekenhuizenoverzicht
 
-| {{ t.evolution.table.hospital }} | {{ t.evolution.table.avg_score }} ({{ baseline_label }}) | {{ t.evolution.table.avg_score }} ({{ current_label }}) | {{ t.evolution.table.delta }} |
-| --- | --- | --- | --- |
-{% for h in hospital_comparison %}| {{ h.hospital }} | {% if h.baseline_score > 0 %}{{ h.baseline_score | fmt(2) }}{% else %}—{% endif %} | {% if h.current_score is not none %}{{ h.current_score | fmt(2) }}{% else %}—{% endif %} | {% if h.baseline_score > 0 and h.current_score is not none %}{{ (h.current_score - h.baseline_score) | fmt_delta(2) }}{% else %}—{% endif %} |
+| {{ t.evolution.table.hospital }} | {{ t.evolution.table.n_tickets }} ({{ baseline_label }}) | {{ t.evolution.table.avg_score }} ({{ baseline_label }}) | {{ t.evolution.table.n_tickets }} ({{ current_label }}) | {{ t.evolution.table.avg_score }} ({{ current_label }}) | {{ t.evolution.table.delta }} |
+| --- | --- | --- | --- | --- | --- |
+{% for h in hospital_comparison %}| {{ h.hospital }} | {{ h.baseline_total }} | {% if h.baseline_score > 0 %}{{ h.baseline_score | fmt(2) }}{% else %}—{% endif %} | {{ h.current_total }} | {% if h.current_score is not none %}{{ h.current_score | fmt(2) }}{% else %}—{% endif %} | {% if h.baseline_score > 0 and h.current_score is not none %}{{ (h.current_score - h.baseline_score) | fmt_delta(2) }}{% else %}—{% endif %} |
 {% endfor %}
 
 ---
@@ -289,7 +291,7 @@
 
 ## 13. {{ t.evolution.sections.visual_analysis }}
 
-![CSAT Evolutie-grafiek {{ current_label }}](evolutie-{{ pillar_id }}-{{ current_label }}-{{ lang }}.png)
+![CSAT Evolutie-grafiek {{ current_label }}]({{ chart_filename }})
 
 {% if insights.visual_analysis %}
 **Subplot 1 — Scoretrend:** {{ insights.visual_analysis.subplot1_scoretrend }}

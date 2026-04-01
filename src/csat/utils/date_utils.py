@@ -188,3 +188,23 @@ def timestamped_output_dir(base_path: Path) -> Path:
     run_dir = base_path / ts
     run_dir.mkdir(parents=True, exist_ok=True)
     return run_dir
+
+
+def dated_output_dir(base_path: Path) -> Path:
+    """
+    Geef de datummap terug voor de huidige dag binnen de basismap.
+
+    Mappen krijgen uitsluitend een datumstempel (YYYY-MM-DD).
+    Bestanden binnen de map krijgen een volledige tijdstempel in hun naam.
+    Elke nieuwe dag wordt automatisch een nieuwe submap aangemaakt.
+
+    Args:
+        base_path: Basismap (bv. OUTPUT_PATH)
+
+    Returns:
+        Pad naar de datummap (bv. output/2026-04-01/)
+    """
+    datum = date.today().strftime("%Y-%m-%d")  # noqa: DTZ011
+    dag_dir = base_path / datum
+    dag_dir.mkdir(parents=True, exist_ok=True)
+    return dag_dir

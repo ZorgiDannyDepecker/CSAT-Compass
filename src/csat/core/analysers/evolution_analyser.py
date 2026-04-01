@@ -36,6 +36,7 @@ from .evolution_result import (
     BenchmarkComparison,
     EvolutionResult,
     HospitalComparison,
+    HospitalMigration,
     IssueTypeComparison,
     KpiStatus,
     KpiTarget,
@@ -328,6 +329,30 @@ class EvolutionAnalyser:
         # Shortlist ziekenhuizen (top/bottom movers)
         hospital_shortlist = self._calc_hospital_shortlist(hospital_comparison)
 
+        # Top 5 / Bottom 5 op huidige score
+        # Top 5: min. 5 tickets — statistisch relevant voor erkenning als best presterende
+        # Bottom 5: min. 1 ticket — elke lage score is actioneerbaar, ongeacht volume
+        _min_tickets_top = 5
+        _min_tickets_bottom = 1
+
+        ranked_top = [
+            h
+            for h in hospital_comparison
+            if h.current_score is not None and h.current_total >= _min_tickets_top
+        ]
+        ranked_bottom = [
+            h
+            for h in hospital_comparison
+            if h.current_score is not None and h.current_total >= _min_tickets_bottom
+        ]
+        hospital_top5 = sorted(ranked_top, key=lambda h: (-(h.current_score or 0.0), h.hospital))[
+            :5
+        ]
+        hospital_bottom5 = sorted(
+            ranked_bottom, key=lambda h: (h.current_score or 0.0, h.hospital)
+        )[:5]
+        _min_tickets = _min_tickets_top  # drempel voor rapport-weergave (top)
+
         result = EvolutionResult(
             pillar=self._pillar_key,
             baseline_label=bl,
@@ -369,6 +394,10 @@ class EvolutionAnalyser:
             benchmark_h2=benchmark_h2,
             hospital_shortlist=hospital_shortlist,
             hospital_retention_pct=hospital_retention_pct,
+            hospital_top5=hospital_top5,
+            hospital_bottom5=hospital_bottom5,
+            hospital_ranking_min_tickets=_min_tickets_top,
+            hospital_bottom_min_tickets=_min_tickets_bottom,
         )
 
         logger.info(
@@ -591,7 +620,7 @@ class EvolutionAnalyser:
 
     def _hospital_comparison(
         self, baseline_df: pd.DataFrame, current_df: pd.DataFrame
-    ) -> tuple[list[HospitalComparison], list[str], list[str]]:
+    ) -> tuple[list[HospitalComparison], list[HospitalMigration], list[HospitalMigration]]:
         """
         Vergelijk ziekenhuizen tussen baseline en huidige periode.
 
@@ -601,8 +630,32 @@ class EvolutionAnalyser:
         b_hospitals: set[str] = set(baseline_df["hospital"].dropna().unique())
         c_hospitals: set[str] = set(current_df["hospital"].dropna().unique())
 
-        hospitals_disappeared = sorted(b_hospitals - c_hospitals)
-        hospitals_new = sorted(c_hospitals - b_hospitals)
+        # Verdwenen: baseline maar niet in huidig — laatste datum in baseline
+        disappeared_names = sorted(b_hospitals - c_hospitals)
+        hospitals_disappeared: list[HospitalMigration] = []
+        for h in disappeared_names:
+            sub = baseline_df[baseline_df["hospital"] == h]
+            last_dt = pd.to_datetime(
+                sub["satisfaction_date"], format="mixed", dayfirst=True, errors="coerce"
+            ).dropna()
+            anchor = last_dt.max().strftime("%Y-%m-%d") if not last_dt.empty else None
+            hospitals_disappeared.append(
+                HospitalMigration(hospital=h, total_tickets=len(sub), anchor_date=anchor)
+            )
+
+        # Nieuw: huidig maar niet in baseline — eerste datum in huidig
+        new_names = sorted(c_hospitals - b_hospitals)
+        hospitals_new: list[HospitalMigration] = []
+        for h in new_names:
+            sub = current_df[current_df["hospital"] == h]
+            first_dt = pd.to_datetime(
+                sub["satisfaction_date"], format="mixed", dayfirst=True, errors="coerce"
+            ).dropna()
+            anchor = first_dt.min().strftime("%Y-%m-%d") if not first_dt.empty else None
+            hospitals_new.append(
+                HospitalMigration(hospital=h, total_tickets=len(sub), anchor_date=anchor)
+            )
+
         all_hospitals = sorted(b_hospitals | c_hospitals)
 
         comparisons: list[HospitalComparison] = []
@@ -1140,13 +1193,14 @@ class EvolutionAnalyser:
         with_delta = sorted(shared, key=lambda h: (h.current_score or 0) - h.baseline_score)
 
         n = min(3, len(with_delta))
-        bottom = with_delta[:n]  # Meeste daling
-        top = with_delta[-(n):]  # Meeste verbetering
+        bottom = with_delta[:n]  # Meeste daling — meest negatief eerst
+        top = with_delta[-(n):]  # Meeste verbetering — kleinste delta eerst (oplopend)
 
-        # Dedupliceer en bewaar volgorde (slechtste eerst)
+        # Dedupliceer: dalers eerst (meest negatief → minst negatief),
+        # daarna verbeteraars oplopend (kleinste winst → grootste winst)
         seen: set[str] = set()
         shortlist: list[HospitalComparison] = []
-        for h in bottom + list(reversed(top)):
+        for h in bottom + top:
             if h.hospital not in seen:
                 seen.add(h.hospital)
                 shortlist.append(h)

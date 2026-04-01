@@ -478,7 +478,8 @@ class TestHospitalComparison:
     def test_hospitals_disappeared(self, evolution_df: pd.DataFrame) -> None:
         """OLV Aalst verdwijnt in current."""
         result = run_analyse(evolution_df)
-        assert "OLV Aalst" in result.hospitals_disappeared
+        names = [h.hospital for h in result.hospitals_disappeared]
+        assert "OLV Aalst" in names
 
     def test_hospitals_new_leeg(self, evolution_df: pd.DataFrame) -> None:
         """Geen nieuwe ziekenhuizen in current."""
@@ -536,7 +537,7 @@ class TestHospitalComparison:
         combined = pd.concat([extra, new_row], ignore_index=True)
         analyser = EvolutionAnalyser(combined, pillar_key="pharma")
         result = analyser.analyse(BASELINE, CURRENT)
-        assert "Nieuw Ziekenhuis" in result.hospitals_new
+        assert "Nieuw Ziekenhuis" in [h.hospital for h in result.hospitals_new]
         nieuw = next(h for h in result.hospital_comparison if h.hospital == "Nieuw Ziekenhuis")
         assert nieuw.baseline_total == 0
         assert nieuw.baseline_score == pytest.approx(0.0)

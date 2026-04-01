@@ -27,7 +27,7 @@ from csat.core.analysers.evolution_analyser import EvolutionAnalyser  # noqa: E4
 from csat.core.exporters.evolution_exporter import EvolutionExporter  # noqa: E402
 from csat.core.exporters.evolution_visualiser import EvolutionVisualiser  # noqa: E402
 from csat.core.loaders import get_loader  # noqa: E402
-from csat.utils.date_utils import parse_period, previous_period, today_period  # noqa: E402
+from csat.utils.date_utils import dated_output_dir, parse_period, previous_period, today_period  # noqa: E402
 from csat.utils.logger import setup_logger  # noqa: E402
 
 _LANG_CHOICES = ("nl", "fr", "both")
@@ -152,14 +152,14 @@ def main() -> None:  # noqa: C901
         current_label=args.current_label,
     )
 
-    # Uitvoermap — altijd OUTPUT_PATH root (timestamp zit in de bestandsnaam)
-    output_path = Path(args.output) if args.output else OUTPUT_PATH
-    output_path.mkdir(parents=True, exist_ok=True)
+    # Uitvoermap — datumsubmap binnen OUTPUT_PATH (YYYY-MM-DD)
+    base_path = Path(args.output) if args.output else OUTPUT_PATH
+    output_path = dated_output_dir(base_path)
 
     # Tijdstempel voor bestandsnamen — standaard AAN, uit te schakelen via --no-timestamp
     ts_suffix = "" if args.no_timestamp else f"_{datetime.now().astimezone().strftime('%Y%m%d-%H%M')}"
 
-    # Export
+    # Export — ts_suffix rechtstreeks meegeven, geen post-hoc rename nodig
     exported: list[Path] = []
     langs = ["nl", "fr"] if args.lang == "both" else [args.lang]
 
@@ -168,12 +168,7 @@ def main() -> None:  # noqa: C901
             lang=lang,
             output_path=output_path,
         )
-        pad = exporter.export(result, year=args.year)
-        # Bestandsnaam aanpassen met timestamp (standaard aan)
-        if ts_suffix:
-            nieuw_pad = pad.with_name(pad.stem + ts_suffix + pad.suffix)
-            pad.rename(nieuw_pad)
-            pad = nieuw_pad
+        pad = exporter.export(result, year=args.year, ts_suffix=ts_suffix)
         exported.append(pad)
         print(f"[OK] [{lang.upper()}] {pad}")
 
@@ -184,7 +179,7 @@ def main() -> None:  # noqa: C901
         vis_langs = ["nl", "fr"] if args.lang == "both" else [args.lang]
         for lang in vis_langs:
             vis = EvolutionVisualiser(result, lang=lang)
-            png_pad = vis.export(output_path, year=args.year, timestamp=bool(ts_suffix))
+            png_pad = vis.export(output_path, year=args.year, ts_suffix=ts_suffix)
             print(f"[OK] [PNG-{lang.upper()}] {png_pad}")
         print(f">> {len(vis_langs)} visualisatie(s) gegenereerd")
 

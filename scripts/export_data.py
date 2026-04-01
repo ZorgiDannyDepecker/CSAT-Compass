@@ -27,7 +27,7 @@ import pandas as pd  # noqa: E402
 
 from csat.config.settings import CSV_FALLBACK_PATH, DB_CONN, OUTPUT_PATH  # noqa: E402
 from csat.core.loaders import get_loader  # noqa: E402
-from csat.utils.date_utils import filter_year  # noqa: E402
+from csat.utils.date_utils import dated_output_dir, filter_year  # noqa: E402
 from csat.utils.logger import setup_logger  # noqa: E402
 
 
@@ -117,9 +117,8 @@ def main() -> None:
     ts = "" if args.no_timestamp else f"_{datetime.now().astimezone().strftime('%Y%m%d-%H%M')}"
     bestandsnaam = f"{bestandsnaam_basis}{ts}.csv"
 
-    # Output-map aanmaken als die nog niet bestaat
-    OUTPUT_PATH.mkdir(parents=True, exist_ok=True)
-    csv_pad = OUTPUT_PATH / bestandsnaam
+    # Output-map: datumsubmap binnen OUTPUT_PATH (YYYY-MM-DD)
+    csv_pad = dated_output_dir(OUTPUT_PATH) / bestandsnaam
 
     # Exporteren met puntkomma als scheidingsteken (Excel-compatibel)
     df.to_csv(csv_pad, index=False, sep=";", encoding="utf-8-sig")

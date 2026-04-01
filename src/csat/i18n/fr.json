@@ -109,7 +109,7 @@
       "recommendations": "Recommandations stratégiques",
       "follow_up": "Actions de suivi",
       "benchmark": "Double benchmark",
-      "hospital_shortlist": "Hôpitaux prioritaires"
+      "hospital_shortlist": "Évolution des scores : principales variations"
     },
     "kpi": {
       "delta_avg_score": "Delta score moy.",
@@ -171,6 +171,7 @@
       "ticket_id": "ID Ticket",
       "comment": "Commentaire",
       "category": "Catégorie",
+      "n_tickets": "Tickets",
       "target": "Objectif 2026",
       "on_track": "En bonne voie?",
       "impact": "Impact",

@@ -71,10 +71,16 @@ class CsvLoader(BaseLoader):
                 bestand,
                 sep=";",
                 encoding="utf-8-sig",
-                parse_dates=DATE_COLUMNS,
+                parse_dates=["created"],
             )
         else:
-            df = pd.read_excel(bestand, parse_dates=DATE_COLUMNS)
+            df = pd.read_excel(bestand, parse_dates=["created"])
+
+        # satisfaction_date apart parsen met dayfirst=True — Belgisch formaat DD/MM/YYYY HH:MM
+        if "satisfaction_date" in df.columns:
+            df["satisfaction_date"] = pd.to_datetime(
+                df["satisfaction_date"], format="mixed", dayfirst=True, errors="coerce"
+            )
 
         df = self._validate_dataframe(df)
 

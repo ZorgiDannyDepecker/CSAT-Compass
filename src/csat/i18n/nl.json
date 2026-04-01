@@ -109,7 +109,7 @@
       "recommendations": "Strategische aanbevelingen",
       "follow_up": "Follow-up acties",
       "benchmark": "Dubbele benchmark",
-      "hospital_shortlist": "Focuslijst ziekenhuizen"
+      "hospital_shortlist": "Score-evolutie: grootste verschuivingen"
     },
     "kpi": {
       "delta_avg_score": "Delta gem. score",
@@ -171,6 +171,7 @@
       "ticket_id": "Ticket-ID",
       "comment": "Comment",
       "category": "Categorie",
+      "n_tickets": "Tickets",
       "target": "Target 2026",
       "on_track": "Op schema?",
       "impact": "Impact",

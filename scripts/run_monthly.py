@@ -28,7 +28,7 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from csat.config.pillars import PILLAR_REGISTRY  # noqa: E402
 from csat.config.settings import LOG_PATH, OUTPUT_PATH  # noqa: E402
-from csat.utils.date_utils import parse_period, previous_period, today_period  # noqa: E402
+from csat.utils.date_utils import dated_output_dir, parse_period, previous_period, today_period  # noqa: E402
 from csat.utils.logger import setup_logger  # noqa: E402
 
 # Volgorde: ZORGI totaal eerst, daarna pijlers conform PILLAR_REGISTRY
@@ -157,8 +157,8 @@ def main() -> None:
     current_from  = p["current_from"]
     current_to    = p["current_to"]
 
-    # Geen submap — bestanden gaan rechtstreeks in OUTPUT_PATH met timestamp in naam
-    OUTPUT_PATH.mkdir(parents=True, exist_ok=True)
+    # Datumsubmap aanmaken — YYYY-MM-DD, nieuw per dag
+    dated_dir = dated_output_dir(OUTPUT_PATH)
 
     # Aantal pijlers en outputberekening
     n_pijlers = len(args.pillar)
@@ -178,7 +178,7 @@ def main() -> None:
     print(f"Current    : {current_from} → {current_to}")
     print(f"Pijlers    : {', '.join(args.pillar)}")
     print(f"Charts     : {charts_label}")
-    print(f"Output     : output\\")
+    print(f"Output     : output\\{dated_dir.name}\\")
     print()
 
     start = time.monotonic()
@@ -190,7 +190,7 @@ def main() -> None:
         "--to",   p["matrix_to"],
         "--pillar", "pharma",
         "--lang", "both",
-        "--output", str(OUTPUT_PATH),
+        "--output", str(dated_dir),
     ]
     result = _run_script(ROOT / "scripts" / "generate_matrix.py", matrix_args)
     if result.returncode != 0:
@@ -205,7 +205,7 @@ def main() -> None:
         "--current",  current_from,  current_to,
         "--year", huidig_jaar,
         "--pillar", *args.pillar,
-        "--output", str(OUTPUT_PATH),
+        "--output", str(dated_dir),
     ]
     if not args.no_charts:
         evo_args.append("--chart")
@@ -221,7 +221,7 @@ def main() -> None:
     duur = time.monotonic() - start
     print()
     print("=" * 44)
-    print(f"Totaal: {totaal} bestanden gegenereerd in output\\")
+    print(f"Totaal: {totaal} bestanden gegenereerd in output\\{dated_dir.name}\\")
     print(f"Duur  : {duur:.1f} seconden")
     print()
 

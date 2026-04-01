@@ -25,6 +25,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 
 from csat.config.settings import OUTPUT_PATH  # noqa: E402
+from csat.utils.date_utils import dated_output_dir  # noqa: E402
 
 CONVERTIEMAP_IN = Path(r"C:\Users\danndepe\Documents\Convertiemap\IN")
 CONVERTIEMAP_OUT = Path(r"C:\Users\danndepe\Documents\Convertiemap\OUT")
@@ -44,6 +45,7 @@ def main() -> None:
     args = parser.parse_args()
 
     OUTPUT_PATH.mkdir(parents=True, exist_ok=True)
+    dated_dir = dated_output_dir(OUTPUT_PATH)
 
     # Tijdstip vóór generatie — gebruikt om nieuwe bestanden te detecteren
     voor_run = time.time()
@@ -55,7 +57,7 @@ def main() -> None:
         str(ROOT / "scripts" / "generate_evolution.py"),
         "--pillar", args.pillar,
         "--lang", args.lang,
-        "--output", str(OUTPUT_PATH),
+        "--output", str(dated_dir),
     ]
     if not args.no_chart:
         gen_cmd.append("--chart")
@@ -73,12 +75,12 @@ def main() -> None:
     patronen = ["evolutie-*.md"] + (["evolutie-*.png"] if not args.no_chart else [])
     te_kopieren = [
         f for patroon in patronen
-        for f in OUTPUT_PATH.glob(patroon)
+        for f in dated_dir.glob(patroon)
         if f.stat().st_mtime >= voor_run
     ]
 
     if not te_kopieren:
-        print(f"[FOUT] Geen nieuwe bestanden gevonden in {OUTPUT_PATH}")
+        print(f"[FOUT] Geen nieuwe bestanden gevonden in {dated_dir}")
         sys.exit(1)
 
     md_bestanden = [f for f in te_kopieren if f.suffix == ".md"]

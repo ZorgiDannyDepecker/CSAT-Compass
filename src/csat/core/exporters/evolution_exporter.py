@@ -46,6 +46,49 @@ def _fmt_delta(value: float, decimals: int = 1) -> str:
     return f"{sign}{_format_number(value, decimals)}"
 
 
+def _hospital_status_label(lang: str):
+    """
+    Geeft een callable terug die een score omzet naar een statuslabel.
+
+    Drempelwaarden:
+        score == 5,00 → Excellent
+        score >= 4,50 → Uitstekend / Excellent (FR)
+        score >= 4,00 → Grenswaarde / Limite (FR)
+        score >= 3,00 → Aandacht / Attention (FR)
+        score <  3,00 → Kritiek / Critique (FR)
+
+    Args:
+        lang: 'nl' of 'fr'
+
+    Returns:
+        Callable (score: float) → str
+    """
+    if lang == "fr":
+        _map = [
+            (5.00, "✅ Excellent"),
+            (4.50, "✅ Très bien"),
+            (4.00, "🟡 Limite"),
+            (3.00, "🟡 Attention"),
+            (0.00, "🔴 Critique"),
+        ]
+    else:
+        _map = [
+            (5.00, "✅ Excellent"),
+            (4.50, "✅ Uitstekend"),
+            (4.00, "🟡 Grenswaarde"),
+            (3.00, "🟡 Aandacht"),
+            (0.00, "🔴 Kritiek"),
+        ]
+
+    def _label(score: float) -> str:
+        for threshold, label in _map:
+            if score >= threshold:
+                return label
+        return "—"
+
+    return _label
+
+
 class EvolutionExporter:
     """
     Genereert CSAT-evolutierapporten in Nederlandstalige of Franstalige markdown.
@@ -87,38 +130,51 @@ class EvolutionExporter:
     # Publieke methoden
     # ------------------------------------------------------------------
 
-    def render(self, result: EvolutionResult) -> str:
+    def render(self, result: EvolutionResult, chart_filename: str = "") -> str:
         """
         Render het evolutierapport als markdown-string (zonder bestandsschrijving).
 
         Args:
-            result: EvolutionResult van een EvolutionAnalyser.analyse() aanroep
+            result:         EvolutionResult van een EvolutionAnalyser.analyse() aanroep
+            chart_filename: Bestandsnaam van de bijbehorende PNG (inclusief tijdstempel).
+                            Leeg = geen grafiekreferentie in rapport.
 
         Returns:
             Volledige markdown-string van het rapport
         """
         template_name = f"evolutie-{self._lang}.md.j2"
         template = self._env.get_template(template_name)
-        context = self._build_context(result)
+        context = self._build_context(result, chart_filename=chart_filename)
         return template.render(**context)
 
-    def export(self, result: EvolutionResult, year: str | None = None) -> Path:
+    def export(
+        self,
+        result: EvolutionResult,
+        year: str | None = None,
+        ts_suffix: str = "",
+    ) -> Path:
         """
         Render het rapport en schrijf het naar de outputmap.
 
-        Bestandsnaamconventie: evolutie-YYYY-{lang}.md
+        Bestandsnaamconventie: evolutie-{pillar}-{jaar}-{lang}[{ts_suffix}].md
+        De bijbehorende PNG krijgt dezelfde ts_suffix — zo blijft de referentie altijd correct.
 
         Args:
-            result: EvolutionResult van een pijleranalyse
-            year:   Jaarlabel voor bestandsnaam (standaard: current_label of huidig jaar)
+            result:    EvolutionResult van een pijleranalyse
+            year:      Jaarlabel voor bestandsnaam (standaard: current_label of huidig jaar)
+            ts_suffix: Tijdstempel-suffix voor bestandsnaam én PNG-referentie
+                       (bv. '_20260401-1435'). Leeg = geen tijdstempel.
 
         Returns:
             Absoluut pad naar het gegenereerde bestand
         """
-        content = self.render(result)
         jaar = year or result.current_label or str(datetime.now(tz=UTC).year)
         jaar_safe = jaar.replace(" ", "-").replace("/", "-")
-        output_file = self._output_path / f"evolutie-{result.pillar}-{jaar_safe}-{self._lang}.md"
+        stem = f"evolutie-{result.pillar}-{jaar_safe}-{self._lang}"
+        output_file = self._output_path / f"{stem}{ts_suffix}.md"
+        chart_filename = f"{stem}{ts_suffix}.png"
+
+        content = self.render(result, chart_filename=chart_filename)
         output_file.parent.mkdir(parents=True, exist_ok=True)
         output_file.write_text(content, encoding="utf-8")
         logger.info(f"[EvolutionExporter:{self._lang}] Rapport geschreven → {output_file}")
@@ -128,7 +184,7 @@ class EvolutionExporter:
     # Intern — context opbouwen
     # ------------------------------------------------------------------
 
-    def _build_context(self, result: EvolutionResult) -> dict:
+    def _build_context(self, result: EvolutionResult, chart_filename: str = "") -> dict:
         """
         Bouw de Jinja2-templatecontext op vanuit een EvolutionResult.
 
@@ -255,4 +311,12 @@ class EvolutionExporter:
             # KPI target tracking hulpfuncties
             "target_status_label": target_status_label,
             "kpi_target_name": kpi_target_name,
+            # Grafiek
+            "chart_filename": chart_filename,
+            # Top5 / Bottom5 ziekenhuizen
+            "hospital_top5": result.hospital_top5,
+            "hospital_bottom5": result.hospital_bottom5,
+            "hospital_ranking_min_tickets": result.hospital_ranking_min_tickets,
+            "hospital_bottom_min_tickets": result.hospital_bottom_min_tickets,
+            "hospital_status": _hospital_status_label(self._lang),
         }
