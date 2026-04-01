@@ -13,6 +13,7 @@ Gebruik:
 
 import argparse
 import sys
+from datetime import datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -24,7 +25,7 @@ from csat.core.analysers.evolution_analyser import EvolutionAnalyser  # noqa: E4
 from csat.core.exporters.evolution_exporter import EvolutionExporter  # noqa: E402
 from csat.core.exporters.evolution_visualiser import EvolutionVisualiser  # noqa: E402, F401
 from csat.core.loaders import get_loader  # noqa: E402
-from csat.utils.date_utils import parse_period, previous_period, timestamped_output_dir, today_period  # noqa: E402
+from csat.utils.date_utils import parse_period, previous_period, today_period  # noqa: E402
 from csat.utils.logger import setup_logger  # noqa: E402
 
 # Volgorde: ZORGI totaal eerst, daarna pijlers alfabetisch
@@ -120,8 +121,10 @@ def main() -> None:
     loader = get_loader(DB_CONN, CSV_FALLBACK_PATH, force_csv=args.force_csv)
     df = loader.load()
 
-    # Uitvoermap bepalen — altijd een timestamped submap
-    output_dir = Path(args.output) if args.output else timestamped_output_dir(OUTPUT_PATH)
+    # Uitvoermap en timestamp — bestanden gaan in OUTPUT_PATH root met timestamp in naam
+    output_dir = Path(args.output) if args.output else OUTPUT_PATH
+    output_dir.mkdir(parents=True, exist_ok=True)
+    ts_suffix = datetime.now().astimezone().strftime("%Y%m%d-%H%M")
 
     # Loop over pijlers
     totaal = 0
@@ -135,14 +138,16 @@ def main() -> None:
             for lang in ["nl", "fr"]:
                 exporter = EvolutionExporter(lang=lang, output_path=output_dir)
                 pad = exporter.export(result, year=args.year)
+                nieuw_pad = pad.with_name(pad.stem + f"_{ts_suffix}" + pad.suffix)
+                pad.rename(nieuw_pad)
                 totaal += 1
-                print(f"  [OK] [{lang.upper()}] {pillar:<12} -> {pad.name}")
+                print(f"  [OK] [{lang.upper()}] {pillar:<12} -> {nieuw_pad.name}")
 
             # Optionele visualisatie per pijler — NL én FR PNG
             if args.chart:
                 for lang in ["nl", "fr"]:
                     vis = EvolutionVisualiser(result, lang=lang)
-                    png_pad = vis.export(output_dir, year=args.year, timestamp=False)
+                    png_pad = vis.export(output_dir, year=args.year, timestamp=True)
                     totaal += 1
                     print(f"  [OK] [PNG-{lang.upper()}] {pillar:<12} -> {png_pad.name}")
 

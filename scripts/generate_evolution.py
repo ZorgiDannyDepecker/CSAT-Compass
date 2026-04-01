@@ -27,7 +27,7 @@ from csat.core.analysers.evolution_analyser import EvolutionAnalyser  # noqa: E4
 from csat.core.exporters.evolution_exporter import EvolutionExporter  # noqa: E402
 from csat.core.exporters.evolution_visualiser import EvolutionVisualiser  # noqa: E402
 from csat.core.loaders import get_loader  # noqa: E402
-from csat.utils.date_utils import parse_period, previous_period, timestamped_output_dir, today_period  # noqa: E402
+from csat.utils.date_utils import parse_period, previous_period, today_period  # noqa: E402
 from csat.utils.logger import setup_logger  # noqa: E402
 
 _LANG_CHOICES = ("nl", "fr", "both")
@@ -111,10 +111,10 @@ def main() -> None:  # noqa: C901
         help="Forceer CSV-loader (omzeilt SQL — voor onderhoud of reproduceerbare runs)",
     )
     parser.add_argument(
-        "--timestamp",
+        "--no-timestamp",
         action="store_true",
         default=False,
-        help="Voeg datum/tijdstempel toe aan bestandsnaam (bv. evolutie-pharma-2026-nl_20260401-1045.md)",
+        help="Sla datum/tijdstempel in bestandsnaam over (standaard: timestamp AAN)",
     )
 
     args = parser.parse_args()
@@ -152,12 +152,12 @@ def main() -> None:  # noqa: C901
         current_label=args.current_label,
     )
 
-    # Uitvoermap bepalen — altijd een timestamped submap tenzij expliciet opgegeven
-    output_path = Path(args.output) if args.output else timestamped_output_dir(OUTPUT_PATH)
+    # Uitvoermap — altijd OUTPUT_PATH root (timestamp zit in de bestandsnaam)
+    output_path = Path(args.output) if args.output else OUTPUT_PATH
+    output_path.mkdir(parents=True, exist_ok=True)
 
-    # Tijdstempel voor bestandsnamen (eenmalig bepaald voor consistentie NL/FR)
-
-    ts_suffix = f"_{datetime.now().astimezone().strftime('%Y%m%d-%H%M')}" if args.timestamp else ""
+    # Tijdstempel voor bestandsnamen — standaard AAN, uit te schakelen via --no-timestamp
+    ts_suffix = "" if args.no_timestamp else f"_{datetime.now().astimezone().strftime('%Y%m%d-%H%M')}"
 
     # Export
     exported: list[Path] = []
@@ -169,8 +169,8 @@ def main() -> None:  # noqa: C901
             output_path=output_path,
         )
         pad = exporter.export(result, year=args.year)
-        # Bestandsnaam aanpassen met timestamp indien gevraagd
-        if args.timestamp:
+        # Bestandsnaam aanpassen met timestamp (standaard aan)
+        if ts_suffix:
             nieuw_pad = pad.with_name(pad.stem + ts_suffix + pad.suffix)
             pad.rename(nieuw_pad)
             pad = nieuw_pad
@@ -184,7 +184,7 @@ def main() -> None:  # noqa: C901
         vis_langs = ["nl", "fr"] if args.lang == "both" else [args.lang]
         for lang in vis_langs:
             vis = EvolutionVisualiser(result, lang=lang)
-            png_pad = vis.export(output_path, year=args.year, timestamp=args.timestamp)
+            png_pad = vis.export(output_path, year=args.year, timestamp=bool(ts_suffix))
             print(f"[OK] [PNG-{lang.upper()}] {png_pad}")
         print(f">> {len(vis_langs)} visualisatie(s) gegenereerd")
 

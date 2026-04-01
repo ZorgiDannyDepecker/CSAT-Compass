@@ -20,7 +20,6 @@ import argparse
 import subprocess
 import sys
 import time
-from datetime import datetime
 from pathlib import Path
 
 # Zorg dat src/ vindbaar is als het script rechtstreeks wordt aangeroepen
@@ -158,10 +157,8 @@ def main() -> None:
     current_from  = p["current_from"]
     current_to    = p["current_to"]
 
-    # Gedateerde outputmap aanmaken — voorkomt overschrijven bij herhaalde runs
-    ts = datetime.now().astimezone().strftime("%Y-%m-%d_%H%M")
-    run_output = OUTPUT_PATH / ts
-    run_output.mkdir(parents=True, exist_ok=True)
+    # Geen submap — bestanden gaan rechtstreeks in OUTPUT_PATH met timestamp in naam
+    OUTPUT_PATH.mkdir(parents=True, exist_ok=True)
 
     # Aantal pijlers en outputberekening
     n_pijlers = len(args.pillar)
@@ -181,7 +178,7 @@ def main() -> None:
     print(f"Current    : {current_from} → {current_to}")
     print(f"Pijlers    : {', '.join(args.pillar)}")
     print(f"Charts     : {charts_label}")
-    print(f"Output     : output\\{ts}\\")
+    print(f"Output     : output\\")
     print()
 
     start = time.monotonic()
@@ -193,7 +190,7 @@ def main() -> None:
         "--to",   p["matrix_to"],
         "--pillar", "pharma",
         "--lang", "both",
-        "--output", str(run_output),
+        "--output", str(OUTPUT_PATH),
     ]
     result = _run_script(ROOT / "scripts" / "generate_matrix.py", matrix_args)
     if result.returncode != 0:
@@ -208,7 +205,7 @@ def main() -> None:
         "--current",  current_from,  current_to,
         "--year", huidig_jaar,
         "--pillar", *args.pillar,
-        "--output", str(run_output),
+        "--output", str(OUTPUT_PATH),
     ]
     if not args.no_charts:
         evo_args.append("--chart")
@@ -224,7 +221,7 @@ def main() -> None:
     duur = time.monotonic() - start
     print()
     print("=" * 44)
-    print(f"Totaal: {totaal} bestanden gegenereerd in output\\{ts}\\")
+    print(f"Totaal: {totaal} bestanden gegenereerd in output\\")
     print(f"Duur  : {duur:.1f} seconden")
     print()
 

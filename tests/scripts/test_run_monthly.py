@@ -196,7 +196,7 @@ class TestMainMatrixStap:
     def test_matrix_krijgt_output_arg(
         self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
     ) -> None:
-        """Matrix-stap krijgt --output doorgegeven (gedateerde submap)."""
+        """Matrix-stap krijgt --output doorgegeven (OUTPUT_PATH rechtstreeks)."""
         monkeypatch.setattr(sys, "argv", ["run_monthly.py", "--month", "2026-03"])
         with patch("subprocess.run") as mock_run:
             mock_run.return_value = _mock_subprocess_ok()
@@ -205,7 +205,7 @@ class TestMainMatrixStap:
         assert "--output" in matrix_args
         idx = matrix_args.index("--output")
         output_pad = Path(matrix_args[idx + 1])
-        assert output_pad.parent == tmp_path
+        assert output_pad == tmp_path
 
 
 class TestMainEvolutieStap:
@@ -310,7 +310,7 @@ class TestMainEvolutieStap:
     def test_evolutie_krijgt_output_arg(
         self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
     ) -> None:
-        """Evolutiestap krijgt --output doorgegeven (gedateerde submap)."""
+        """Evolutiestap krijgt --output doorgegeven (OUTPUT_PATH rechtstreeks)."""
         monkeypatch.setattr(sys, "argv", ["run_monthly.py", "--month", "2026-03"])
         with patch("subprocess.run") as mock_run:
             mock_run.return_value = _mock_subprocess_ok()
@@ -319,16 +319,16 @@ class TestMainEvolutieStap:
         assert "--output" in evo_args
         idx = evo_args.index("--output")
         output_pad = Path(evo_args[idx + 1])
-        assert output_pad.parent == tmp_path
+        assert output_pad == tmp_path
 
 
 # ---------------------------------------------------------------------------
-# 4. Gedateerde submap — beide scripts krijgen DEZELFDE output_pad
+# 4. Output pad — beide scripts krijgen OUTPUT_PATH rechtstreeks
 # ---------------------------------------------------------------------------
 
 
 class TestGedateerdeSubmap:
-    """Verifieer dat beide sub-scripts dezelfde gedateerde submap ontvangen."""
+    """Verifieer dat beide sub-scripts OUTPUT_PATH rechtstreeks ontvangen (geen submap)."""
 
     @pytest.fixture(autouse=True)
     def _patch_output_path(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
@@ -346,42 +346,41 @@ class TestGedateerdeSubmap:
         evo_out = evo_args[evo_args.index("--output") + 1]
         assert matrix_out == evo_out
 
-    def test_output_pad_is_submap_van_output_root(
+    def test_output_pad_is_output_root(
         self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
     ) -> None:
-        """De gedateerde submap ligt direct onder OUTPUT_PATH."""
+        """Output gaat rechtstreeks naar OUTPUT_PATH — geen submap."""
         monkeypatch.setattr(sys, "argv", ["run_monthly.py", "--month", "2026-03"])
         with patch("subprocess.run") as mock_run:
             mock_run.return_value = _mock_subprocess_ok()
             _mod.main()
         matrix_args = mock_run.call_args_list[0][0][0]
         output_pad = Path(matrix_args[matrix_args.index("--output") + 1])
-        assert output_pad.parent == tmp_path
+        assert output_pad == tmp_path
 
-    def test_output_submap_naam_bevat_datum(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        """De submap bevat een datum in formaat YYYY-MM-DD."""
+    def test_output_submap_naam_bevat_datum(
+        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+    ) -> None:
+        """Output pad IS OUTPUT_PATH — geen timestamped submap in de naam."""
         monkeypatch.setattr(sys, "argv", ["run_monthly.py", "--month", "2026-03"])
         with patch("subprocess.run") as mock_run:
             mock_run.return_value = _mock_subprocess_ok()
             _mod.main()
         matrix_args = mock_run.call_args_list[0][0][0]
-        submap_naam = Path(matrix_args[matrix_args.index("--output") + 1]).name
-        # Formaat: YYYY-MM-DD_HHMM  → 15 tekens voor de underscore
-        assert len(submap_naam) == 15  # "2026-03-26_1438"
-        assert submap_naam[4] == "-" and submap_naam[7] == "-" and submap_naam[10] == "_"
+        output_pad = Path(matrix_args[matrix_args.index("--output") + 1])
+        # Pad is OUTPUT_PATH zelf — geen submap met datum
+        assert output_pad == tmp_path
 
     def test_output_submap_wordt_aangemaakt(
         self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
     ) -> None:
-        """De gedateerde submap wordt effectief aangemaakt door run_monthly.py."""
+        """OUTPUT_PATH bestaat na de run."""
         monkeypatch.setattr(sys, "argv", ["run_monthly.py", "--month", "2026-03"])
         with patch("subprocess.run") as mock_run:
             mock_run.return_value = _mock_subprocess_ok()
             _mod.main()
-        matrix_args = mock_run.call_args_list[0][0][0]
-        output_pad = Path(matrix_args[matrix_args.index("--output") + 1])
-        assert output_pad.exists()
-        assert output_pad.is_dir()
+        assert tmp_path.exists()
+        assert tmp_path.is_dir()
 
 
 # ---------------------------------------------------------------------------

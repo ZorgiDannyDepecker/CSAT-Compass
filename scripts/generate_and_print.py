@@ -2,7 +2,7 @@
 CSAT-Compass — Genereer rapport en druk rechtstreeks af.
 
 Combineert generate_evolution.py + md_to_pdf.py in één stap:
-    1. Genereert het evolutierapport (NL, met grafiek) in een timestamped submap
+    1. Genereert het evolutierapport (NL, met grafiek) met timestamp in bestandsnaam
     2. Kopieert MD + PNG naar Convertiemap\\IN
     3. Converteert naar PDF en stuurt naar printer
 
@@ -18,13 +18,13 @@ import argparse
 import shutil
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 
 from csat.config.settings import OUTPUT_PATH  # noqa: E402
-from csat.utils.date_utils import timestamped_output_dir  # noqa: E402
 
 CONVERTIEMAP_IN = Path(r"C:\Users\danndepe\Documents\Convertiemap\IN")
 CONVERTIEMAP_OUT = Path(r"C:\Users\danndepe\Documents\Convertiemap\OUT")
@@ -43,8 +43,10 @@ def main() -> None:
                         help="Zonder grafiek (geen PNG)")
     args = parser.parse_args()
 
-    # Timestamped outputmap aanmaken — alle bestanden van deze run komen hier
-    run_output = timestamped_output_dir(OUTPUT_PATH)
+    OUTPUT_PATH.mkdir(parents=True, exist_ok=True)
+
+    # Tijdstip vóór generatie — gebruikt om nieuwe bestanden te detecteren
+    voor_run = time.time()
 
     # ── Stap 1: Rapport genereren ─────────────────────────────────────
     print("[1/3] Rapport genereren...")
@@ -53,7 +55,7 @@ def main() -> None:
         str(ROOT / "scripts" / "generate_evolution.py"),
         "--pillar", args.pillar,
         "--lang", args.lang,
-        "--output", str(run_output),
+        "--output", str(OUTPUT_PATH),
     ]
     if not args.no_chart:
         gen_cmd.append("--chart")
@@ -63,19 +65,23 @@ def main() -> None:
         print("[FOUT] Generatie mislukt - afbreken.")
         sys.exit(1)
 
-    # ── Stap 2: MD + PNG kopiëren naar Convertiemap\IN ───────────────
+    # ── Stap 2: Nieuw gegenereerde MD + PNG kopiëren naar Convertiemap\IN ──
     print("[2/3] Bestanden kopieren naar Convertiemap...")
     CONVERTIEMAP_IN.mkdir(parents=True, exist_ok=True)
 
-    # Bestanden ophalen via glob — geen hardcoded namen nodig
-    md_bestanden = list(run_output.glob("evolutie-*.md"))
-    png_bestanden = list(run_output.glob("evolutie-*.png")) if not args.no_chart else []
-    te_kopieren = md_bestanden + png_bestanden
+    # Bestanden die na voor_run aangemaakt zijn — geen hardcoded namen nodig
+    patronen = ["evolutie-*.md"] + (["evolutie-*.png"] if not args.no_chart else [])
+    te_kopieren = [
+        f for patroon in patronen
+        for f in OUTPUT_PATH.glob(patroon)
+        if f.stat().st_mtime >= voor_run
+    ]
 
     if not te_kopieren:
-        print(f"[FOUT] Geen gegenereerde bestanden gevonden in {run_output}")
+        print(f"[FOUT] Geen nieuwe bestanden gevonden in {OUTPUT_PATH}")
         sys.exit(1)
 
+    md_bestanden = [f for f in te_kopieren if f.suffix == ".md"]
     for src in te_kopieren:
         shutil.copy2(src, CONVERTIEMAP_IN / src.name)
         print(f"  [OK] {src.name} -> Convertiemap\\IN")
@@ -96,7 +102,6 @@ def main() -> None:
     subprocess.run(pdf_cmd)  # noqa: S603
 
     print(f"\n[OK] Klaar -- {len(md_bestanden)} rapport(en) verwerkt.")
-    print(f"   Output: {run_output}")
     if args.no_print:
         print(f"   PDF staat in: {CONVERTIEMAP_OUT}")
     else:

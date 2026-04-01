@@ -15,6 +15,7 @@ Manual: docs/03-operationeel/tools/generate-matrix.md
 
 import argparse
 import sys
+from datetime import datetime
 from pathlib import Path
 
 # Zorg dat src/ vindbaar is als het script rechtstreeks wordt aangeroepen
@@ -27,7 +28,7 @@ from csat.core.analysers.base_analyser import KpiResult  # noqa: E402
 from csat.core.analysers.pillar_analyser import PillarAnalyser  # noqa: E402
 from csat.core.exporters.matrix_exporter import MatrixExporter  # noqa: E402
 from csat.core.loaders import get_loader  # noqa: E402
-from csat.utils.date_utils import parse_period, timestamped_output_dir, today_period  # noqa: E402
+from csat.utils.date_utils import parse_period, today_period  # noqa: E402
 from csat.utils.logger import setup_logger  # noqa: E402
 
 # Beschikbare taalopties
@@ -166,12 +167,17 @@ def main() -> None:
     print()
     talen = ["nl", "fr"] if args.lang == "both" else [args.lang]
     gegenereerde_bestanden: list[Path] = []
-    output_dir = Path(args.output) if args.output else timestamped_output_dir(OUTPUT_PATH)
+    output_dir = Path(args.output) if args.output else OUTPUT_PATH
+    output_dir.mkdir(parents=True, exist_ok=True)
+    ts_suffix = datetime.now().astimezone().strftime("%Y%m%d-%H%M")
 
     for taal in talen:
         exporter = MatrixExporter(lang=taal, output_path=output_dir)
         pad = exporter.export(resultaten)
-        gegenereerde_bestanden.append(pad)
+        # Timestamp in bestandsnaam
+        nieuw_pad = pad.with_name(pad.stem + f"_{ts_suffix}" + pad.suffix)
+        pad.rename(nieuw_pad)
+        gegenereerde_bestanden.append(nieuw_pad)
 
     # Samenvatting
     print("[OK] Matrix gegenereerd:")
