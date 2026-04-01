@@ -16,7 +16,7 @@ Manual: docs/03-operationeel/tools/export-data.md
 
 import argparse
 import sys
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 
 # Zorg dat src/ vindbaar is als het script rechtstreeks wordt aangeroepen
@@ -70,6 +70,12 @@ def parse_args() -> argparse.Namespace:
         default=False,
         help="Kopieer exportbestand ook naar data/fallback/ als noodback-up voor CSV-fallback",
     )
+    parser.add_argument(
+        "--no-timestamp",
+        action="store_true",
+        default=False,
+        help="Sla tijdstempel in bestandsnaam over (standaard: timestamp AAN)",
+    )
     return parser.parse_args()
 
 
@@ -89,23 +95,27 @@ def main() -> None:
 
     if args.export_all:
         # Geen filter — volledige dataset
-        bestandsnaam = "v_csat_1_volledig.csv"
+        bestandsnaam_basis = "v_csat_1_volledig"
         label = "volledige dataset"
     elif args.since:
         # Van 01/01/since-jaar tot vandaag — dekt meerdere jaren
         startdatum = pd.Timestamp(f"{args.since}-01-01")
         einddatum = pd.Timestamp(vandaag)
         df = df[pd.to_datetime(df["created"]).between(startdatum, einddatum)].copy()
-        bestandsnaam = f"v_csat_1_{args.since}-heden.csv"
+        bestandsnaam_basis = f"v_csat_1_{args.since}-heden"
         label = f"01/01/{args.since} → {vandaag.strftime('%d/%m/%Y')}"
     else:
         # Enkel het opgegeven jaar (standaard: 2025)
         jaar = args.year if args.year else 2025
         df = filter_year(df, jaar)
-        bestandsnaam = f"v_csat_1_{jaar}.csv"
+        bestandsnaam_basis = f"v_csat_1_{jaar}"
         label = f"jaar {jaar}"
 
     print(f"    {len(df):,} tickets na filter ({label})")
+
+    # Timestamp in bestandsnaam — standaard aan
+    ts = "" if args.no_timestamp else f"_{datetime.now().astimezone().strftime('%Y%m%d-%H%M')}"
+    bestandsnaam = f"{bestandsnaam_basis}{ts}.csv"
 
     # Output-map aanmaken als die nog niet bestaat
     OUTPUT_PATH.mkdir(parents=True, exist_ok=True)
@@ -119,6 +129,7 @@ def main() -> None:
 
     if args.snapshot:
         import shutil  # noqa: PLC0415
+
         fallback_dir = ROOT / "data" / "fallback"
         fallback_dir.mkdir(parents=True, exist_ok=True)
         snapshot_pad = fallback_dir / bestandsnaam
