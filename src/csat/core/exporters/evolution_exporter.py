@@ -84,7 +84,7 @@ def _hospital_status_label(lang: str):
         for threshold, label in _map:
             if score >= threshold:
                 return label
-        return "—"
+        return "—"  # pragma: no cover
 
     return _label
 

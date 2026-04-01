@@ -335,6 +335,14 @@ class TestExport:
         pad = vis.export(tmp_path, year="jan mrt 2026")
         assert " " not in pad.name
 
+    def test_export_ts_suffix_wordt_gebruikt(
+        self, evolution_result: EvolutionResult, tmp_path: Path
+    ) -> None:
+        """Expliciete ts_suffix overschrijft de automatische timestamp."""
+        vis = EvolutionVisualiser(evolution_result)
+        pad = vis.export(tmp_path, year="2026", ts_suffix="_20260401-1435")
+        assert pad.name == "evolutie-pharma-2026-nl_20260401-1435.png"
+
 
 # ---------------------------------------------------------------------------
 # 5. Subplot-logica — inhoud via axes
