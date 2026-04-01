@@ -1,14 +1,14 @@
 # CSAT-Compass - Fase 3d: evolutie-visualisatie
 
-**Versie:** 1.1  
-**Laatst bijgewerkt:** 24/03/2026  
+**Versie:** 1.7
+**Laatst bijgewerkt:** 01/04/2026
 
-**Doel:** Implementatie van matplotlib 4-subplot PNG-visualisaties voor evolutierapporten  
-**Type:** Implementatie  
-**Auteur:** Danny Depecker + GHC  
-**Status:** Compleet  
+**Doel:** Implementatie van matplotlib 4-subplot PNG-visualisaties voor evolutierapporten
+**Type:** Implementatie
+**Auteur:** Danny Depecker + GHC
+**Status:** Compleet
 
-**Bestandsnaam:** fase3d-evolutie-visualisatie.md  
+**Bestandsnaam:** fase3d-evolutie-visualisatie.md
 **Path:** docs/02-tactisch/fasen/
 
 ---
@@ -19,9 +19,9 @@ Fase 3d voegt **matplotlib-visualisaties** toe aan de evolutie-analyse van CSAT-
 Voor elke pijler wordt een 4-subplot PNG gegenereerd die de vergelijking tussen
 baseline (2025) en huidig jaar (2026) visueel samenvat.
 
-**T-shirt:** M (8–24u)  
-**Afhankelijkheid:** Fase 3b (EvolutionResult) + Fase 3c (EvolutionExporter)  
-**Teststand:** 515 tests — 100% coverage — CI stabiel
+**T-shirt:** M (8–24u)
+**Afhankelijkheid:** Fase 3b (EvolutionResult) + Fase 3c (EvolutionExporter)
+**Teststand:** 727 tests — 100% coverage — CI stabiel (Python 3.11 / 3.12 / 3.13)
 
 ---
 
@@ -33,19 +33,28 @@ baseline (2025) en huidig jaar (2026) visueel samenvat.
 | Exporters `__init__.py` | `src/csat/core/exporters/__init__.py` | ✅ Bijgewerkt |
 | CLI `--chart` vlag | `scripts/generate_evolution.py` | ✅ Bijgewerkt |
 | CLI `--chart` vlag batch | `scripts/generate_all_evolutions.py` | ✅ Bijgewerkt |
-| Tests | `tests/core/test_evolution_visualiser.py` | ✅ 43 tests |
+| Tests | `tests/core/test_evolution_visualiser.py` | ✅ 61 tests |
 | Fase-document | `docs/02-tactisch/fasen/fase3d-evolutie-visualisatie.md` | ✅ Dit bestand |
 
 ### 2.1 Bestandsnaamconventie output
 
 ```text
-evolutie-{pillar}-{jaar}[_{YYYYMMDD-HHMM}].png
+evolutie-{pillar}-{jaar}-{lang}[_{YYYYMMDD-HHMM}].png
 
-Standaard (timestamp=True):   evolutie-pharma-2026_20260325-1524.png
-Zonder timestamp (timestamp=False): evolutie-pharma-2026.png
+Standaard (timestamp=True):    evolutie-pharma-2026-nl_20260401-0930.png
+Zonder timestamp (timestamp=False): evolutie-pharma-2026-nl.png
+Expliciete suffix (ts_suffix):  evolutie-pharma-2026-nl_20260401-1435.png
 ```
 
-Taalversie-onafhankelijk — één PNG per pijler.
+- Taalversie (`-nl` / `-fr`) zit verplicht in de bestandsnaam — één PNG per pijler per taal.
+- Output wordt altijd geschreven naar een **datumsubmap** `output/YYYY-MM-DD/`
+  (aangemaakt via `dated_output_dir()` in `date_utils.py`).
+- Bij `--no-timestamp` in de CLI wordt `timestamp=False` doorgegeven en valt de `_{ts}` suffix weg.
+- Bij batch-runs (bv. `run_monthly.py`) wordt `ts_suffix` centraal berekend en doorgegeven
+  zodat MD-rapport en PNG exact dezelfde tijdstempel dragen.
+
+> **Vergelijk met MD-rapport:**
+> `evolutie-pharma-2026-nl_20260401-0930.md` — zelfde patroon, afgehandeld door `EvolutionExporter`
 
 ---
 
@@ -55,14 +64,23 @@ Taalversie-onafhankelijk — één PNG per pijler.
 
 ```python
 class EvolutionVisualiser:
-    def __init__(self, result: EvolutionResult) -> None: ...
+    def __init__(self, result: EvolutionResult, lang: str = "nl") -> None:
+        """lang: 'nl' (standaard) of 'fr' — bepaalt alle teksten in de figuur."""
 
     def render(self) -> plt.Figure:
         """Retourneert matplotlib Figure — geen bestandsschrijving."""
 
-    def export(self, output_path: Path, year: str | None = None, timestamp: bool = True) -> Path:
-        """Schrijft PNG → output_path/evolutie-{pillar}-{jaar}[_{ts}].png
-        timestamp=True voegt _YYYYMMDD-HHMM toe aan de bestandsnaam."""
+    def export(
+        self,
+        output_path: Path,
+        year: str | None = None,
+        timestamp: bool = True,
+        ts_suffix: str | None = None,
+    ) -> Path:
+        """Schrijft PNG → output_path/evolutie-{pillar}-{jaar}-{lang}[_{ts}].png
+        timestamp=True voegt _YYYYMMDD-HHMM toe aan de bestandsnaam.
+        ts_suffix overschrijft de automatische timestamp (gebruik bij batch-runs voor
+        consistente bestandsnamen tussen MD-rapport en PNG)."""
 ```
 
 ### 3.2 Module-level helperfuncties
@@ -73,7 +91,17 @@ class EvolutionVisualiser:
 | `_extract_year(label)` | Viercijferig jaar extraheren uit een periodeomschrijving |
 | `_build_tick_labels(pts)` | X-as labels: jaar op positie "01", maandnummer (MM) elders |
 | `_style_ax(ax)` | Leesbare tick-kleuren + `alpha=1.0` forceren op alle ticklabels |
-| `_style_legend(legend)` | Witte legenda-achtergrond + donkere tekst op alle legendaitems |
+| `_style_legend(legend)` | Witte legenda-achtergrond + donkere tekst; `None`-safe (no-op bij `None`) |
+
+### 3.2a Module-level constanten
+
+| Constante | Type | Beschrijving |
+|---|---|---|
+| `PRIORITY_ORDER` | `list[str]` | Jira-prioriteiten hoog → laag: `["Blocker", "Critical", "Major", "Minor", "Trivial"]` |
+| `PRIORITY_COLORS` | `dict[str, str]` | Kleur per prioriteit: Blocker `#7f0000`, Critical `ZORGI_RED`, Major `#e8835c`, Minor `ZORGI_LIGHT_BLUE`, Trivial `#b8cfe0` |
+| `FUNC_POSITIVE` | `str` | Alias voor `ZORGI_FUNC_POSITIVE` — groene delta-bars |
+| `FUNC_NEGATIVE` / `FUNC_CRISIS` | `str` | Alias voor `ZORGI_RED` — rode delta-bars / hoge % negatief |
+| `_TRANSLATIONS` | `dict[str, dict[str, str]]` | i18n-vertalingstabel voor `'nl'` en `'fr'` — alle teksten in de figuur |
 
 ### 3.3 4-subplot layout
 
@@ -85,13 +113,15 @@ class EvolutionVisualiser:
 │  Gem. CSAT-score      │  % Negatief per maand                │
 │  per maand            │  Staafdiagram                        │
 │  Lijndiagram          │  rood > 15%, pijlerkleur ≤ 15%       │
-│  baseline vs huidig   │  baseline vs current (gap)           │
+│  baseline vs huidig   │  baseline vs current                 │
+│  ▸ # tickets boven    │  ▸ # tickets boven elke staaf        │
+│    elk datapunt       │                                      │
 ├───────────────────────┼──────────────────────────────────────┤
 │  Subplot 3            │  Subplot 4                           │
-│  HC-ratio             │  Δ score per ziekenhuis              │
-│  2 staven             │  Horizontaal, max 15                 │
-│  (baseline + current) │  groen > 0, rood ≤ 0                 │
-│  oranje drempellijn   │  gesorteerd beste → slechtste        │
+│  Prioriteitscompositie│  Δ score per ziekenhuis              │
+│  gestapeld per maand  │  Horizontaal, max 15                 │
+│  (Blocker → Trivial)  │  groen > 0, rood ≤ 0                 │
+│  + HC-ratio lijn      │  gesorteerd beste → slechtste        │
 └───────────────────────┴──────────────────────────────────────┘
 ```
 
@@ -101,9 +131,9 @@ class EvolutionVisualiser:
 |---|---|
 | Figuurformaat | 15×10 inch |
 | DPI export | 150 (scherm) — 300 beschikbaar via `_DPI_PRINT` |
-| Figuurachtergrond | `#d7e7f3` (Ultra Light Blue — ZORGI Design System) |
-| Font | `sans-serif` (Poppins indien aanwezig in `static/fonts/`, anders Verdana) |
-| Tekstkleur | `#1a1a1a` (`_LABEL_COLOR`) op alle labels, ticks en annotaties |
+| Figuurachtergrond | `#f7fbfe` (`ZORGI_CHART_BG` — iets lichter dan Ultra Light Blue) |
+| Font | `sans-serif`: `["DejaVu Sans", "Verdana", "Poppins"]` — DejaVu Sans voor Unicode-dekking |
+| Tekstkleur | `ZORGI_BODY_TEXT` (`#1a1a1a`) op alle labels, ticks en annotaties |
 | GridSpec kolommen | `width_ratios=[1, 1.2]` — rechterkolom ~55% |
 | GridSpec rijen | `height_ratios=[1, 1]` — gelijke hoogte |
 | `hspace` / `wspace` | 0.50 / 0.40 |
@@ -125,8 +155,8 @@ plt.rcParams.update({
     "axes.labelcolor":   "#1a1a1a",
     "xtick.color":       "#1a1a1a",
     "ytick.color":       "#1a1a1a",
-    "axes.facecolor":    "#d7e7f3",   # ZORGI_ULTRA_LIGHT
-    "figure.facecolor":  "#d7e7f3",
+    "axes.facecolor":    "#f7fbfe",   # ZORGI_CHART_BG (iets lichter dan ZORGI_ULTRA_LIGHT)
+    "figure.facecolor":  "#f7fbfe",
     "axes.titlesize":    11,
     "axes.labelsize":    9,
     "xtick.labelsize":   8.5,
@@ -147,13 +177,15 @@ plt.rcParams.update({
 - **X-as:** jaar geïntegreerd als ticklabel op positie "01" via `_build_tick_labels()`,
   maandnummer (MM) op alle andere posities — `rotation=0`, `ha="center"`
 - **Xlim:** beperkt tot datapunten (`x_b[0]-0.5` … `x_c[-1]+0.5`) — geen lege ruimte
-- **Y-as:** gemiddelde CSAT-score, vast bereik 0–5,5
+- **Y-as:** gemiddelde CSAT-score, vast bereik `0–6.0` (extra ruimte boven 5.0 voor ticket-annotaties)
 - **Baseline-lijn:** `ZORGI_LIGHT_BLUE` (#609fce), `alpha=0.85`, gestippeld (`--`), `linewidth=1.5`, `markersize=4`
 - **Current-lijn:** `ZORGI_DARK_BLUE` (#003a70), `alpha=1.0`, vol (`-`), `linewidth=2.0`, `markersize=5`
 - **Verbindingssegment:** `ZORGI_GREY_BLUE` (#5f8495), `alpha=0.5`, vol (`-`), `linewidth=1.2` — verbindt het laatste baselinepunt met het eerste current-punt voor één doorgaande lijn
-- **Drempellijn:** `AVG_SCORE_MIN` = 4,0 — `ZORGI_GREY_BLUE` gestippeld, `zorder=4`
+- **Drempellijn:** `AVG_SCORE_MIN` = 4,0 — `ZORGI_BORDEAUX` gestippeld, `zorder=4`
 - **Jaargrens-lijn:** `ZORGI_DARK_BLUE` (#003a70), stippellijn (`:`), `linewidth=1.4`, `alpha=0.6` — op beide bovenste subplots identiek
-- **Legenda:** `bbox_to_anchor=(0.01, 0.99)`, `framealpha=0.92`, witte achtergrond
+- **Ticket-annotaties:** totaal tickets boven elk datapunt (`fontsize=7`, `ZORGI_GREY_BLUE`, `y = score + 0.08`)
+- **Legenda:** `bbox_to_anchor=(0.01, 0.99)`, `framealpha=0.92`, witte achtergrond;
+  bevat `# tickets` dummy-handle voor duiding van de annotaties
 
 ### 4.2 Subplot 2 — % negatief per maand
 
@@ -162,24 +194,45 @@ plt.rcParams.update({
 
 - **X-as:** zelfde opbouw als subplot 1 via `_build_tick_labels()`; direct aansluitend (geen gap)
 - **Xlim:** beperkt tot datapunten (`x_b[0]-0.5` … `x_c[-1]+0.5`)
-- **Y-as:** dynamisch — `max(HIGH_CRITICAL_MAX × 2, min(100, max_pct + 15))` zodat kleine waarden (< 20%) proportioneel leesbaar blijven; minimum 30% om de drempellijn altijd zichtbaar te houden
+- **Y-as:** dynamisch — `max(HIGH_CRITICAL_MAX × 2 + 4.0, min(104.0, max_pct + 8.0))`;
+  extra headroom zodat ticket-annotaties boven de staven zichtbaar blijven
 - **Kleur:** `ZORGI_RED` (#dc2b26) als pct > 15%; `ZORGI_LIGHT_BLUE` (#609fce) als ≤ 15%
 - **Opacity:** baseline 0.6, current 1.0
-- **Drempellijn:** 15% — `ZORGI_RED` gestippeld, `zorder=5`
+- **Drempellijn:** 15% — `ZORGI_BORDEAUX` gestippeld, `zorder=5`
 - **Jaargrens-lijn:** identiek aan subplot 1
+- **Ticket-annotaties:** totaal tickets boven elke staaf (`fontsize=7`, `ZORGI_GREY_BLUE`, `y = pct_neg + 1.5`)
+- **Legenda:** rechtsboven; bevat drempellijn + `# tickets` dummy-handle
 
-### 4.3 Subplot 3 — HC-ratio samenvatting
+### 4.3 Subplot 3 — prioriteitscompositie per maand
 
-> **Definitie HC-ratio:** `(Blocker + Critical + Major tickets) ÷ (alle tickets) × 100`
-> HC-ratio gebruikt **alle** tickets — niet alleen gescoorde. Drempel: 15%.
-> **Datumbasis (ADR-011):** `_get_df_for_periods()` filtert op `satisfaction_date`.
+> **Definitie:** procentueel aandeel per Jira-prioriteit per maand (gestapeld, 0–100%).
+> HC-ratio lijn (Blocker + Critical) bovenop de staven als trendlijn.
+> Drempel: 15% (HC-ratio) — `ZORGI_BORDEAUX` stippellijn.
+> **Datumbasis (ADR-011):** zelfde `satisfaction_date`-groepering.
 
-- **Staven:** 2 staven, `width=0.45` — baseline (links, `alpha=0.6`), current (rechts, `alpha=1.0`)
-- **Xlim:** `(-0.75, 1.75)` — staven gecentreerd, geen dode ruimte
-- **Kleur:** altijd `ZORGI_RED` (#dc2b26) — HC-ratio is per definitie een aandachtspunt, geen conditionele kleur
-- **Y-as:** dynamisch — `max(HIGH_CRITICAL_MAX × 2, min(100, max_val + 20))` — zelfde principe als subplot 2
-- **Drempellijn:** `HIGH_CRITICAL_MAX` = 15% — `ZORGI_PURPLE` (#7f4267) gestippeld, `zorder=5`
-- **Annotaties:** procentwaarden (`fontsize=11`, `ZORGI_BODY_TEXT`) boven elke staaf
+- **Type:** gestapeld staafdiagram — één laag per prioriteit
+- **Prioriteitvolgorde (bottom → top):** Blocker → Critical → Major → Minor → Trivial
+- **Kleuren per prioriteit:**
+
+  | Prioriteit | Kleur | Hex |
+  |---|---|---|
+  | Blocker | Donker rood | `#7f0000` |
+  | Critical | ZORGI rood | `#dc2b26` |
+  | Major | Oranje-rood | `#e8835c` |
+  | Minor | ZORGI Light Blue | `#609fce` |
+  | Trivial | Lichtblauw | `#b8cfe0` |
+
+- **Opacity:** baseline-maanden `0.6`, current-maanden `1.0`
+- **HC-ratio lijn:** `ZORGI_BORDEAUX`, `linestyle="--"`, `linewidth=1.2`, `marker="o"`, `markersize=3`
+- **Drempellijn:** `HIGH_CRITICAL_MAX` = 15% — `ZORGI_BORDEAUX` stippellijn (`:`), `alpha=0.5`
+- **Jaargrens-lijn:** identiek aan subplots 1 en 2
+- **Y-as:** vast bereik `0–118` (18% extra ruimte boven 100% voor ticket-annotaties);
+  yticks op `[0, 25, 50, 75, 100]`
+- **Ticket-annotaties:** totaal per maand op `y=101.5` (`fontsize=7`, `ZORGI_GREY_BLUE`)
+- **Legenda:** horizontaal op één rij (Trivial → Blocker + HC-lijn + `# tickets`);
+  `ncols=len(handles)`, `frameon=True`, `fontsize=7.5`
+- **i18n:** titel via `_TRANSLATIONS[lang]["sub3_title"]` — NL: `"Prioriteitscompositie per maand"` / FR: `"Composition des priorités par mois"`
+- **Lege data:** toont `"Geen data"` (NL) of `"Pas de données"` (FR) als `monthly_timeline` leeg is
 
 ### 4.4 Subplot 4 — delta per ziekenhuis
 
@@ -196,7 +249,10 @@ plt.rcParams.update({
 - **Beperking:** max. 15 ziekenhuizen (top 7 + bottom 8 bij meer)
 - **Kleur:** `FUNC_POSITIVE` = `#2e7d32` (groen) als delta > 0; `ZORGI_RED` (#dc2b26) als delta ≤ 0 — groen is bewuste uitzondering op ZORGI Design System (Optie B, semantische waarde)
 - **Xlim:** `min_delta - 0.5` … `max_delta + 0.8` — exact op werkelijke data
-- **Annotaties:** `clip_on=False` zodat waarden nooit afgesneden worden
+- **Annotaties:** delta-waarde naast de bar (`clip_on=False`); ticket-count `#{baseline}/{current}` naast de nul-lijn
+  - Positieve delta (≥ 0): ticket-label **links** van nul-lijn (`ha="right"`)
+  - Negatieve delta (< 0): ticket-label **rechts** van nul-lijn (`ha="left"`)
+- **Legenda:** `#99/99` (grijs — `ZORGI_GREY_BLUE`) + `"aantal {baseline}/{current}"` (zwart — `ZORGI_BODY_TEXT`), `ncols=2`
 - **Y-as tick-streepjes:** `length=0` — labels zichtbaar, streepjes onzichtbaar
 
 > **📋 Backlog — toekomstige verbetering:**
@@ -206,10 +262,11 @@ plt.rcParams.update({
 
 ### 4.5 Globale opmaak — alle subplots
 
-- **Spines:** `edgecolor="#cccccc"`, `linewidth=0.8` — subtiel kader op alle 4
-- **Gridlines:** enkel horizontaal (`yaxis.grid`), `color="#dddddd"`, `linewidth=0.6`;
+- **Spines:** `edgecolor=ZORGI_GREY_BLUE`, `linewidth=0.6` — subtiel kader op alle 4
+- **Gridlines:** enkel horizontaal (`yaxis.grid`), `color=ZORGI_ULTRA_LIGHT`, `linewidth=0.8`;
   `xaxis.grid(False)` expliciet uitgeschakeld op alle subplots
 - **`set_axisbelow(True)`:** grid altijd achter de bars/lijnen
+- **Jaargrens-lijn:** `ZORGI_DARK_BLUE`, `linestyle=":"`, aanwezig op subplots 1, 2 en 3 (niet subplot 4)
 
 ---
 
@@ -218,14 +275,17 @@ plt.rcParams.update({
 ### 5.1 CLI — per pijler
 
 ```powershell
-# Rapport + visualisatie
+# Rapport + visualisatie (NL + FR, output in output/YYYY-MM-DD/)
 .venv\Scripts\python.exe scripts/generate_evolution.py --pillar pharma --chart
 
 # Met specifieke periodes
 .venv\Scripts\python.exe scripts/generate_evolution.py --pillar pharma --baseline 2025-01 2025-12 --current 2026-01 2026-03 --chart
 
-# Alleen rapport NL + visualisatie
+# Alleen NL rapport + visualisatie
 .venv\Scripts\python.exe scripts/generate_evolution.py --pillar pharma --lang nl --chart
+
+# Zonder tijdstempel in bestandsnaam
+.venv\Scripts\python.exe scripts/generate_evolution.py --pillar pharma --chart --no-timestamp
 
 # Noodrun bij DB-storing — CSV-fallback forceren (ADR-011)
 .venv\Scripts\python.exe scripts/generate_evolution.py --pillar pharma --chart --force-csv
@@ -234,7 +294,7 @@ plt.rcParams.update({
 ### 5.2 CLI — alle pijlers
 
 ```powershell
-# Rapporten + visualisaties voor alle 5 pijlers
+# Rapporten + visualisaties voor alle pijlers
 .venv\Scripts\python.exe scripts/generate_all_evolutions.py --chart
 
 # Met periodes
@@ -246,6 +306,8 @@ plt.rcParams.update({
 ```python
 from csat.core.analysers.evolution_analyser import EvolutionAnalyser
 from csat.core.exporters.evolution_visualiser import EvolutionVisualiser
+from csat.utils.date_utils import dated_output_dir
+from csat.config.settings import OUTPUT_PATH
 from pathlib import Path
 
 analyser = EvolutionAnalyser(df, pillar_key="pharma")
@@ -254,14 +316,21 @@ result = analyser.analyse(
     current_periods=["2026-01", "2026-02", "2026-03"],
 )
 
-vis = EvolutionVisualiser(result)
+# Output in datumsubmap (output/2026-04-01/)
+output_path = dated_output_dir(OUTPUT_PATH)
 
-# Optie A: figuur zonder bestandsschrijving
-fig = vis.render()
+# NL-versie
+vis_nl = EvolutionVisualiser(result, lang="nl")
+pad_nl = vis_nl.export(output_path, year="2026")
+# → output/2026-04-01/evolutie-pharma-2026-nl_20260401-0930.png
 
-# Optie B: direct naar PNG
-pad = vis.export(Path("output"), year="2026")
-# → output/evolutie-pharma-2026.png
+# FR-versie met expliciete suffix (identiek aan bijbehorend MD-rapport)
+vis_fr = EvolutionVisualiser(result, lang="fr")
+pad_fr = vis_fr.export(output_path, year="2026", ts_suffix="_20260401-0930")
+# → output/2026-04-01/evolutie-pharma-2026-fr_20260401-0930.png
+
+# Render zonder schrijven
+fig = vis_nl.render()
 ```
 
 ---
@@ -276,7 +345,7 @@ pad = vis.export(Path("output"), year="2026")
 | `src/csat/config/settings.py` | `AVG_SCORE_MIN` (4,0), `HIGH_CRITICAL_MAX` (15,0) |
 | `src/csat/core/analysers/evolution_result.py` | Input-dataklassen |
 | `src/csat/core/exporters/evolution_exporter.py` | Patroon render()/export() |
-| `tests/core/test_evolution_visualiser.py` | 44 unit tests |
+| `tests/core/test_evolution_visualiser.py` | 61 unit tests |
 
 ---
 
@@ -286,13 +355,20 @@ pad = vis.export(Path("output"), year="2026")
 |---|---|---|
 | `TestFmtDelta` | 5 | ZORGI-getalnotatie met +/- prefix |
 | `TestExtractYear` | 5 | Jaar extraheren uit variabele labels |
-| `TestEvolutionVisualiserInit` | 4 | Pijlerkleur- en naamlookup, fallback |
-| `TestRender` | 9 | Figure, 4 assen, formaat, facecolor, titels |
-| `TestExport` | 10 | PNG-schrijving, naam, map, logger, figuur sluiten |
-| `TestSubplots` | 10 | Subplot-inhoud, drempellijnen, max 15 ziekenhuizen |
-| **Totaal** | **44** | 100% coverage (`# pragma: no cover` op defensieve fallbacks) |
+| `TestEvolutionVisualiserInit` | 4 | Pijlerkleur- en naamlookup, fallback, onbekende pijler |
+| `TestRender` | 9 | Figure, 4 assen, formaat, facecolor, titels, structureel label |
+| `TestExport` | 11 | PNG-schrijving, naam, taalcode in naam, map, logger, ts_suffix |
+| `TestSubplots` | 24 | Subplot-inhoud, drempellijnen, ticket-annotaties, legenda's, i18n, max 15 ziekenhuizen, lege-data branches |
+| `TestRandgevallenBranchCoverage` | 3 | `_style_legend(None)`, negatieve delta ticket-label, legenda kleuren |
+| **Totaal** | **61** | 100% coverage (`# pragma: no cover` op defensieve fallbacks) |
 
-> Versie 44 tests: `test_subplot4_nieuwe_instappers_uitgesloten` toegevoegd (ADR-012).
+> Tests toegevoegd t.o.v. v1.4:
+>
+> - Subplot 1 & 2: ticket-annotaties, legenda `# tickets`, ylim-asserties
+> - Subplot 3: gestapelde staven, i18n NL/FR titels, lege priority_counts, drempellijn
+> - Subplot 4: negatieve delta ticket-label, legenda-kleuren assertie
+> - `TestRandgevallenBranchCoverage`: branch-coverage voor `_style_legend(None)` en subplot 4 edge cases
+> - `test_export_ts_suffix_wordt_gebruikt` — expliciete ts_suffix overschrijft automatische timestamp
 
 ---
 
@@ -302,7 +378,7 @@ pad = vis.export(Path("output"), year="2026")
 Fase 3b ──► EvolutionResult ──► Fase 3d: EvolutionVisualiser
 Fase 3c ──► EvolutionExporter              │
                                            ▼
-                                   evolutie-{pillar}-{jaar}.png
+                          output/YYYY-MM-DD/evolutie-{pillar}-{jaar}-{lang}[_{ts}].png
 ```
 
 **Volgende stap:** Fase 3e — `run_monthly.py` (alles in één run)
@@ -349,6 +425,7 @@ src/csat/utils/zorgi_theme.py                      ← pure constanten, geen fra
 | Constante | Waarde | Gebruik | Ref |
 |---|---|---|---|
 | `ZORGI_BORDEAUX` | `#722F37` | Drempel- en referentielijnen alle 4 subplots | ADR-012 |
+| `ZORGI_CHART_BG` | `#f7fbfe` | Figuur- en subplot-achtergrond (iets lichter dan Ultra Light) | §3.4 |
 | `ZORGI_LIGHT_PURPLE` | `#a06b8a` | OAZIS/care_admin pijlerkleur | PILLAR_REGISTRY |
 | `ZORGI_FUNC_POSITIVE` | `#2e7d32` | Positieve delta-bars (Optie B, semantisch groen) | §4.4 Optie B |
 
@@ -363,3 +440,6 @@ src/csat/utils/zorgi_theme.py                      ← pure constanten, geen fra
 | 1.2 | 25/03/2026 | ADR-011 verwerkt: satisfaction_date als datumbasis gedocumenteerd op alle 4 subplots; ZORGI Design System kleuren gecorrigeerd (subplot 1–4); rcParams §3.5 geactualiseerd (DejaVu Sans, ZORGI_BODY_TEXT); subplot 3 drempellijn ZORGI_PURPLE + altijd rood; dynamische y-as subplot 2 & 3; timestamp export; --force-csv CLI | Danny Depecker + GHC |
 | 1.3 | 25/03/2026 | ADR-012 verwerkt: nieuwe instappers (baseline_total=0) uitgesloten uit delta-ranking subplot 4; backlog-noot toegevoegd voor toekomstige apart-weergave | Danny Depecker + GHC |
 | 1.4 | 25/03/2026 | §9 Kleurarchitectuur toegevoegd: 3-laagse theme-structuur (zorgi_theme → branding → visualiser); §6 uitgebreid met zorgi_theme.py; testoverzicht 44 tests | Danny Depecker + GHC |
+| 1.5 | 27/03/2026 | Subplot 3 vervangen: HC-ratio → gestapeld prioriteitscompositiediagram (Blocker/Critical/Major/Minor/Trivial); PRIORITY_ORDER + PRIORITY_COLORS constanten; ticket-annotaties subplots 1, 2 en 3; legenda # tickets subplots 1 en 2; ylim subplot 1 → 6.0; ylim subplot 3 → 118; testoverzicht 61 tests; i18n lang-parameter | Danny Depecker + GHC |
+| 1.6 | 01/04/2026 | `lang`-parameter en `_TRANSLATIONS` i18n gedocumenteerd; `ts_suffix` parameter export() gedocumenteerd; bestandsnaamconventie bijgewerkt (taalcode in naam); output naar datumsubmap `output/YYYY-MM-DD/`; figuurachtergrond ZORGI_CHART_BG (#f7fbfe); subplot 4 ticket-annotaties positie gedocumenteerd; §3.2a module-constanten tabel; ZORGI_CHART_BG toegevoegd aan §9 | Danny Depecker + GHC |
+| 1.7 | 01/04/2026 | Lint-fix `evolution_analyser.py` gedocumenteerd: `_MIN_TICKETS_*` → lowercase (Ruff N806); testoverzicht finaal 61 tests; implementatiegids v2.3 | Danny Depecker + GHC |

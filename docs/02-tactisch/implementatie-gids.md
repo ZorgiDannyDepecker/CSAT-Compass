@@ -1,7 +1,7 @@
 # CSAT-Compass - Implementatiegids
 
-**Versie:** 2.2
-**Laatst bijgewerkt:** 31/03/2026
+**Versie:** 2.3
+**Laatst bijgewerkt:** 01/04/2026
 
 **Doel:** Index van alle implementatiefasen met status en verwijzingen
 **Type:** Guide
@@ -162,3 +162,4 @@ src/csat/utils/zorgi_theme.py                      ← pure constanten, geen fra
 | 2.0 | 29/03/2026 | Fase 3f/3g links gecorrigeerd naar v3.0 in `fasen/` (was: archief GHC-versie); fase 3f beschrijving aangevuld met "12 beslissingen DDP"; noot over samenvoeging CD+GHC toegevoegd | Danny Depecker + CD |
 | 2.1 | 31/03/2026 | Sectie "Mapstructuur: scripts / src / tools" toegevoegd (runner/library-patroon, ADR-013) | Danny Depecker + GHC |
 | 2.2 | 31/03/2026 | Fase 3g status bijgewerkt naar Compleet (727 tests, 100% coverage, CI stabiel) | Danny Depecker + GHC |
+| 2.3 | 01/04/2026 | Fase 3d doc bijgewerkt naar v1.7: subplot 3 prioriteitscompositie, i18n, output-structuur datumsubmap, 61 tests | Danny Depecker + GHC |

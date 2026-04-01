@@ -15,6 +15,66 @@ Formaat gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.0.0/).
 
 ---
 
+## [Post fase 3g — visualisatie-verfijning + output-structuur] — 01/04/2026
+
+### Toegevoegd
+
+- `data/fallback/` — nieuwe volledige fallback CSV aangemaakt met datum/tijdstempel in bestandsnaam
+- `output/2026-04-01/` — eerste datumsubmap automatisch aangemaakt via `dated_output_dir()`
+- NL-rapport + FR-rapport + 2 PNG's (NL/FR) gegenereerd voor PHARMA in `output/2026-04-01/`
+
+### Gewijzigd
+
+**EvolutionVisualiser — `src/csat/core/exporters/evolution_visualiser.py`:**
+
+- **Subplot 3 vervangen:** HC-ratio staafdiagram → gestapeld prioriteitscompositiediagram
+  (Blocker/Critical/Major/Minor/Trivial) per maand; HC-ratio als lijndiagram bovenop
+- **Taalondersteuning:** `lang`-parameter toegevoegd aan constructor (`'nl'` / `'fr'`);
+  `_TRANSLATIONS`-dict voor alle teksten in de figuur
+- **Module-constanten:** `PRIORITY_ORDER` en `PRIORITY_COLORS` op moduleniveau
+- **Ticket-annotaties:** totaal tickets boven elk datapunt (subplot 1) en boven elke staaf (subplot 2)
+- **Legenda uitgebreid:** `# tickets` dummy-handle toegevoegd aan subplots 1 en 2
+- **Y-as subplot 1:** `ylim(0, 6.0)` (was 0–5.5) voor ruimte boven annotaties
+- **Y-as subplot 2:** extra headroom voor ticket-annotaties
+- **`export()` signature:** `ts_suffix`-parameter toegevoegd voor consistente bestandsnamen
+  bij batch-runs (MD-rapport en PNG dragen exact dezelfde tijdstempel)
+- **Bestandsnaamconventie:** taalcode in naam → `evolutie-{pillar}-{jaar}-{lang}[_{ts}].png`
+- **Figuurachtergrond:** `ZORGI_CHART_BG` (`#f7fbfe`) i.p.v. `ZORGI_ULTRA_LIGHT` (`#d7e7f3`)
+
+**EvolutionAnalyser — `src/csat/core/analysers/evolution_analyser.py`:**
+
+- Lint-fix Ruff N806: `_MIN_TICKETS_TOP` → `_min_tickets_top`, `_MIN_TICKETS_BOTTOM` → `_min_tickets_bottom`, `_MIN_TICKETS` → `_min_tickets`
+- MyPy-fix: `-(h.current_score or 0.0)` i.p.v. `-(h.current_score)` — `float | None` unary minus
+
+**Output-structuurwijziging — `scripts/generate_evolution.py` + `scripts/run_monthly.py`:**
+
+- Output altijd in datumsubmap `output/YYYY-MM-DD/` via `dated_output_dir()`
+- `--no-timestamp` CLI-vlag toegevoegd aan `generate_evolution.py`
+- `ts_suffix` centraal berekend en doorgegeven aan zowel `EvolutionExporter` als `EvolutionVisualiser`
+  zodat MD-rapport en PNG-bestanden exact dezelfde tijdstempel dragen
+
+**Tests — `tests/core/test_evolution_visualiser.py`:**
+
+- Uitgebreid van 44 naar **61 tests**
+- Nieuw: `TestRandgevallenBranchCoverage` (3 tests) — branch-coverage `_style_legend(None)`,
+  negatieve delta ticket-label, legenda-kleuren subplot 4
+- Subplot 1 & 2: ticket-annotaties, `# tickets` legenda, ylim-asserties
+- Subplot 3: gestapelde staven, i18n NL/FR, lege priority_counts, drempellijn
+- `test_export_ts_suffix_wordt_gebruikt` — expliciete ts_suffix overschrijft automatische timestamp
+- `test_export_bestandsnaam_pharma` — bevestigt taalcode (`-nl`) in bestandsnaam
+
+**Documentatie:**
+
+- `docs/02-tactisch/fasen/fase3d-evolutie-visualisatie.md` → v1.7: volledig bijgewerkt
+  (subplot 3, i18n, bestandsnaamconventie, output-structuur, testoverzicht 61 tests)
+- `docs/CHANGELOG.md` → deze entry
+- `docs/project-journal.md` → v2.2: journaalentry 01/04/2026
+- `docs/02-tactisch/implementatie-gids.md` → v2.3
+
+**Teststand:** 727 passed — 100% coverage — CI stabiel (Python 3.11 / 3.12 / 3.13)
+
+---
+
 ## [Fase 3g afsluiting] — 31/03/2026
 
 ### Toegevoegd

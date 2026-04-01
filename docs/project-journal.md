@@ -1,7 +1,7 @@
 # 📓 CSAT-Compass - Project Journal
 
-**Versie:** 2.0
-**Laatst bijgewerkt:** 29/03/2026
+**Versie:** 2.2
+**Laatst bijgewerkt:** 01/04/2026
 
 **Doel:** Chronologisch logboek van beslissingen, bevindingen en voortgang  
 **Type:** Reference  
@@ -29,6 +29,7 @@
 - [2026-03-27 — Fase 3d verfijning + Fase 3f opstart](#2026-03-27--fase-3d-verfijning--fase-3f-opstart)
 - [2026-03-29 — Fase 3f/3g herstructurering](#2026-03-29--fase-3f3g-herstructurering)
 - [2026-03-31 — Fase 3g afsluiting](#2026-03-31--fase-3g-afsluiting)
+- [2026-04-01 — Visualisatie-verfijning + output-structuur](#2026-04-01--visualisatie-verfijning--output-structuur)
 - [Versiehistorie](#versiehistorie)
 
 ---
@@ -388,6 +389,54 @@ Fase 3g is volledig afgerond. Alle deliverables uit het advieskader (fase 3f v3.
 
 ---
 
+## 2026-04-01 — Visualisatie-verfijning + output-structuur
+
+### Wijzigingen
+
+**EvolutionVisualiser — subplot 3 vervangen:**
+
+- Oud: HC-ratio vergelijkingsdiagram (2 staven baseline/huidig)
+- Nieuw: gestapeld prioriteitscompositiediagram (Blocker/Critical/Major/Minor/Trivial) per maand
+- HC-ratio bewaard als lijndiagram bovenop de staven
+- Ticket-annotaties boven elk datapunt (subplot 1) en elke staaf (subplot 2)
+- `PRIORITY_ORDER` en `PRIORITY_COLORS` als module-constanten
+
+**Taalondersteuning toegevoegd:**
+
+- `lang`-parameter (`'nl'` / `'fr'`) in `EvolutionVisualiser.__init__`
+- `_TRANSLATIONS`-dict voor alle teksten in de figuur (titels, labels, fallbacks)
+- `generate_evolution.py` genereert nu NL én FR PNG bij `--lang both`
+
+**Output-structuurwijziging:**
+
+- Alle output (MD + PNG) gaat naar datumsubmap `output/YYYY-MM-DD/`
+- `ts_suffix` centraal berekend en gedeeld tussen `EvolutionExporter` en `EvolutionVisualiser`
+  voor consistente bestandsnamen
+- Bestandsnaamconventie: `evolutie-{pillar}-{jaar}-{lang}[_{ts}].png`
+
+**Lint-fixes `evolution_analyser.py`:**
+
+- Ruff N806: `_MIN_TICKETS_TOP` / `_MIN_TICKETS_BOTTOM` / `_MIN_TICKETS` → lowercase
+- MyPy: `float | None` unary minus opgelost via `or 0.0`
+
+### Teststand
+
+- **727 tests** — 100% coverage — CI stabiel (Python 3.11 / 3.12 / 3.13)
+- `test_evolution_visualiser.py`: uitgebreid van 44 naar 61 tests
+- Nieuw: `TestRandgevallenBranchCoverage` voor branch-coverage edge cases
+
+### Output gegenereerd (01/04/2026)
+
+| Bestand | Locatie |
+|---|---|
+| `evolutie-pharma-2026-nl_20260401-*.md` | `output/2026-04-01/` |
+| `evolutie-pharma-2026-fr_20260401-*.md` | `output/2026-04-01/` |
+| `evolutie-pharma-2026-nl_20260401-*.png` | `output/2026-04-01/` |
+| `evolutie-pharma-2026-fr_20260401-*.png` | `output/2026-04-01/` |
+| Fallback CSV | `data/fallback/` (met datum/tijdstempel) |
+
+---
+
 ## Versiehistorie
 
 | Versie | Datum | Wijzigingen | Auteur               |
@@ -404,6 +453,7 @@ Fase 3g is volledig afgerond. Alle deliverables uit het advieskader (fase 3f v3.
 | 1.9 | 27/03/2026 | Fase 3d verfijning (subplot 3 herwerking, 570 tests) + Fase 3f opstart | Danny Depecker + GHC |
 | 2.0 | 29/03/2026 | Fase 3f/3g herstructurering: advieskader formeel naar fase 3f, implementatie doorgeschoven naar 3g, documentatie opgeschoond | Danny Depecker + GHC |
 | 2.1 | 31/03/2026 | Fase 3g afsluiting: NL/FR taalcorrecties, testfixes, 727 tests; beslissing Fase 5a PHARMA-first | Danny Depecker + GHC |
+| 2.2 | 01/04/2026 | Visualisatie-verfijning: subplot 3 prioriteitscompositie, i18n, output-structuur datumsubmap, lint-fixes, 61 visualiser-tests | Danny Depecker + GHC |
 
 ---
 *ZORGI — Danny Depecker*
