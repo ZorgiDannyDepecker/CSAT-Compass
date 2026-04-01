@@ -15,6 +15,7 @@ Gebruik:
 
 import argparse
 import sys
+from datetime import datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -109,6 +110,12 @@ def main() -> None:  # noqa: C901
         default=False,
         help="Forceer CSV-loader (omzeilt SQL — voor onderhoud of reproduceerbare runs)",
     )
+    parser.add_argument(
+        "--timestamp",
+        action="store_true",
+        default=False,
+        help="Voeg datum/tijdstempel toe aan bestandsnaam (bv. evolutie-pharma-2026-nl_20260401-1045.md)",
+    )
 
     args = parser.parse_args()
 
@@ -123,7 +130,6 @@ def main() -> None:  # noqa: C901
         baseline_periods = _periods_range(args.baseline[0], args.baseline[1])
     else:
         # Standaard: volledig vorig jaar
-        from datetime import datetime  # noqa: PLC0415
 
         huidig_jaar = datetime.now().astimezone().year
         vorig_jaar = huidig_jaar - 1
@@ -148,6 +154,10 @@ def main() -> None:  # noqa: C901
 
     output_path = Path(args.output) if args.output else None
 
+    # Tijdstempel voor bestandsnamen (eenmalig bepaald voor consistentie NL/FR)
+
+    ts_suffix = f"_{datetime.now().astimezone().strftime('%Y%m%d-%H%M')}" if args.timestamp else ""
+
     # Export
     exported: list[Path] = []
     langs = ["nl", "fr"] if args.lang == "both" else [args.lang]
@@ -158,6 +168,11 @@ def main() -> None:  # noqa: C901
             output_path=output_path,
         )
         pad = exporter.export(result, year=args.year)
+        # Bestandsnaam aanpassen met timestamp indien gevraagd
+        if args.timestamp:
+            nieuw_pad = pad.with_name(pad.stem + ts_suffix + pad.suffix)
+            pad.rename(nieuw_pad)
+            pad = nieuw_pad
         exported.append(pad)
         print(f"[OK] [{lang.upper()}] {pad}")
 
@@ -169,7 +184,7 @@ def main() -> None:  # noqa: C901
         vis_langs = ["nl", "fr"] if args.lang == "both" else [args.lang]
         for lang in vis_langs:
             vis = EvolutionVisualiser(result, lang=lang)
-            png_pad = vis.export(vis_output, year=args.year, timestamp=False)
+            png_pad = vis.export(vis_output, year=args.year, timestamp=args.timestamp)
             print(f"[OK] [PNG-{lang.upper()}] {png_pad}")
         print(f">> {len(vis_langs)} visualisatie(s) gegenereerd")
 
