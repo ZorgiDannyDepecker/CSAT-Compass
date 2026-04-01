@@ -24,7 +24,7 @@ from csat.core.analysers.evolution_analyser import EvolutionAnalyser  # noqa: E4
 from csat.core.exporters.evolution_exporter import EvolutionExporter  # noqa: E402
 from csat.core.exporters.evolution_visualiser import EvolutionVisualiser  # noqa: E402, F401
 from csat.core.loaders import get_loader  # noqa: E402
-from csat.utils.date_utils import parse_period, previous_period, today_period  # noqa: E402
+from csat.utils.date_utils import parse_period, previous_period, timestamped_output_dir, today_period  # noqa: E402
 from csat.utils.logger import setup_logger  # noqa: E402
 
 # Volgorde: ZORGI totaal eerst, daarna pijlers alfabetisch
@@ -120,8 +120,8 @@ def main() -> None:
     loader = get_loader(DB_CONN, CSV_FALLBACK_PATH, force_csv=args.force_csv)
     df = loader.load()
 
-    # Uitvoermap bepalen
-    output_dir = Path(args.output) if args.output else OUTPUT_PATH
+    # Uitvoermap bepalen — altijd een timestamped submap
+    output_dir = Path(args.output) if args.output else timestamped_output_dir(OUTPUT_PATH)
 
     # Loop over pijlers
     totaal = 0

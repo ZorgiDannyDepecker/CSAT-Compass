@@ -27,7 +27,7 @@ from csat.core.analysers.evolution_analyser import EvolutionAnalyser  # noqa: E4
 from csat.core.exporters.evolution_exporter import EvolutionExporter  # noqa: E402
 from csat.core.exporters.evolution_visualiser import EvolutionVisualiser  # noqa: E402
 from csat.core.loaders import get_loader  # noqa: E402
-from csat.utils.date_utils import parse_period, previous_period, today_period  # noqa: E402
+from csat.utils.date_utils import parse_period, previous_period, timestamped_output_dir, today_period  # noqa: E402
 from csat.utils.logger import setup_logger  # noqa: E402
 
 _LANG_CHOICES = ("nl", "fr", "both")
@@ -152,7 +152,8 @@ def main() -> None:  # noqa: C901
         current_label=args.current_label,
     )
 
-    output_path = Path(args.output) if args.output else None
+    # Uitvoermap bepalen — altijd een timestamped submap tenzij expliciet opgegeven
+    output_path = Path(args.output) if args.output else timestamped_output_dir(OUTPUT_PATH)
 
     # Tijdstempel voor bestandsnamen (eenmalig bepaald voor consistentie NL/FR)
 
@@ -180,11 +181,10 @@ def main() -> None:  # noqa: C901
 
     # Optionele visualisatie — NL en/of FR PNG afhankelijk van --lang
     if args.chart:
-        vis_output = Path(args.output) if args.output else OUTPUT_PATH
         vis_langs = ["nl", "fr"] if args.lang == "both" else [args.lang]
         for lang in vis_langs:
             vis = EvolutionVisualiser(result, lang=lang)
-            png_pad = vis.export(vis_output, year=args.year, timestamp=args.timestamp)
+            png_pad = vis.export(output_path, year=args.year, timestamp=args.timestamp)
             print(f"[OK] [PNG-{lang.upper()}] {png_pad}")
         print(f">> {len(vis_langs)} visualisatie(s) gegenereerd")
 

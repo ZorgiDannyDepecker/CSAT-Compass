@@ -4,7 +4,8 @@ Hulpfuncties voor datumverwerking en periode-filtering in CSAT-Compass.
 Periodestrings worden altijd in het formaat 'YYYY-MM' verwacht en teruggegeven.
 """
 
-from datetime import date
+from datetime import date, datetime
+from pathlib import Path
 
 import pandas as pd
 
@@ -168,3 +169,22 @@ def today_period() -> str:
     """Geef de huidige maand terug als 'YYYY-MM' string."""
     today = date.today()  # noqa: DTZ011
     return f"{today.year}-{today.month:02d}"
+
+
+def timestamped_output_dir(base_path: Path) -> Path:
+    """
+    Maak een timestamped submap aan in de opgegeven basismap.
+
+    Bestanden worden nooit rechtstreeks in de outputroot geplaatst —
+    elke run krijgt zijn eigen submap op basis van datum en tijd.
+
+    Args:
+        base_path: Basismap (bv. OUTPUT_PATH)
+
+    Returns:
+        Pad naar de aangemaakte submap (bv. output/2026-04-01_1106/)
+    """
+    ts = datetime.now().astimezone().strftime("%Y-%m-%d_%H%M")
+    run_dir = base_path / ts
+    run_dir.mkdir(parents=True, exist_ok=True)
+    return run_dir

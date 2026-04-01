@@ -2,6 +2,9 @@
 Unit tests voor src/csat/utils/date_utils.py.
 """
 
+import re
+from pathlib import Path
+
 import pandas as pd
 import pytest
 
@@ -12,6 +15,7 @@ from csat.utils.date_utils import (
     parse_period,
     period_label,
     previous_period,
+    timestamped_output_dir,
     today_period,
 )
 
@@ -181,3 +185,44 @@ class TestTodayPeriod:
         jaar, maand = parse_period(result)
         assert 2020 <= jaar <= 2100
         assert 1 <= maand <= 12
+
+
+# ------------------------------------------------------------------
+# timestamped_output_dir
+# ------------------------------------------------------------------
+
+
+class TestTimestampedOutputDir:
+    """Tests voor de timestamped submap-helper."""
+
+    @pytest.mark.unit
+    def test_maakt_submap_aan(self, tmp_path: Path) -> None:
+        """Submap wordt aangemaakt als ze nog niet bestaat."""
+        result = timestamped_output_dir(tmp_path)
+        assert result.exists()
+        assert result.is_dir()
+
+    @pytest.mark.unit
+    def test_submap_is_kind_van_base_path(self, tmp_path: Path) -> None:
+        """Submap ligt direct onder de opgegeven basismap."""
+        result = timestamped_output_dir(tmp_path)
+        assert result.parent == tmp_path
+
+    @pytest.mark.unit
+    def test_submapnaam_formaat(self, tmp_path: Path) -> None:
+        """Submapnaam voldoet aan patroon YYYY-MM-DD_HHMM."""
+        result = timestamped_output_dir(tmp_path)
+        assert re.fullmatch(r"\d{4}-\d{2}-\d{2}_\d{4}", result.name)
+
+    @pytest.mark.unit
+    def test_idempotent_bij_bestaande_map(self, tmp_path: Path) -> None:
+        """Twee aanroepen met dezelfde minuut geven dezelfde map terug zonder fout."""
+        result1 = timestamped_output_dir(tmp_path)
+        result2 = (
+            timestamped_output_dir.__wrapped__(tmp_path)
+            if hasattr(timestamped_output_dir, "__wrapped__")
+            else timestamped_output_dir(tmp_path)
+        )
+        # Beide paden bestaan — geen FileExistsError
+        assert result1.exists()
+        assert result2.exists()

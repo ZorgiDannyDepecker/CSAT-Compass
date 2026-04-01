@@ -27,7 +27,7 @@ from csat.core.analysers.base_analyser import KpiResult  # noqa: E402
 from csat.core.analysers.pillar_analyser import PillarAnalyser  # noqa: E402
 from csat.core.exporters.matrix_exporter import MatrixExporter  # noqa: E402
 from csat.core.loaders import get_loader  # noqa: E402
-from csat.utils.date_utils import parse_period, today_period  # noqa: E402
+from csat.utils.date_utils import parse_period, timestamped_output_dir, today_period  # noqa: E402
 from csat.utils.logger import setup_logger  # noqa: E402
 
 # Beschikbare taalopties
@@ -166,7 +166,7 @@ def main() -> None:
     print()
     talen = ["nl", "fr"] if args.lang == "both" else [args.lang]
     gegenereerde_bestanden: list[Path] = []
-    output_dir = Path(args.output) if args.output else OUTPUT_PATH
+    output_dir = Path(args.output) if args.output else timestamped_output_dir(OUTPUT_PATH)
 
     for taal in talen:
         exporter = MatrixExporter(lang=taal, output_path=output_dir)
