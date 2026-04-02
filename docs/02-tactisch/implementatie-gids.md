@@ -1,7 +1,7 @@
 # CSAT-Compass - Implementatiegids
 
-**Versie:** 2.3
-**Laatst bijgewerkt:** 01/04/2026
+**Versie:** 2.4
+**Laatst bijgewerkt:** 02/04/2026
 
 **Doel:** Index van alle implementatiefasen met status en verwijzingen
 **Type:** Guide
@@ -26,8 +26,11 @@
 | Fase 3e | [fase3e-run-monthly.md](fasen/fase3e-run-monthly.md) | Maandelijkse batch-runner | S | ✅ Compleet |
 | Fase 3f | [fase3f-evolutie-advieskader.md](fasen/fase3f-evolutie-advieskader.md) | Evolutie-advieskader — gap-analyse, 12 beslissingen DDP, release 1 scope | S | ✅ Compleet (v3.0) |
 | Fase 3g | [fase3g-evolutie-rapport-verfijning.md](fasen/fase3g-evolutie-rapport-verfijning.md) | Evolutierapport verfijning — implementatie release 1 | M | ✅ Compleet |
-| Fase 4 | `fase4-pijlers.md` | CARE / CARE ADMIN / ERP4HC | M | ⏳ Gepland |
-| Fase 5 | `fase5-dashboard.md` | Streamlit dashboard NL/FR | L | ⏳ Gepland |
+| Fase 5a | `fase5a-dashboard-pharma.md` | Streamlit dashboard PHARMA-only — app.py, dashboard_exporter.py, KPI-kaarten, NL/FR toggle | S | 🔄 In Progress |
+| Fase 4 | `fase4-pijlers.md` | CARE / CARE ADMIN / ERP4HC pijleranalysers | M | ⏳ Gepland |
+| Fase 5b | `fase5b-dashboard-uitbreiding.md` | Pijleruitbreiding dashboard — CARE / CARE ADMIN / ERP4HC activeren (na Fase 4) | S | ⏳ Gepland |
+| Fase 5c | `fase5c-dashboard-plotly.md` | Plotly interactieve grafieken — vervangt matplotlib PNG embed | S | ⏳ Gepland |
+| Fase 5d | `fase5d-dashboard-advanced.md` | Geavanceerde features ronde 2 — filtering per ziekenhuis, PDF-export | M | ⏳ Gepland |
 | Fase 6 | `fase6-zorgi-overall.md` | ZORGI-aggregatie | S | ⏳ Gepland |
 
 > 💡 **Fase 3a–3d** vormen samen de volledige evolutie-rapportage (Option C — standalone, geen externe AI nodig).
@@ -35,6 +38,11 @@
 >
 > 💡 **Fase 3f** is het normatieve advieskader (v3.0 — samenvoeging CD + GHC advies, alle 12 DDP-beslissingen).
 > De oorspronkelijke GHC-versie is gearchiveerd in `archive/analyse_3f/fase3f-evolutie-advieskader_ghc.md`.
+>
+> 💡 **Fase 5a vóór Fase 4** — strategische keuze: PHARMA is de enige volledige pijler en levert onmiddellijk
+> managementwaarde voor CEO Eric + COO Christian. De dashboardarchitectuur wordt pijler-agnostisch gebouwd
+> zodat Fase 4-pijlers later een flip-the-switch uitbreiding zijn (Fase 5b).
+> Volledig handover-document: `WIP/handover-fase5a-2026-03-31.md`.
 
 ---
 
@@ -51,10 +59,13 @@
 | Fase 3e | S | 4–8u | Batch-runner run_monthly.py — combineert matrix + evolutie + charts |
 | Fase 3f | S | 4–8u | Evolutie-advieskader — gap-analyse, beslisrecord, release 1 scope en acceptatiecriteria |
 | Fase 3g | M | 8–24u | Evolutierapport verfijning — metrics, InsightsGenerator (gedeeld), templates en validatie |
+| Fase 5a | S | 4–8u | Dashboard PHARMA-only — volledige infrastructuur herbruikbaar (loaders, analysers, i18n, theme) |
 | Fase 4 | M | 8–24u | 3 pijlers (config + analyser + tests), repetitief maar elk met eigen categorieën |
-| Fase 5 | L | 24–48u | Dashboard altijd meer werk: UX, filtering, plotly charts, NL/FR toggle |
+| Fase 5b | S | 4–8u | Pijleruitbreiding — flip-the-switch na Fase 4, geen nieuwe architectuur |
+| Fase 5c | S | 4–8u | Plotly grafieken — vervangt PNG embed, infrastructuur (branding.py) al aanwezig |
+| Fase 5d | M | 8–24u | Geavanceerde features — filtering per ziekenhuis + PDF-export vanuit dashboard |
 | Fase 6 | S | 4–8u | Aggregatie van bestaande pijlers, geen nieuwe infrastructuur |
-| **Totaal** | **XXXL** | **100–208u** | Combinatie van M+M+S+M+M+M+S+S+M+M+L+S |
+| **Totaal** | **XXXL** | **108–224u** | Combinatie van M+M+S+M+M+M+S+S+M+S+M+S+S+M+S |
 
 ### T-shirt legenda
 
@@ -69,7 +80,7 @@
 | XXXL  | >120u          | >40×                |
 
 > 💡 Fase 3d en 6 zijn bewust klein gehouden — ze hergebruiken infrastructuur van eerdere fasen.
-> Fase 5 (dashboard) is het grootste risico op scope-uitbreiding.
+> Fase 5 is opgesplitst in 4 sub-fasen (5a–5d) om scope-creep te beheersen. Fase 5d is het grootste risico op uitbreiding.
 
 ---
 
@@ -89,8 +100,11 @@ graph TD
     F3e[Fase 3e: run_monthly.py]
     F3f[Fase 3f: advieskader v3.0]
     F3g[Fase 3g: rapport verfijning]
+    F5a[Fase 5a: Dashboard PHARMA-only]
     F4[Fase 4: CARE / CARE ADMIN / ERP4HC]
-    F5[Fase 5: Streamlit dashboard]
+    F5b[Fase 5b: Dashboard pijleruitbreiding]
+    F5c[Fase 5c: Dashboard Plotly grafieken]
+    F5d[Fase 5d: Dashboard geavanceerde features]
     F6[Fase 6: ZORGI overall]
 
     F1 --> F2
@@ -106,11 +120,16 @@ graph TD
     F3b --> F3f
     F3f --> F3g
     F3c --> F3g
+    F3e --> F5a
+    F3g --> F5a
     F3e --> F4
     F3g --> F4
-    F4 --> F5
-    F4 --> F6
-    F5 --> F6
+    F4 --> F5b
+    F5a --> F5b
+    F5b --> F5c
+    F5b --> F5d
+    F5c --> F6
+    F5d --> F6
 ```
 
 ---
@@ -163,3 +182,4 @@ src/csat/utils/zorgi_theme.py                      ← pure constanten, geen fra
 | 2.1 | 31/03/2026 | Sectie "Mapstructuur: scripts / src / tools" toegevoegd (runner/library-patroon, ADR-013) | Danny Depecker + GHC |
 | 2.2 | 31/03/2026 | Fase 3g status bijgewerkt naar Compleet (727 tests, 100% coverage, CI stabiel) | Danny Depecker + GHC |
 | 2.3 | 01/04/2026 | Fase 3d doc bijgewerkt naar v1.7: subplot 3 prioriteitscompositie, i18n, output-structuur datumsubmap, 61 tests | Danny Depecker + GHC |
+| 2.4 | 02/04/2026 | Fase 5 opgesplitst in 5a/5b/5c/5d; fasevolgorde herzien (5a vóór 4 — strategische keuze); Fase 5a status In Progress; Mermaid diagram + T-shirt tabel bijgewerkt | Danny Depecker + GHC |
