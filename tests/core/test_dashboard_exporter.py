@@ -192,7 +192,7 @@ class TestFilterTimeline:
     def _make_pts(self, periods: list[str]) -> list[MonthlyDataPoint]:
         return [
             MonthlyDataPoint(
-                period=p, avg_score=4.0, total_tickets=10, pct_negative=5.0, fase="H2 2025"
+                period=p, avg_score=4.0, total_tickets=10, pct_negative=5.0, fase="S2 2025"
             )
             for p in periods
         ]
@@ -232,7 +232,7 @@ class TestFilterTimeline:
 class TestBestMonth:
     def _make_pt(self, period: str, score: float, tickets: int = 10) -> MonthlyDataPoint:
         return MonthlyDataPoint(
-            period=period, avg_score=score, total_tickets=tickets, pct_negative=5.0, fase="H2 2025"
+            period=period, avg_score=score, total_tickets=tickets, pct_negative=5.0, fase="S2 2025"
         )
 
     def test_returns_best_score(self):
@@ -265,7 +265,7 @@ class TestBestMonth:
 class TestCalcStreak:
     def _make_pt(self, period: str, score: float, tickets: int = 10) -> MonthlyDataPoint:
         return MonthlyDataPoint(
-            period=period, avg_score=score, total_tickets=tickets, pct_negative=5.0, fase="H2 2025"
+            period=period, avg_score=score, total_tickets=tickets, pct_negative=5.0, fase="S2 2025"
         )
 
     def test_streak_all_above_threshold(self):
@@ -485,7 +485,7 @@ class TestBuildPeriodGroups:
                 avg_score=s,
                 total_tickets=t,
                 pct_negative=5.0,
-                fase="H1 2025" if int(p.split("-")[1]) <= 6 else "H2 2025",
+                fase="S1 2025" if int(p.split("-")[1]) <= 6 else "S2 2025",
             )
             for p, (s, t) in mapping.items()
         ]
@@ -504,8 +504,8 @@ class TestBuildPeriodGroups:
         )
         groups = DashboardExporter._build_period_groups(pts, None)
         labels = [g.label for g in groups]
-        assert "H1 2025" in labels
-        assert "H2 2025" in labels
+        assert "S1 2025" in labels
+        assert "S2 2025" in labels
         assert "Q1 2026" in labels
 
     def test_trend_filter_applied(self):
@@ -519,8 +519,8 @@ class TestBuildPeriodGroups:
         )
         groups = DashboardExporter._build_period_groups(pts, "2025-07-01")
         labels = [g.label for g in groups]
-        assert "H1 2025" not in labels
-        assert "H2 2025" in labels
+        assert "S1 2025" not in labels
+        assert "S2 2025" in labels
 
     def test_avg_score_weighted_by_tickets(self):
         """Gemiddelde score wordt gewogen naar ticketvolume."""
@@ -531,7 +531,7 @@ class TestBuildPeriodGroups:
             }
         )
         groups = DashboardExporter._build_period_groups(pts, None)
-        h2_group = next(g for g in groups if g.label == "H2 2025")
+        h2_group = next(g for g in groups if g.label == "S2 2025")
         # Gelijkmatig gewogen: (4.0*10 + 5.0*10) / 20 = 4.5
         assert h2_group.avg_score == pytest.approx(4.5, abs=0.01)
 
@@ -649,15 +649,15 @@ class TestPreparePeriodGroups:
         """Volledig venster bevat H1 en H2 groepen."""
         data = DashboardExporter.prepare(pharma_result)
         labels = {g.label for g in data.period_groups}
-        # evolution_df heeft 2025-06 en 2025-07 → H1 2025 en H2 2025
-        assert "H1 2025" in labels
-        assert "H2 2025" in labels
+        # evolution_df heeft 2025-06 en 2025-07 → S1 2025 en S2 2025
+        assert "S1 2025" in labels
+        assert "S2 2025" in labels
 
     def test_trend_mode_no_h1(self, pharma_result):
-        """Tendensvenster (jul 2025 →) bevat geen H1 2025."""
+        """Tendensvenster (jul 2025 →) bevat geen S1 2025."""
         data = DashboardExporter.prepare(pharma_result, "2025-07-01")
         labels = {g.label for g in data.period_groups}
-        assert "H1 2025" not in labels
+        assert "S1 2025" not in labels
 
     def test_period_groups_avg_score_positive(self, pharma_result):
         """Alle periode-groepen hebben een avg_score >= 0."""

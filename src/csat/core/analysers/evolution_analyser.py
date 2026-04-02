@@ -510,7 +510,7 @@ class EvolutionAnalyser:
         """Maak een MonthlyDataPoint voor één periode op basis van satisfaction_date."""
         df = filter_period(self._pillar_df, period, date_col=self._PERIOD_DATE_COL)
         year, month = parse_period(period)
-        fase = f"H1 {year}" if month <= 6 else f"H2 {year}"
+        fase = f"S1 {year}" if month <= 6 else f"S2 {year}"
 
         # Prioriteitstellingen — voor subplot 3 (prioriteitscompositie per maand)
         priority_counts: dict[str, int] = {}
@@ -1152,9 +1152,9 @@ class EvolutionAnalyser:
 
     def _calc_benchmark_h2(self, baseline_periods: list[str]) -> BenchmarkComparison | None:
         """
-        Bereken de H2-benchmark (maanden 7-12) uit de baseline-periodes.
+        Bereken de S2-benchmark (maanden 7-12) uit de baseline-periodes.
 
-        Returns None als er geen H2-periodes aanwezig zijn.
+        Returns None als er geen S2-periodes aanwezig zijn.
         """
         h2_periods = [p for p in baseline_periods if parse_period(p)[1] >= 7]
         if not h2_periods:
@@ -1168,7 +1168,7 @@ class EvolutionAnalyser:
         baseline_year = parse_period(h2_periods[0])[0]
 
         return BenchmarkComparison(
-            label=f"H2 {baseline_year}",
+            label=f"S2 {baseline_year}",
             avg_score=self._calc_avg_score(h2_df),
             pct_positive=self._calc_pct_scored(h2_df, lambda s: s >= 4.0),
             pct_negative=self._calc_pct_scored(h2_df, lambda s: s <= 2.0),

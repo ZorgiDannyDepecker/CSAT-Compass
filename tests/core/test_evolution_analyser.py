@@ -276,22 +276,22 @@ class TestMonthlyTimeline:
         assert periodes == sorted(periodes)
 
     def test_fase_h1_2025(self, evolution_df: pd.DataFrame) -> None:
-        """Maand 6 → H1 2025."""
+        """Maand 6 → S1 2025."""
         result = run_analyse(evolution_df)
         dp = next(d for d in result.monthly_timeline if d.period == "2025-06")
-        assert dp.fase == "H1 2025"
+        assert dp.fase == "S1 2025"
 
     def test_fase_h2_2025(self, evolution_df: pd.DataFrame) -> None:
-        """Maand 7 → H2 2025."""
+        """Maand 7 → S2 2025."""
         result = run_analyse(evolution_df)
         dp = next(d for d in result.monthly_timeline if d.period == "2025-07")
-        assert dp.fase == "H2 2025"
+        assert dp.fase == "S2 2025"
 
     def test_fase_h1_2026(self, evolution_df: pd.DataFrame) -> None:
-        """Maand 1 van 2026 → H1 2026."""
+        """Maand 1 van 2026 → S1 2026."""
         result = run_analyse(evolution_df)
         dp = next(d for d in result.monthly_timeline if d.period == "2026-01")
-        assert dp.fase == "H1 2026"
+        assert dp.fase == "S1 2026"
 
     def test_datapunt_2025_06_avg_score(self, evolution_df: pd.DataFrame) -> None:
         """2025-06: (2+3+2)/3 = 2,33."""
@@ -964,10 +964,10 @@ class TestDataclassInstantiatie:
             avg_score=3.5,
             total_tickets=10,
             pct_negative=20.0,
-            fase="H1 2025",
+            fase="S1 2025",
         )
         assert dp.period == "2025-06"
-        assert dp.fase == "H1 2025"
+        assert dp.fase == "S1 2025"
 
     def test_issue_type_comparison(self) -> None:
         c = IssueTypeComparison(

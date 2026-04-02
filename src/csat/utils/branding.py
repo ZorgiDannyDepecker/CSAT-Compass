@@ -180,19 +180,30 @@ STREAMLIT_CSS: str = f"""
 """
 
 
-def inject_css(st) -> None:
+def inject_css(st, prod_mode: bool = False) -> None:
     """
     Injecteer ZORGI CSS in een Streamlit-app.
 
     Args:
-        st: Streamlit module (doorgegeven om circulaire imports te vermijden)
+        st:        Streamlit module (doorgegeven om circulaire imports te vermijden)
+        prod_mode: True → verbergt Deploy-knop en drie-puntjes-menu (productie-modus)
 
     Gebruik in app.py:
         from csat.utils.branding import inject_css
-        import streamlit as st
-        inject_css(st)
+        inject_css(st, prod_mode=DASHBOARD_PROD_MODE)
     """
     st.markdown(STREAMLIT_CSS, unsafe_allow_html=True)
+    if prod_mode:
+        st.markdown(
+            """
+            <style>
+            /* PROD-modus: Deploy-knop en drie-puntjes-menu verborgen */
+            [data-testid="stToolbar"]    { display: none !important; }
+            [data-testid="stDecoration"] { display: none !important; }
+            </style>
+            """,
+            unsafe_allow_html=True,
+        )
 
 
 # =============================================================================

@@ -28,7 +28,12 @@ if str(_SRC) not in sys.path:
     sys.path.insert(0, str(_SRC))
 
 from csat.config.pillars import PILLAR_REGISTRY  # noqa: E402
-from csat.config.settings import CSV_FALLBACK_PATH, DB_CONN, db_available  # noqa: E402
+from csat.config.settings import (  # noqa: E402
+    CSV_FALLBACK_PATH,
+    DASHBOARD_PROD_MODE,
+    DB_CONN,
+    db_available,
+)
 from csat.core.analysers.evolution_analyser import EvolutionAnalyser  # noqa: E402
 from csat.core.analysers.evolution_result import EvolutionResult  # noqa: E402
 from csat.core.exporters.dashboard_exporter import DashboardData, DashboardExporter  # noqa: E402
@@ -56,9 +61,9 @@ _ACTIVE_PILLARS: frozenset[str] = frozenset({"pharma"})
 
 # Fasegebaseerde puntkleur (tijdlijn combo-grafiek)
 _PHASE_POINT_COLOR: dict[str, str] = {
-    "H1": ZORGI_RED,  # H1 2025 — crisisperiode
-    "H2": ZORGI_FUNC_POSITIVE,  # H2 2025 — herstelperiode
-    "Q": ZORGI_PURPLE,  # Q1/Q2 2026 — groeiperiode
+    "S1": ZORGI_RED,  # S1 - crisisperiode (jan-jun)
+    "S2": ZORGI_FUNC_POSITIVE,  # S2 - herstelperiode (jul-dec)
+    "Q": ZORGI_PURPLE,  # Q1/Q2 2026 - groeiperiode
 }
 
 # KPI-namen voor Tab 6 (sleutels uit settings.py / i18n)
@@ -71,6 +76,23 @@ _KPI_TARGET_ORDER: list[str] = [
     "pct_with_comment_min",
     "hospital_retention_min",
 ]
+
+
+# ---------------------------------------------------------------------------
+# Hulpfuncties
+# ---------------------------------------------------------------------------
+
+
+def _last_complete_period(today: date) -> tuple[int, int]:
+    """Geeft (jaar, maand) van de laatste volledig afgeronde maand.
+
+    Gegevens worden pas opgenomen na de eerste van de volgende maand:
+    op 02/04/2026 → (2026, 3) — april is nog niet afgerond.
+    Randgeval: op 01/01/2027 → (2026, 12) — december is de laatste volledige maand.
+    """
+    if today.month == 1:
+        return today.year - 1, 12
+    return today.year, today.month - 1
 
 
 # ---------------------------------------------------------------------------
@@ -105,11 +127,14 @@ def _run_analysis(
 # ---------------------------------------------------------------------------
 
 
-def _render_sidebar(t: dict, today: date) -> tuple[str, str | None, str]:
+def _render_sidebar(
+    t: dict, today: date, last_year: int, last_month: int
+) -> tuple[str, str | None, str]:
     """
     Render de sidebar en geef (pillar_key, window_start, lang) terug.
 
     window_start is None voor Volledig venster, "2025-07-01" voor Tendensvenster.
+    last_year / last_month: laatste volledig afgeronde maand (nooit de lopende maand).
     """
     d = t["dashboard"]
     lang = st.session_state.get("lang", "nl")
@@ -156,7 +181,7 @@ def _render_sidebar(t: dict, today: date) -> tuple[str, str | None, str]:
         st.divider()
 
         # --- Periode (informatief) ---
-        cur_label = period_label(f"{today.year}-{today.month:02d}", lang=lang)
+        cur_label = period_label(f"{last_year}-{last_month:02d}", lang=lang)
         st.markdown(f"**{d['period_label']}**  \n{_BASELINE_YEAR} → {cur_label}")
 
         st.divider()
@@ -205,7 +230,7 @@ def _chart_timeline(data: DashboardData, t: dict, lang: str) -> go.Figure:
         year, month = parse_period(p.period)
         if year <= _BASELINE_YEAR:
             point_colors.append(
-                _PHASE_POINT_COLOR["H1"] if month <= 6 else _PHASE_POINT_COLOR["H2"]
+                _PHASE_POINT_COLOR["S1"] if month <= 6 else _PHASE_POINT_COLOR["S2"]
             )
         else:
             point_colors.append(_PHASE_POINT_COLOR["Q"])
@@ -274,13 +299,13 @@ def _chart_period_comparison(data: DashboardData, t: dict) -> go.Figure:
     scores = [g.avg_score for g in groups]
     totals = [g.total for g in groups]
 
-    # Kleur per periode (H1=rood, H2=groen, Q=paars)
+    # Kleur per periode (S1=rood, S2=groen, Q=paars)
     colors = []
     for lbl in labels:
-        if lbl.startswith("H1"):
-            colors.append(_PHASE_POINT_COLOR["H1"])
-        elif lbl.startswith("H2"):
-            colors.append(_PHASE_POINT_COLOR["H2"])
+        if lbl.startswith("S1"):
+            colors.append(_PHASE_POINT_COLOR["S1"])
+        elif lbl.startswith("S2"):
+            colors.append(_PHASE_POINT_COLOR["S2"])
         else:
             colors.append(_PHASE_POINT_COLOR["Q"])
 
@@ -809,11 +834,12 @@ def main() -> None:
     d = t["dashboard"]
 
     # ZORGI CSS injecteren
-    inject_css(st)
+    inject_css(st, prod_mode=DASHBOARD_PROD_MODE)
 
     # Sidebar
     today = datetime.now(tz=UTC).date()
-    selected_pillar, window_start, lang = _render_sidebar(t, today)
+    last_year, last_month = _last_complete_period(today)
+    selected_pillar, window_start, lang = _render_sidebar(t, today, last_year, last_month)
 
     # Niet-PHARMA pijlers → Coming soon
     if selected_pillar not in _ACTIVE_PILLARS:
@@ -826,8 +852,8 @@ def main() -> None:
         try:
             result = _run_analysis(
                 baseline_year=_BASELINE_YEAR,
-                current_year=today.year,
-                current_month=today.month,
+                current_year=last_year,
+                current_month=last_month,
                 pillar=selected_pillar,
             )
         except Exception as exc:  # noqa: BLE001

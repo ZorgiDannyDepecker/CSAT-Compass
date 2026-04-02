@@ -60,7 +60,7 @@ class HospitalWithCause:
 class PeriodGroup:
     """Geaggregeerd datapunt voor de vergelijkingsbalk (Tab 2)."""
 
-    label: str  # "H1 2025", "H2 2025", "Q1 2026" …
+    label: str  # "S1 2025", "S2 2025", "Q1 2026" …
     avg_score: float
     pct_negative: float
     total: int
@@ -483,8 +483,8 @@ class DashboardExporter:
         """
         Groepeer maandelijkse datapunten per halfjaar (baseline) of kwartaal (huidig jaar).
 
-        Volledig:       H1 2025 / H2 2025 / Q1 2026 / Q2 2026 …
-        Tendensvenster: H2 2025 / Q1 2026 / Q2 2026 …
+        Volledig:       S1 2025 / S2 2025 / Q1 2026 / Q2 2026 …
+        Tendensvenster: S2 2025 / Q1 2026 / Q2 2026 …
         """
         ws_period = window_start[:7] if window_start else None
 
@@ -503,9 +503,9 @@ class DashboardExporter:
             if ws_period and dp.period < ws_period:
                 continue
             year, month = parse_period(dp.period)
-            # Baseline-jaar (2025 en ouder) → halfjaar; huidig jaar → kwartaal
+            # Baseline-jaar (2025 en ouder) → semester; huidig jaar → kwartaal
             if year <= 2025:
-                label = f"H1 {year}" if month <= 6 else f"H2 {year}"
+                label = f"S1 {year}" if month <= 6 else f"S2 {year}"
             else:
                 q = (month - 1) // 3 + 1
                 label = f"Q{q} {year}"
