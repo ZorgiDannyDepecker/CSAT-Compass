@@ -242,9 +242,9 @@ class TestBestMonth:
             self._make_pt("2026-02", 4.8),
             self._make_pt("2025-12", 3.5),
         ]
-        label, score = DashboardExporter._best_month(pts)
+        label, _score = DashboardExporter._best_month(pts)
         assert label == "2026-02"
-        assert score == 4.8
+        assert _score == 4.8
 
     def test_ignores_zero_tickets(self):
         """Maanden zonder tickets worden genegeerd."""
