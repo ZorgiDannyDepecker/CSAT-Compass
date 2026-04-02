@@ -81,7 +81,7 @@ Referentieontwerp voor de Tendensvenster-modus in Streamlit (zie §4.1).
 
 ### 4.1 Sidebar — twee weergave-modi
 
-```
+```text
 Sidebar
   ├─► Pijler:  [PHARMA ✅ | CARE ⏳ | CARE ADMIN ⏳ | ERP4HC ⏳]
   ├─► Modus:   [📊 Volledig (jan 2025→nu) | 📈 Tendensvenster (jul 2025→nu)]
