@@ -56,12 +56,14 @@ _FONTS_DIR = _STATIC_DIR / "fonts"
 # =============================================================================
 
 LOGO_ASSETS: dict[str, Path] = {
-    "heartbeat_144_wit": _IMG_DIR / "heartbeat_144_wit.png",
-    "heartbeat_144_kleur": _IMG_DIR / "heartbeat_144_kleur.png",
-    "heartbeat_512_wit": _IMG_DIR / "heartbeat_512_wit.png",
-    "heartbeat_512_kleur": _IMG_DIR / "heartbeat_512_kleur.png",
-    "heartbeat_hires_transparant": _IMG_DIR / "heartbeat_hires_transparant.png",
-    "heartbeat_klein_kleur": _IMG_DIR / "heartbeat_klein_kleur.png",
+    # Sleutelnamen behouden voor backward-compatibiliteit (gebruikt in add_watermark, render_topbar, tests)
+    # Bestandsnamen bijgewerkt naar de hernoemde ZORGI-assets (heartbeat_* → Logo-icoon *)
+    "heartbeat_144_wit": _IMG_DIR / "Logo-icoon 144 x 144 px wit.png",
+    "heartbeat_144_kleur": _IMG_DIR / "Logo-icoon 144 x 144 px.png",
+    "heartbeat_512_wit": _IMG_DIR / "Logo-icoon 512 x 512 px wit.png",
+    "heartbeat_512_kleur": _IMG_DIR / "Logo-icoon 512 x 512 px.png",
+    "heartbeat_hires_transparant": _IMG_DIR / "Logo-icoon cirkel 512 x 512 px.png",
+    "heartbeat_klein_kleur": _IMG_DIR / "Logo-icoon 144 x 144 px.png",
     "logo_icoon_144_wit": _IMG_DIR / "Logo-icoon 144 x 144 px wit.png",
 }
 
