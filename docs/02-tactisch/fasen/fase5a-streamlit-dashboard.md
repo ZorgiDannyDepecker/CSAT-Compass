@@ -1,12 +1,12 @@
 # CSAT-Compass — Fase 5a: Streamlit Dashboard PHARMA-only
 
-**Versie:** 1.1
-**Laatst bijgewerkt:** 01/04/2026
+**Versie:** 1.2
+**Laatst bijgewerkt:** 06/04/2026
 
 **Doel:** Implementatie van een interactief Streamlit-dashboard voor de PHARMA-pijler
 **Type:** Implementatie
 **Auteur:** Danny Depecker + GHC + CD
-**Status:** In planning
+**Status:** In uitvoering
 
 **Bestandsnaam:** fase5a-streamlit-dashboard.md
 **Path:** docs/02-tactisch/fasen/
@@ -31,6 +31,7 @@ De scope en structuur zijn gebaseerd op drie bronnen:
 **T-shirt:** L
 **Afhankelijkheid:** Fase 3g volledig afgerond (727 tests, 100% coverage, CI stabiel)
 **Teststand bij start:** 727 tests — 100% coverage — CI stabiel (Python 3.11 / 3.12 / 3.13)
+**Teststand huidig:** 790 tests — 100% coverage — CI stabiel (Python 3.11 / 3.12 / 3.13)
 
 ---
 
@@ -38,11 +39,12 @@ De scope en structuur zijn gebaseerd op drie bronnen:
 
 | Component | Bestand | Status |
 |---|---|---|
-| Streamlit app entry point | `src/dashboard/app.py` | ⬜ Leeg — te implementeren |
-| Dashboard data helpers | `src/csat/core/exporters/dashboard_exporter.py` | ⬜ Leeg — te implementeren |
-| Tests dashboard helpers | `tests/core/test_dashboard_exporter.py` | ⬜ Nieuw |
-| i18n NL (dashboard-labels) | `src/csat/i18n/nl.json` | 🔄 Uitbreiden |
-| i18n FR (dashboard-labels) | `src/csat/i18n/fr.json` | 🔄 Uitbreiden |
+| Streamlit app entry point | `src/dashboard/app.py` | ✅ Geïmplementeerd |
+| Dashboard data helpers | `src/csat/core/exporters/dashboard_exporter.py` | ✅ Geïmplementeerd |
+| Tests dashboard helpers | `tests/core/test_dashboard_exporter.py` | ✅ Aangemaakt |
+| i18n NL (dashboard-labels) | `src/csat/i18n/nl.json` | ✅ Uitgebreid |
+| i18n FR (dashboard-labels) | `src/csat/i18n/fr.json` | ✅ Uitgebreid |
+| ZORGI branding + CSS | `src/csat/utils/branding.py` | ✅ Geïmplementeerd |
 | Fase-document | `docs/02-tactisch/fasen/fase5a-streamlit-dashboard.md` | ✅ Dit bestand |
 
 ---
@@ -102,6 +104,23 @@ Gedragswijzigingen per modus:
 | Halfjaarvergelijking | H1 2025 / H2 2025 / Q1 2026 | H2 2025 / Q1 2026 |
 | Rolvoortschrijdend gem. | niet zichtbaar | 3-maands gemiddelde zichtbaar |
 | Primair gebruik | Jaarlijkse retrospectieve analyse | Huidig stuurinstrument |
+
+#### Weergave-modus help-tooltip (geïmplementeerd 06/04/2026)
+
+De tooltip is geïmplementeerd als **pure CSS hover-badge** i.p.v. Streamlit `help=` parameter.
+De reden: `help=` rendert de sectietitel in widget-stijl (lichtgewicht, afwijkende spacing),
+terwijl `st.markdown("**...**")` nodig is voor consistentie met Pijler en Taal.
+
+**CSS-architectuur (`branding.py`):**
+
+| Klasse | Doel |
+|---|---|
+| `p.zorgi-section-label` | `position: relative` — anker; `margin-bottom: 1rem` |
+| `.zorgi-help-tip` | 16×16px badge, `ZORGI_GREY_BLUE`, `border-radius: 50%` |
+| `.zorgi-help-tip-content` | `position: absolute; left: 0; top: 100%; white-space: nowrap` |
+| Sidebar inner wrapper | `overflow: visible !important` — tooltip verlaat sidebar zonder clipping |
+
+**i18n dubbele punt (`"colon"` sleutel):** NL `":"` / FR `" :"` (Franse typografie)
 
 ### 4.2 Tab 1 — 🏆 Samenvatting
 
@@ -230,20 +249,19 @@ SQL/CSV → DataLoader
 
 ### 6.2 DashboardExporter — verantwoordelijkheden
 
-`src/csat/core/exporters/dashboard_exporter.py` (leeg — te implementeren):
+`src/csat/core/exporters/dashboard_exporter.py` ✅ **Geïmplementeerd (06/04/2026)**
 
-- `prepare(result: EvolutionResult, window_start: str | None = None) → dict`
+De `DashboardData` dataclass bevat alle voorbereide data voor de Streamlit-rendering:
+
+- `prepare(result: EvolutionResult, window_start: str | None = None) → DashboardData`
   - `window_start=None` → Volledig venster (jan 2025 → nu)
   - `window_start="2025-07-01"` → Tendensvenster (jul 2025 → nu)
-- `get_kpi_cards(data: dict) → list[KPICard]`: 8 metric-blokken met waarde + delta
-- `get_timeline_data(data: dict) → DataFrame`: maandelijkse score + volume (gefilterd op window)
-- `get_issue_type_data(data: dict) → DataFrame`: per issue type baseline vs huidig
-- `get_priority_data(data: dict) → DataFrame`: per prioriteit baseline vs huidig
-- `get_response_time_data(data: dict) → DataFrame`: responstijd per score-niveau
-- `get_hospital_data(data: dict) → DataFrame`: per ZH score + delta + voornaamste klacht
-- `get_target_tracking(data: dict) → DataFrame`: baseline / target / realisatie
-- `detect_disengagement(data: dict) → list[dict]`: ZH onder score + ticket drempel
-- `get_zh_mini_card(data: dict) → tuple[list, list]`: (top3, bottom3) voor Tab 1 mini-kaart
+  - Pure data-transformatie — **niet** gecached (caching via `@st.cache_data` in app.py)
+- KPI-berekeningen: `avg_score`, `pct_positive`, `pct_negative`, `best_month`, `streak`, kritieke accounts, targets bereikt
+- Tijdlijn: maandelijkse score + volume, gefilterd op `window_start`
+- Ziekenhuizen: per-ZH score + delta + disengagement-detectie
+- KPI-targets: baseline / target / realisatie conform `settings.py`
+- Delta-referentie: Volledig venster → vs baseline 2025 / Tendensvenster → vs H2 2025 gemiddelde
 
 ### 6.3 Pijler-agnostisch patroon
 
@@ -377,9 +395,9 @@ zowel de laagste score als het hoogste negatief% heeft (drempel: negatief% > 12%
 
 | Tool | Versie | Doel |
 |---|---|---|
-| Streamlit | ≥ 1.32 | Dashboard framework |
-| Plotly | ≥ 5.20 | Interactieve grafieken |
-| pandas | ≥ 2.0 | Datamanipulatie |
+| Streamlit | ≥ 1.32 (huidig: 1.55) | Dashboard framework |
+| Plotly | ≥ 5.20 (huidig: 6.6) | Interactieve grafieken |
+| pandas | ≥ 2.0 (huidig: 2.3) | Datamanipulatie |
 | Python | 3.11+ | — |
 
 ```powershell
@@ -394,16 +412,17 @@ streamlit run src/dashboard/app.py
 
 ## 12. Aandachtspunten
 
-- `dashboard_exporter.py` is leeg — dit is de **eerste** klasse die geïmplementeerd wordt
+- ✅ `dashboard_exporter.py` geïmplementeerd — `DashboardData` dataclass + `prepare()`
+- ✅ `app.py` geïmplementeerd — ZORGI topbalk, 6 tabs, sidebar, DEMO/PROD modus
 - Vermijd directe EvolutionAnalyser-aanroepen in Streamlit callbacks — altijd via `DashboardExporter` + `@st.cache_data`
 - `window_start`-parameter in `prepare()` filtert de dataset vóór alle berekeningen — cache per (pillar, window_start, periode) combinatie
 - Alle UI-labels via `nl.json` / `fr.json` — geen hardcoded strings in `app.py`
-- De PNG van `EvolutionVisualiser` kan als tijdelijke tussenoplossing worden geëmbed
-- Output-pad via `dated_output_dir()` — consistent houden met batch-runner
 - ZORGI corporate proxy blokkeert pip-audit — CVE-scans via `/cve` in GHC Chat
 - Correlatie-ommekeer vereist nieuw veld `current_correlation_score` in `EvolutionResult`
 - Disengagement-drempelwaarden in `settings.py` opnemen (niet hardcoden)
 - Feedbackthema's actiekaarten zijn **statische tekstblokken** — geen extra databerekening nodig, wel i18n-sleutels voor NL/FR
+- Sidebar `overflow: visible` is veilig zolang sidebar-content op scherm past (geen verticale scroll vereist)
+- Pure CSS tooltip (`.zorgi-help-tip`) is versie-onafhankelijk — geen Streamlit-update die dit breekt
 
 ---
 
@@ -429,3 +448,4 @@ streamlit run src/dashboard/app.py
 |---|---|---|---|
 | 1.0 | 01/04/2026 | Initiële versie — gebaseerd op handover + analyse dashboard Q1 2026 | Danny Depecker + CD |
 | 1.1 | 01/04/2026 | §1 derde referentiebron toegevoegd (Thomas-review); §3.2 tendensvenster referentie; §4.1 sidebar Tendensvenster-modus + gedragstabel; §4.2 ZH mini-signaalkaart; §4.3 feedbackthema's actiekaarten als eerste inhoud Tab 3; §4.6 bottom-5 + oorzaakkolom; §5 KPI-tabel uitgebreid met Tendensvenster-delta; §6.2 window_start param + get_zh_mini_card; §6.3 pijler-agnostisch patroon bijgewerkt; §8.3 nieuwe methode; §9 acceptatiecriteria uitgebreid; §10 scope bijgewerkt; §12 aandachtspunten bijgewerkt | Danny Depecker + CD |
+| 1.2 | 06/04/2026 | Status In planning → In uitvoering; deliverables bijgewerkt (alles ✅); §1 teststand huidig 790 tests; §4.1 tooltip-sectie toegevoegd (pure CSS badge, CSS-architectuur, i18n colon); §6.2 DashboardExporter geïmplementeerd; §12 aandachtspunten bijgewerkt | Danny Depecker + GHC |
