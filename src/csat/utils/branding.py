@@ -7,6 +7,7 @@ Dit bestand voegt framework-specifieke theming toe voor Streamlit, Plotly en mat
 Golden source: PHARMA-Conventions/zorgi/zorgi_design_system.md
 """
 
+import base64
 from pathlib import Path
 
 from csat.utils.zorgi_theme import (
@@ -61,6 +62,7 @@ LOGO_ASSETS: dict[str, Path] = {
     "heartbeat_512_kleur": _IMG_DIR / "heartbeat_512_kleur.png",
     "heartbeat_hires_transparant": _IMG_DIR / "heartbeat_hires_transparant.png",
     "heartbeat_klein_kleur": _IMG_DIR / "heartbeat_klein_kleur.png",
+    "logo_icoon_144_wit": _IMG_DIR / "Logo-icoon 144 x 144 px wit.png",
 }
 
 # =============================================================================
@@ -119,6 +121,29 @@ def apply_plotly_theme(fig):
 
 
 # =============================================================================
+# Sidebar breedte — Streamlit standaard: min ~244px, max ~736px
+# Danny: minimale breedte +10%, maximale breedte -35%
+# =============================================================================
+
+_SIDEBAR_MIN_WIDTH: int = 220  # Vaste breedte — sidebar niet meer resizable
+_SIDEBAR_MAX_WIDTH: int = 220  # Gelijk aan min → resize uitgeschakeld
+_SIDEBAR_DEFAULT_WIDTH: int = 220  # Idem
+
+# Positie van expand/collapse knoppen — één constante per modus.
+# visibility:hidden (ipv display:none) voor toolbar-items zorgt ervoor dat
+# de layout-footprint zo identiek mogelijk blijft, maar Streamlit berekent
+# intern nog ~10px verschil. _BTN_TOP_PX_PROD compenseert dit.
+_BTN_TOP_PX: int = 130  # expand/collapse — identiek in demo én prod
+
+# Publieke exports — te gebruiken in app.py (bijv. debug display)
+SIDEBAR_MIN_WIDTH: int = _SIDEBAR_MIN_WIDTH
+SIDEBAR_MAX_WIDTH: int = _SIDEBAR_MAX_WIDTH
+SIDEBAR_DEFAULT_WIDTH: int = _SIDEBAR_DEFAULT_WIDTH
+SIDEBAR_DEFAULT_MIN: int = 244  # Streamlit ingebouwd default min
+SIDEBAR_DEFAULT_MAX: int = 736  # Streamlit ingebouwd default max
+
+
+# =============================================================================
 # Streamlit CSS-injectie
 # =============================================================================
 
@@ -135,7 +160,6 @@ STREAMLIT_CSS: str = f"""
     h2 {{ color: {ZORGI_GREY_BLUE}; font-weight: 800; }}
     h3 {{ color: {ZORGI_LIGHT_BLUE}; font-weight: 800; }}
 
-    /* Gradient header-blok */
     .zorgi-header {{
         background: {ZORGI_GRADIENT_CSS};
         color: white;
@@ -144,7 +168,6 @@ STREAMLIT_CSS: str = f"""
         margin-bottom: 1.5rem;
     }}
 
-    /* Kaartcomponent */
     .zorgi-card {{
         background: {ZORGI_ULTRA_LIGHT};
         border-radius: 16px;
@@ -152,7 +175,6 @@ STREAMLIT_CSS: str = f"""
         margin-bottom: 1rem;
     }}
 
-    /* KPI-blok */
     .zorgi-kpi {{
         background: {ZORGI_WHITE};
         border-left: 4px solid {ZORGI_DARK_BLUE};
@@ -160,50 +182,624 @@ STREAMLIT_CSS: str = f"""
         padding: 1rem;
     }}
 
-    /* Streamlit metric-widget */
     [data-testid="stMetric"] {{
         background: {ZORGI_ULTRA_LIGHT};
         border-radius: 12px;
         padding: 0.75rem;
     }}
 
-    /* Trend-indicatoren */
     .trend-up     {{ color: #00aa44; font-weight: 800; }}
     .trend-down   {{ color: {ZORGI_RED}; font-weight: 800; }}
     .trend-stable {{ color: {ZORGI_GREY_BLUE}; font-weight: 800; }}
 
-    /* Sidebar branding */
+    /* Sidebar — vaste breedte (min = max = 220px), resize uitgeschakeld.
+       width !important overschrijft ook Streamlit JS / localStorage. */
     [data-testid="stSidebar"] {{
         background: {ZORGI_ULTRA_LIGHT};
+        top: 110px !important;
+        min-width: {_SIDEBAR_MIN_WIDTH}px !important;
+        max-width: {_SIDEBAR_MAX_WIDTH}px !important;
+        width: {_SIDEBAR_MIN_WIDTH}px !important;
+    }}
+    /* Resize-handle verbergen — veilige selectors + scoped col-resize binnen sidebar */
+    [data-testid="stSidebarUserResizeHandle"],
+    [data-testid="stSidebarResizeHandle"],
+    [data-testid="stResizeHandle"],
+    [data-testid="stSidebar"] div[style*="col-resize"],
+    [data-testid="stSidebar"] div[style*="col-resize"] * {{
+        display: none !important;
+        pointer-events: none !important;
+        width: 0 !important;
+        min-width: 0 !important;
+        overflow: hidden !important;
+    }}
+    /* Inner wrapper: geen padding-override — Streamlit's standaard 1rem padding blijft.
+       overflow: visible → laat .zorgi-help-tip-content de sidebar verlaten zonder clipping. */
+    [data-testid="stSidebar"] > div:first-child,
+    [data-testid="stSidebarContent"],
+    [data-testid="stSidebarUserContent"] {{
+        width: 100% !important;
+        overflow: visible !important;
+    }}
+
+    /* Tabs — ZORGI pill-stijl */
+    [data-baseweb="tab-list"] {{
+        background: transparent !important;
+        gap: 8px !important;
+        border-bottom: 2px solid {ZORGI_ULTRA_LIGHT} !important;
+        padding-bottom: 6px !important;
+        flex-wrap: wrap !important;
+    }}
+    [data-baseweb="tab"] {{
+        background-color: {ZORGI_DARK_BLUE} !important;
+        color: {ZORGI_WHITE} !important;
+        border-radius: 50px !important;
+        padding: 0.55rem 1.5rem !important;
+        font-size: 0.92rem !important;
+        font-weight: 600 !important;
+        border: none !important;
+        min-height: 2.5rem !important;
+        transition: background 0.2s ease, transform 0.15s ease !important;
+        margin: 2px 0 !important;
+    }}
+    [data-baseweb="tab"]:hover {{
+        background-color: {ZORGI_GREY_BLUE} !important;
+        color: white !important;
+        transform: translateY(-1px) !important;
+    }}
+    [data-baseweb="tab"][aria-selected="true"] {{
+        background: {ZORGI_GRADIENT_CSS} !important;
+        color: white !important;
+        box-shadow: 0 3px 10px rgba(0, 58, 112, 0.3) !important;
+    }}
+    [data-baseweb="tab-highlight"],
+    [data-baseweb="tab-border"] {{
+        display: none !important;
+    }}
+
+    /* stHeader — transparant, boven topbalk zodat toggle-knoppen zichtbaar blijven */
+    header[data-testid="stHeader"] {{
+        background: transparent !important;
+        z-index: 100001 !important;
+    }}
+
+    /* Collapse/Expand knoppen — FOUC-preventie via animation-delay.
+       Knoppen starten onzichtbaar en verschijnen pas nadat CSS volledig is
+       toegepast (na ~150ms). Zo is de "spring" naar top:130px nooit zichtbaar. */
+    @keyframes zorgi-btn-appear {{
+        from {{ opacity: 0; }}
+        to   {{ opacity: 1; }}
+    }}
+    [data-testid="stSidebarCollapseButton"],
+    [data-testid="stExpandSidebarButton"] {{
+        animation: zorgi-btn-appear 0.15s ease 0.35s both;
+    }}
+
+    /* stSidebarHeader — minimale hoogte, geen negatieve marges meer.
+       De << knop is position:fixed en staat buiten de DOM-flow. */
+    [data-testid="stSidebarHeader"] {{
+        height: 50px !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: visible !important;
+        box-sizing: border-box !important;
+    }}
+    /* << collapse-knop: left 182px, top _BTN_TOP_PX */
+    [data-testid="stSidebarCollapseButton"] {{
+        position: fixed !important;
+        left: 182px !important;
+        top: {_BTN_TOP_PX}px !important;
+        z-index: 999998 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }}
+    /* Knop verbergen als sidebar ingeklapt is (expand-knop >> neemt het over) */
+    [data-testid="stSidebar"][aria-expanded="false"] [data-testid="stSidebarCollapseButton"] {{
+        display: none !important;
+    }}
+
+    /* Native sidebar-knoppen — ZORGI-stijl zonder JS.
+       >> expand : links-vast, position:fixed (buiten sidebar DOM → altijd zichtbaar).
+       << collapse: rechts in sidebar-header via flex (IN flow → auto-resize werkt). */
+
+    /* Expand-knop >> — position:fixed vrij van sidebar stacking context */
+    [data-testid="stExpandSidebarButton"] {{
+        position: fixed !important;
+        top: {_BTN_TOP_PX}px !important;
+        left: 0 !important;
+        z-index: 999999 !important;
+        background: {ZORGI_DARK_BLUE} !important;
+        border: none !important;
+        border-radius: 0 8px 8px 0 !important;
+        width: 32px !important;
+        height: 40px !important;
+        box-shadow: 3px 2px 10px rgba(0, 0, 0, 0.30) !important;
+        cursor: pointer !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 0 !important;
+        font-size: 0 !important;
+        color: transparent !important;
+    }}
+    [data-testid="stExpandSidebarButton"] > *,
+    [data-testid="stExpandSidebarButton"] button > * {{
+        display: none !important;
+    }}
+    [data-testid="stExpandSidebarButton"]::after,
+    [data-testid="stExpandSidebarButton"] button::after {{
+        content: ">>" !important;
+        color: {ZORGI_WHITE} !important;
+        font-size: 18px !important;
+        font-weight: 400 !important;
+        letter-spacing: 0 !important;
+        line-height: 1 !important;
+        display: block !important;
+    }}
+    [data-testid="stExpandSidebarButton"]:hover,
+    [data-testid="stExpandSidebarButton"] button:hover {{
+        background: {ZORGI_LIGHT_BLUE} !important;
+    }}
+
+    /* Collapse-knop << — rechts in sidebar-header (flex), IN flow, << wit */
+    [data-testid="stSidebarCollapseButton"] button {{
+        background: {ZORGI_DARK_BLUE} !important;
+        color: transparent !important;
+        font-size: 0 !important;
+        border: none !important;
+        border-radius: 8px 0 0 8px !important;
+        width: 32px !important;
+        height: 40px !important;
+        min-height: 40px !important;
+        box-shadow: -3px 2px 8px rgba(0, 0, 0, 0.25) !important;
+        cursor: pointer !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 0 !important;
+    }}
+    [data-testid="stSidebarCollapseButton"] button > * {{
+        display: none !important;
+    }}
+    [data-testid="stSidebarCollapseButton"] button::after {{
+        content: "<<" !important;
+        color: {ZORGI_WHITE} !important;
+        font-size: 18px !important;
+        font-weight: 400 !important;
+        letter-spacing: 0 !important;
+        line-height: 1 !important;
+        display: block !important;
+    }}
+    [data-testid="stSidebarCollapseButton"] button:hover {{
+        background: {ZORGI_LIGHT_BLUE} !important;
+    }}
+    [data-testid="stSidebarCollapseButton"] svg {{
+        display: none !important;
+    }}
+
+    /* Deploy-knop + drie-puntjes worden alleen in prod_mode verborgen (zie inject_css) */
+
+    /* Actieknoppen in het hoofdpaneel — zelfde hoogte als sidebar collapse-knop (40px) */
+    [data-testid="stButton"] > button {{
+        height: 40px !important;
+        min-height: 40px !important;
+    }}
+    [data-testid="stToolbar"]    {{ z-index: 100 !important; }}
+    [data-testid="stDecoration"] {{ z-index: 100 !important; }}
+
+    /* ZORGI-stijl voor help-tooltips (? icoontje).
+       Meerdere selectors voor maximale compatibiliteit:
+       - [role="tooltip"]          → ARIA-standaard BaseWeb popup
+       - [data-baseweb="popover"]  → BaseWeb portal-container
+       - kind-elementen krijgen transparant bg zodat de kleur niet dubbel valt */
+    [role="tooltip"],
+    [data-baseweb="popover"],
+    [data-baseweb="popover"] > div,
+    [data-testid="stTooltipContent"] {{
+        background-color: {ZORGI_DARK_BLUE} !important;
+        color: {ZORGI_WHITE} !important;
+        border-radius: 8px !important;
+        border: none !important;
+        box-shadow: 0 4px 12px rgba(0, 58, 112, 0.35) !important;
+    }}
+    [role="tooltip"] *,
+    [data-baseweb="popover"] *,
+    [data-testid="stTooltipContent"] * {{
+        color: {ZORGI_WHITE} !important;
+        background-color: transparent !important;
+    }}
+
+    /* Widget-label consistent met st.markdown("**...**") — Weergave-modus/Mode d'affichage
+       moet dezelfde visuele stijl (font-weight, grootte) én dezelfde afspatiëring hebben
+       als Pijler/Pijler, Periode/Période en Taal/Langue.
+       Streamlit rendert de label als <label> of <p> ngl versie — beide targeten. */
+    [data-testid="stWidgetLabel"] p,
+    [data-testid="stWidgetLabel"] label {{
+        font-weight: 700 !important;
+        font-size: 1rem !important;
+        color: {ZORGI_BODY_TEXT} !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        line-height: 1.6 !important;
+    }}
+    /* De widget-label container: zelfde bottom-margin als een st.markdown-paragraaf */
+    [data-testid="stWidgetLabel"] {{
+        margin-bottom: 0.5rem !important;
+        padding-bottom: 0 !important;
+    }}
+    /* Radio-opties: geen extra top-margin zodat afstand overal gelijk is */
+    [data-testid="stRadio"] > div + div {{
+        margin-top: 0 !important;
+        padding-top: 0 !important;
+    }}
+
+    /* ── Pure CSS tooltip voor Weergave-modus / Mode d'affichage ─────────────
+       Vervangt Streamlit help-parameter: zelfde ZORGI-stijl, gegarandeerd bold
+       label via <strong> (HTML-gebaseerd, niet afhankelijk van emotion-CSS). */
+    p.zorgi-section-label {{
+        position: relative !important;   /* Anker: tooltip positioneert t.o.v. deze <p> */
+        margin-top: 0 !important;
+        margin-bottom: 1rem !important;  /* Zelfde als Streamlit default <p> → zelfde spatiëring als Pijler/Taal */
+        font-size: 1rem !important;
+        color: {ZORGI_BODY_TEXT} !important;
+        line-height: 1.6 !important;
+    }}
+    /* Help-badge: ronde knop identiek aan Streamlit native ? icoon */
+    .zorgi-help-tip {{
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 16px;
+        height: 16px;
+        background: {ZORGI_GREY_BLUE};
+        color: {ZORGI_WHITE};
+        border-radius: 50%;
+        font-size: 0.65rem;
+        font-weight: 800;
+        cursor: help;
+        vertical-align: middle;
+        margin-left: 3px;
+        flex-shrink: 0;
+        overflow: visible;
+        /* position: static (default) → tooltip positioneert t.o.v. de <p> */
+    }}
+    /* Tooltip popup — left:0 = linkerrand <p>.
+       white-space: nowrap + width: max-content → tooltip groeit mee met tekst,
+       elke <br> = één item exact op één lijn. overflow: visible op sidebar-wrapper
+       laat de tooltip de zijbalk verlaten zonder clipping. */
+    .zorgi-help-tip-content {{
+        display: none;
+        position: absolute;
+        z-index: 99999;
+        background: {ZORGI_DARK_BLUE};
+        color: {ZORGI_WHITE} !important;
+        border-radius: 8px;
+        padding: 0.4rem 0.8rem;
+        font-size: 0.82rem;
+        font-weight: 400 !important;
+        white-space: nowrap;
+        width: max-content;
+        left: 0;
+        top: calc(100% + 2px);
+        line-height: 1.5;
+        box-shadow: 0 4px 12px rgba(0, 58, 112, 0.35);
+    }}
+    .zorgi-help-tip:hover .zorgi-help-tip-content {{
+        display: block !important;
+    }}
+    .zorgi-help-tip-content strong {{
+        color: rgba(255, 255, 255, 0.80) !important;
+        font-weight: 600 !important;
+    }}
+
+    /* Inhoudspaneel: normale padding-top */
+    .main .block-container {{
+        padding-top: 55px !important;
+    }}
+
+
+    /* AUTO-RESIZE INHOUDSPANEEL — kern van het probleem:
+       Zolang stSidebar min-width:Xpx !important heeft, blijft het een kolom innemen in de
+       CSS layout, ook wanneer visueel ingeklapt via transform:translateX(-100%).
+       Fix: forceer min-width/max-width → 0 bij aria-expanded="false", zodat het CSS Grid
+       de vrijgekomen breedte overdraagt aan het inhoudspaneel. */
+    [data-testid="stSidebar"][aria-expanded="false"] {{
+        min-width: 0 !important;
+        max-width: 0 !important;
+        overflow: hidden !important;
+    }}
+    [data-testid="stSidebar"][aria-expanded="false"]
+        ~ [data-testid="stAppViewContainer"] .block-container,
+    [data-testid="stSidebar"][aria-expanded="false"]
+        ~ [data-testid="stAppViewContainer"] [data-testid="stMainBlockContainer"] {{
+        padding-left: 1rem !important;
+        max-width: 100% !important;
     }}
 </style>
 """
 
+# =============================================================================
+# JavaScript — eigen ZORGI sidebar-toggle knop
+#
+# BELANGRIJK: st.markdown() filtert <script> tags — JavaScript wordt NIET
+# uitgevoerd. Daarom gebruiken we st.components.v1.html() die een iframe
+# aanmaakt waarin JavaScript WEL draait. Vanuit die iframe bereiken we de
+# Streamlit parent-DOM via window.parent.document.
+#
+# inject_sidebar_toggle() moet NA alle pagina-content worden aangeroepen
+# (einde van main()), anders blokkeert de iframe-component de rendering.
+# =============================================================================
+
+# _SIDEBAR_TOGGLE_JS: str = f"""
+# <script>
+# (function() {{
+#     var doc = window.parent.document;
+#     if (doc.getElementById('zorgi-sidebar-toggle')) return;
+
+#     var btn = doc.createElement('button');
+#     btn.id = 'zorgi-sidebar-toggle';
+#     btn.setAttribute('aria-label', 'Toggle sidebar');
+#     btn.title = 'Sidebar in/uitklappen';
+#     doc.body.appendChild(btn);
+
+#     function isSidebarOpen() {{
+#         var sb = doc.querySelector('[data-testid="stSidebar"]');
+#         if (sb) {{
+#             var exp = sb.getAttribute('aria-expanded');
+#             if (exp === 'true') return true;
+#             if (exp === 'false') return false;
+#         }}
+#         if (doc.querySelector('[data-testid="stExpandSidebarButton"]')) return false;
+#         if (doc.querySelector('[data-testid="stSidebarCollapseButton"]')) return true;
+#         return true;
+#     }}
+
+#     function updateIcon() {{
+#         btn.textContent = isSidebarOpen() ? '\\u00AB' : '\\u00BB';
+#     }}
+
+#     btn.addEventListener('click', function(e) {{
+#         e.preventDefault();
+#         e.stopPropagation();
+#         if (isSidebarOpen()) {{
+#             var c = doc.querySelector('[data-testid="stSidebarCollapseButton"] button');
+#             if (c) c.click();
+#         }} else {{
+#             var x = doc.querySelector('[data-testid="stExpandSidebarButton"] button');
+#             if (x) x.click();
+#         }}
+#         setTimeout(updateIcon, 150);
+#     }});
+
+#     var obs = new MutationObserver(function() {{ updateIcon(); }});
+#     obs.observe(doc.body, {{
+#         childList: true, subtree: true,
+#         attributes: true, attributeFilter: ['aria-expanded', 'data-collapsed']
+#     }});
+#     updateIcon();
+# }})();
+# </script>
+# """
+
 
 def inject_css(st, prod_mode: bool = False) -> None:
     """
-    Injecteer ZORGI CSS in een Streamlit-app.
+    Injecteer ZORGI CSS in een Streamlit-app (alleen styles, geen JS).
+
+    De sidebar-toggle knop wordt apart geïnjecteerd via inject_sidebar_toggle()
+    aan het EINDE van main() — zodat de iframe-component de paginrendering
+    niet blokkeert.
 
     Args:
         st:        Streamlit module (doorgegeven om circulaire imports te vermijden)
         prod_mode: True → verbergt Deploy-knop en drie-puntjes-menu (productie-modus)
-
-    Gebruik in app.py:
-        from csat.utils.branding import inject_css
-        inject_css(st, prod_mode=DASHBOARD_PROD_MODE)
     """
     st.markdown(STREAMLIT_CSS, unsafe_allow_html=True)
     if prod_mode:
         st.markdown(
             """
             <style>
-            /* PROD-modus: Deploy-knop en drie-puntjes-menu verborgen */
-            [data-testid="stToolbar"]    { display: none !important; }
-            [data-testid="stDecoration"] { display: none !important; }
+            /* Prod-modus: layout-items ONZICHTBAAR maar in layout-flow behouden.
+               visibility:hidden + pointer-events:none ipv display:none →
+               Streamlit's JS meet dezelfde header-hoogte als in demo →
+               content-positie identiek → geen positie-shift van tabbladen.
+               Portals/dropdowns (stMainMenu, stMainMenuPopover) wél display:none
+               want die zitten buiten de layout-flow. */
+            [data-testid="stAppDeployButton"]     { visibility: hidden !important; pointer-events: none !important; }
+            [data-testid="stMainMenuButton"]      { visibility: hidden !important; pointer-events: none !important; }
+            [data-testid="stToolbarActions"]      { visibility: hidden !important; pointer-events: none !important; }
+            [data-testid="stToolbarActionButton"] { visibility: hidden !important; pointer-events: none !important; }
+            [data-testid="stDecoration"]          { visibility: hidden !important; opacity: 0 !important; }
+            /* Portals: display:none is veilig (zitten niet in layout-flow) */
+            [data-testid="stMainMenu"]            { display: none !important; }
+            [data-testid="stMainMenuPopover"]     { display: none !important; }
+            /* Tabs zitten ~10px hoger in prod dan demo → padding verhogen om tabs naar beneden te duwen.
+               Demo-basis = 55px. Huidige waarde: 65px. Aanpasbaar. */
+            .main .block-container,
+            [data-testid="stMainBlockContainer"]  { padding-top: 80px !important; }
             </style>
-            """,
+            """.replace("PROD_BTN_TOP", f"{_BTN_TOP_PX}px"),
             unsafe_allow_html=True,
         )
+
+
+# =============================================================================
+# JavaScript — ZORGI sidebar toggle-knop
+#
+# inject_sidebar_toggle() voegt #zorgi-sidebar-toggle toe aan document.body
+# (BUITEN de sidebar DOM) via st.components.v1.html().
+# De iframe krijgt pointer-events:none via STREAMLIT_CSS zodat hij geen focus
+# of klik-events onderschept.
+# =============================================================================
+
+_SIDEBAR_TOGGLE_JS: str = """
+<script>
+(function() {
+    var doc = window.parent.document;
+    if (doc.getElementById('zorgi-sidebar-toggle')) return;
+
+    var btn = doc.createElement('button');
+    btn.id = 'zorgi-sidebar-toggle';
+    btn.setAttribute('aria-label', 'Toggle sidebar');
+    btn.title = 'Sidebar in/uitklappen';
+    doc.body.appendChild(btn);
+
+    function isSidebarOpen() {
+        var sb = doc.querySelector('[data-testid="stSidebar"]');
+        if (!sb) return false;
+        var exp = sb.getAttribute('aria-expanded');
+        if (exp === 'true')  return true;
+        if (exp === 'false') return false;
+        return !!doc.querySelector('[data-testid="stSidebarCollapseButton"]');
+    }
+
+    function updateIcon() {
+        btn.textContent = isSidebarOpen() ? '<<' : '>>';
+    }
+
+    btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (isSidebarOpen()) {
+            var c = doc.querySelector('[data-testid="stSidebarCollapseButton"] button')
+                 || doc.querySelector('[data-testid="stSidebarCollapseButton"]');
+            if (c) c.click();
+        } else {
+            var x = doc.querySelector('[data-testid="stExpandSidebarButton"] button')
+                 || doc.querySelector('[data-testid="stExpandSidebarButton"]');
+            if (x) x.click();
+        }
+        setTimeout(updateIcon, 200);
+    });
+
+    var obs = new MutationObserver(function() { updateIcon(); });
+    obs.observe(doc.body, {
+        childList: true, subtree: true,
+        attributes: true,
+        attributeFilter: ['aria-expanded', 'data-collapsed', 'style', 'class']
+    });
+    updateIcon();
+})();
+</script>
+"""
+
+
+def inject_sidebar_toggle() -> None:
+    """
+    No-op — streamlit_js_eval en components.html() bevriezen beide de browser
+    (iframe focus-capture). Piste 1 mislukt — zie handover voor alternatieve pistes.
+
+    De >> expand-knop staat links-vast via pure CSS (position:fixed).
+    De << collapse-knop zit in de sidebar header (ZORGI-gestyled).
+    """
+
+
+def render_topbar(
+    st_container,
+    today_str: str,
+    prod_mode: bool = False,
+    pillar_name: str = "",
+    mode_label: str = "",
+    period_str: str = "",
+) -> None:
+    """
+    Render de vaste ZORGI branded topbalk bovenaan het dashboard.
+
+    Args:
+        st_container:  st module of st.empty() container
+        today_str:     Datum in DD/MM/YYYY formaat
+        prod_mode:     True → stToolbar/stDecoration verborgen (via inject_css)
+        pillar_name:   Naam van de actieve pijler (bijv. "ZORGI PHARMA")
+        mode_label:    Weergavemodus (bijv. "📊 Volledig venster")
+        period_str:    Periodestring (bijv. "2025 → mrt 2026")
+    """
+    logo_path = LOGO_ASSETS.get("logo_icoon_144_wit")
+    logo_html = ""
+    if logo_path and logo_path.exists():
+        b64 = base64.b64encode(logo_path.read_bytes()).decode()
+        logo_html = (
+            f'<img src="data:image/png;base64,{b64}" '
+            f'height="60" style="display:block;margin:0" alt="ZORGI">'
+        )
+
+    if pillar_name:
+        _sep = f" &nbsp;·&nbsp; {period_str}" if period_str else ""
+        sub_line = (
+            f'<span class="zorgi-topbar-pillar-sub">{mode_label}{_sep}</span>' if mode_label else ""
+        )
+        left_html = (
+            f'<div class="zorgi-topbar-pillar">'
+            f'<span class="zorgi-topbar-app-label">🧭&nbsp;CSAT-Compass</span>'
+            f'<span class="zorgi-topbar-pillar-name">{pillar_name}</span>'
+            f"{sub_line}"
+            f"</div>"
+        )
+    else:
+        left_html = (
+            '<div class="zorgi-topbar-pillar">'
+            '<span class="zorgi-topbar-pillar-name">🧭&nbsp;CSAT-Compass</span>'
+            "</div>"
+        )
+
+    markup = f"""
+<style>
+.zorgi-topbar {{
+    position: fixed; top: 0; left: 0; right: 0;
+    height: 110px; z-index: 100000;
+    background: {ZORGI_GRADIENT_CSS};
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 2rem;
+    box-shadow: 0 3px 14px rgba(0, 0, 0, 0.32);
+}}
+.zorgi-topbar-left {{
+    display: flex; align-items: center; gap: 1rem; padding-left: 2.5rem;
+}}
+.zorgi-topbar-pillar {{
+    display: flex; flex-direction: column; gap: 0.15rem;
+}}
+.zorgi-topbar-app-label {{
+    color: rgba(255,255,255,0.62); font-size: 0.68rem; font-weight: 600;
+    letter-spacing: 0.14em; text-transform: uppercase;
+}}
+.zorgi-topbar-pillar-name {{
+    color: white; font-weight: 800; font-size: 1.8rem;
+    line-height: 1.1; letter-spacing: 0.01em;
+}}
+.zorgi-topbar-pillar-sub {{
+    color: rgba(255,255,255,0.78); font-size: 0.88rem;
+    font-weight: 400; letter-spacing: 0.02em;
+}}
+.zorgi-topbar-right {{
+    display: flex; align-items: center; gap: 1rem;
+}}
+.zorgi-topbar-brand {{
+    display: flex; flex-direction: column; line-height: 1.2;
+}}
+.zorgi-topbar-brand-name {{
+    color: white; font-weight: 800; font-size: 1.2rem; letter-spacing: 0.1em;
+}}
+.zorgi-topbar-brand-tagline {{
+    color: rgba(255,255,255,0.72); font-size: 0.6rem;
+    letter-spacing: 0.22em; text-transform: uppercase; font-weight: 300;
+}}
+.zorgi-topbar-date {{
+    color: rgba(255,255,255,0.62); font-size: 0.68rem;
+    letter-spacing: 0.03em; margin-top: 0.25rem;
+}}
+</style>
+<div class="zorgi-topbar">
+    <div class="zorgi-topbar-left">{left_html}</div>
+    <div class="zorgi-topbar-right">
+        {logo_html}
+        <div class="zorgi-topbar-brand">
+            <span class="zorgi-topbar-brand-name">ZORGI</span>
+            <span class="zorgi-topbar-brand-tagline">smarter care</span>
+            <span class="zorgi-topbar-date">{today_str}</span>
+        </div>
+    </div>
+</div>
+"""
+    st_container.markdown(markup, unsafe_allow_html=True)
 
 
 # =============================================================================
@@ -212,16 +808,7 @@ def inject_css(st, prod_mode: bool = False) -> None:
 
 
 def _register_poppins() -> str:
-    """
-    Registreer lokale Poppins TTF-bestanden bij matplotlib.
-
-    Zoekt in src/static/fonts/ naar Poppins-*.ttf bestanden en registreert
-    ze via matplotlib.font_manager. Valt terug op Verdana als er geen
-    TTF-bestanden gevonden worden.
-
-    Returns:
-        Fontnaam 'Poppins' indien beschikbaar, anders 'Verdana'.
-    """
+    """Registreer lokale Poppins TTF-bestanden bij matplotlib."""
     from matplotlib import font_manager
 
     registered = False
@@ -232,22 +819,10 @@ def _register_poppins() -> str:
 
 
 def apply_matplotlib_theme() -> None:
-    """
-    Pas ZORGI brand-kleuren en -fonts toe als matplotlib rcParams.
-
-    Registreert lokale Poppins-fonts (indien aanwezig in src/static/fonts/)
-    en configureert kleuren, achtergronden en typografie conform het
-    ZORGI Design System.
-
-    Gebruik:
-        from csat.utils.branding import apply_matplotlib_theme
-        apply_matplotlib_theme()
-        # Alle volgende plots gebruiken nu ZORGI-stijl
-    """
+    """Pas ZORGI brand-kleuren en -fonts toe als matplotlib rcParams."""
     import matplotlib.pyplot as plt
 
     font_name = _register_poppins()
-
     plt.rcParams.update(
         {
             "font.family": [font_name, ZORGI_FONT_FALLBACK, "sans-serif"],
@@ -266,14 +841,7 @@ def apply_matplotlib_theme() -> None:
 
 
 def add_watermark(fig, alpha: float = 0.08) -> None:
-    """
-    Voeg het ZORGI heartbeat-icoon toe als subtiel watermark
-    in de rechteronderhoek van een matplotlib-figuur.
-
-    Args:
-        fig:   Matplotlib figure object
-        alpha: Transparantie (standaard 0.08 — nauwelijks zichtbaar)
-    """
+    """Voeg het ZORGI heartbeat-icoon toe als subtiel watermark."""
     logo_path = LOGO_ASSETS.get("heartbeat_hires_transparant")
     if logo_path and logo_path.exists():
         from matplotlib.image import imread

@@ -13,6 +13,7 @@ Architectuur:
 
 from __future__ import annotations
 
+import html
 import sys
 from datetime import UTC, date, datetime
 from pathlib import Path
@@ -39,7 +40,12 @@ from csat.core.analysers.evolution_result import EvolutionResult  # noqa: E402
 from csat.core.exporters.dashboard_exporter import DashboardData, DashboardExporter  # noqa: E402
 from csat.core.loaders import get_loader  # noqa: E402
 from csat.i18n import load_translations  # noqa: E402
-from csat.utils.branding import apply_plotly_theme, inject_css  # noqa: E402
+from csat.utils.branding import (  # noqa: E402
+    apply_plotly_theme,
+    inject_css,
+    inject_sidebar_toggle,
+    render_topbar,
+)
 from csat.utils.date_utils import parse_period, period_label  # noqa: E402
 from csat.utils.zorgi_theme import (  # noqa: E402
     ZORGI_DARK_BLUE,
@@ -58,6 +64,7 @@ from csat.utils.zorgi_theme import (  # noqa: E402
 _BASELINE_YEAR: int = 2025
 _TREND_WINDOW_START: str = "2025-07-01"
 _ACTIVE_PILLARS: frozenset[str] = frozenset({"pharma"})
+
 
 # Fasegebaseerde puntkleur (tijdlijn combo-grafiek)
 _PHASE_POINT_COLOR: dict[str, str] = {
@@ -140,9 +147,10 @@ def _render_sidebar(
     lang = st.session_state.get("lang", "nl")
 
     with st.sidebar:
+        # Geen extra spacer nodig: sidebar-panel start al op top:110px via CSS.
         st.markdown(
             f"<div style='text-align:center;padding:0.5rem 0'>"
-            f"<span style='font-size:2rem'>💊</span><br>"
+            f"<span style='font-size:2rem'>🧭</span><br>"
             f"<b style='color:{ZORGI_DARK_BLUE};font-size:1.1rem'>{d['title']}</b>"
             f"</div>",
             unsafe_allow_html=True,
@@ -167,9 +175,30 @@ def _render_sidebar(
         st.divider()
 
         # --- Modus ---
-        st.markdown(f"**{d['mode_select']}**")
         mode_full = d["mode_full"]
         mode_trend = d["mode_trend"]
+        _tip_full = d.get("mode_full_help", "")
+        _tip_trend = d.get("mode_trend_help", "")
+        _colon = d.get("colon", ":")
+        # HTML-escape voor veilige injectie (emoji's zijn veilig, < > & " wél escapen)
+        _label_h = html.escape(d["mode_select"])
+        _colon_h = html.escape(_colon)
+        _mf_h = html.escape(mode_full)
+        _mt_h = html.escape(mode_trend)
+        _tipf_h = html.escape(_tip_full)
+        _tipt_h = html.escape(_tip_trend)
+        # Zelfde structuur als Pijler/Taal: st.markdown bold + radio collapsed.
+        # Tooltip via pure CSS hover (geen Streamlit help-parameter nodig).
+        st.markdown(
+            f'<p class="zorgi-section-label">'
+            f"<strong>{_label_h}</strong>&nbsp;"
+            f'<span class="zorgi-help-tip">?'
+            f'<span class="zorgi-help-tip-content">'
+            f"<strong>{_mf_h}{_colon_h}</strong> {_tipf_h}<br>"
+            f"<strong>{_mt_h}{_colon_h}</strong> {_tipt_h}"
+            f"</span></span></p>",
+            unsafe_allow_html=True,
+        )
         selected_mode = st.radio(
             d["mode_select"],
             options=[mode_full, mode_trend],
@@ -560,7 +589,7 @@ def _tab_summary(data: DashboardData, t: dict, lang: str) -> None:
         d["col_current"]: [r.current_value for r in data.comparison_rows],
         "Δ": [r.delta_value for r in data.comparison_rows],
     }
-    st.dataframe(pd.DataFrame(table_data), hide_index=True, use_container_width=True)
+    st.dataframe(pd.DataFrame(table_data), hide_index=True, width="stretch")
 
 
 def _tab_timeline(data: DashboardData, t: dict, lang: str) -> None:
@@ -570,9 +599,9 @@ def _tab_timeline(data: DashboardData, t: dict, lang: str) -> None:
         st.info(d["no_data"])
         return
 
-    st.plotly_chart(_chart_timeline(data, t, lang), use_container_width=True)
+    st.plotly_chart(_chart_timeline(data, t, lang), width="stretch")
     st.divider()
-    st.plotly_chart(_chart_period_comparison(data, t), use_container_width=True)
+    st.plotly_chart(_chart_period_comparison(data, t), width="stretch")
 
 
 def _tab_tickets(data: DashboardData, t: dict, lang: str) -> None:  # noqa: C901
@@ -624,7 +653,7 @@ def _tab_tickets(data: DashboardData, t: dict, lang: str) -> None:  # noqa: C901
             data.baseline_label,
             data.current_label,
         )
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
         st.dataframe(
             pd.DataFrame(
                 [
@@ -637,7 +666,7 @@ def _tab_tickets(data: DashboardData, t: dict, lang: str) -> None:  # noqa: C901
                 ]
             ),
             hide_index=True,
-            use_container_width=True,
+            width="stretch",
         )
 
     st.divider()
@@ -652,7 +681,7 @@ def _tab_tickets(data: DashboardData, t: dict, lang: str) -> None:  # noqa: C901
             data.baseline_label,
             data.current_label,
         )
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width="stretch")
 
         if data.trivial_pct_negative > 10 and data.trivial_avg_score > 0:
             st.warning(
@@ -688,7 +717,7 @@ def _tab_response(data: DashboardData, t: dict, lang: str) -> None:
 
     # --- Lijn-grafiek responstijd per score-niveau ---
     if data.response_time_by_score:
-        st.plotly_chart(_chart_response_time(data, t), use_container_width=True)
+        st.plotly_chart(_chart_response_time(data, t), width="stretch")
     else:
         st.info(d["no_data"])
 
@@ -700,7 +729,7 @@ def _tab_hospitals(data: DashboardData, t: dict, lang: str) -> None:
 
     # --- Horizontal bar chart ---
     if data.hospital_top5 or data.hospital_bottom5:
-        st.plotly_chart(_chart_hospitals(data, t), use_container_width=True)
+        st.plotly_chart(_chart_hospitals(data, t), width="stretch")
 
     st.divider()
 
@@ -720,7 +749,7 @@ def _tab_hospitals(data: DashboardData, t: dict, lang: str) -> None:
                 ]
             ),
             hide_index=True,
-            use_container_width=True,
+            width="stretch",
         )
 
     st.divider()
@@ -741,7 +770,7 @@ def _tab_hospitals(data: DashboardData, t: dict, lang: str) -> None:
                 ]
             ),
             hide_index=True,
-            use_container_width=True,
+            width="stretch",
         )
 
         # Disengagement-alerts
@@ -765,7 +794,7 @@ def _tab_targets(data: DashboardData, t: dict, lang: str) -> None:
     st.markdown(f"#### {d['kpi_targets_title']}")
 
     if data.kpi_targets:
-        st.plotly_chart(_chart_kpi_targets(data, t, lang), use_container_width=True)
+        st.plotly_chart(_chart_kpi_targets(data, t, lang), width="stretch")
 
         # Overzichtstabel
         status_map = {
@@ -788,7 +817,7 @@ def _tab_targets(data: DashboardData, t: dict, lang: str) -> None:
                     d["col_status"]: status_map.get(kp.status, kp.status),
                 }
             )
-        st.dataframe(pd.DataFrame(rows), hide_index=True, use_container_width=True)
+        st.dataframe(pd.DataFrame(rows), hide_index=True, width="stretch")
 
     st.info(d["adjusted_targets_note"])
 
@@ -819,7 +848,7 @@ def main() -> None:
     """Streamlit entry point — configureert de pagina en rendert het volledige dashboard."""
     st.set_page_config(
         page_title="CSAT-Compass",
-        page_icon="💊",
+        page_icon="🧭",
         layout="wide",
         initial_sidebar_state="expanded",
     )
@@ -833,18 +862,28 @@ def main() -> None:
     t = load_translations(lang)
     d = t["dashboard"]
 
-    # ZORGI CSS injecteren
+    # ZORGI CSS injecteren (alleen styles — blokkeert niet)
     inject_css(st, prod_mode=DASHBOARD_PROD_MODE)
 
-    # Sidebar
+    # Datum voor topbalk (Belgisch formaat DD/MM/YYYY)
     today = datetime.now(tz=UTC).date()
+    today_str = today.strftime("%d/%m/%Y")
+
+    # Placeholder voor topbalk — direct zichtbaar, pijlerinfo volgt na dataladen
+    _topbar = st.empty()
+    render_topbar(_topbar, today_str, prod_mode=DASHBOARD_PROD_MODE)
+
+    # Sidebar
     last_year, last_month = _last_complete_period(today)
     selected_pillar, window_start, lang = _render_sidebar(t, today, last_year, last_month)
 
     # Niet-PHARMA pijlers → Coming soon
     if selected_pillar not in _ACTIVE_PILLARS:
         pillar_name = PILLAR_REGISTRY[selected_pillar].get("report_name", selected_pillar)
+        render_topbar(_topbar, today_str, prod_mode=DASHBOARD_PROD_MODE, pillar_name=pillar_name)
         _render_coming_soon(t, pillar_name)
+        # Sidebar-toggle knop (NA content — blokkeert rendering niet)
+        inject_sidebar_toggle()
         return
 
     # PHARMA data laden en analyseren
@@ -863,18 +902,18 @@ def main() -> None:
     # Dashboard-data voorbereiden (snel, niet gecached)
     data = DashboardExporter.prepare(result, window_start)
 
-    # Header
+    # Topbar bijwerken met pijler- en periodeinfo
     mode_label = d["mode_trend"] if data.mode == "trend" else d["mode_full"]
-    st.markdown(
-        f"<div class='zorgi-header'>"
-        f"<h1 style='color:white;margin:0'>{data.pillar_name}</h1>"
-        f"<p style='color:white;margin:0;opacity:0.85'>{mode_label} · "
-        f"{data.baseline_label} → {data.current_label}</p>"
-        f"</div>",
-        unsafe_allow_html=True,
+    render_topbar(
+        _topbar,
+        today_str,
+        prod_mode=DASHBOARD_PROD_MODE,
+        pillar_name=data.pillar_name,
+        mode_label=mode_label,
+        period_str=f"{data.baseline_label} → {data.current_label}",
     )
 
-    # 6 tabs
+    # 6 tabs (direct onder topbalk — geen aparte header-div meer)
     tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(
         [
             d["tab_summary"],
@@ -898,6 +937,9 @@ def main() -> None:
         _tab_hospitals(data, t, lang)
     with tab6:
         _tab_targets(data, t, lang)
+
+    # Sidebar-toggle knop injecteren (NA alle content — blokkeert rendering niet)
+    inject_sidebar_toggle()
 
 
 if __name__ == "__main__":
