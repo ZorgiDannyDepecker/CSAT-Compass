@@ -24,7 +24,7 @@ coverage:
     - "tools/**"
     - "docs/**"
     - "src/dashboard/**"   # Streamlit UI — geen unit tests
-    - "src/static/**"
+    - "assets/**"
 
 comment:
   layout: "reach,diff,flags,files"

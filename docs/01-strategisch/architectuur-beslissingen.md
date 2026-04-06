@@ -482,14 +482,14 @@ onderscheidbaar van Purple.
 
 **4. Logo-assets gebundeld**
 
-6 heartbeat-iconen opgenomen in `src/static/img/` met dev-friendly naamconventie
+6 heartbeat-iconen opgenomen in `assets/img/` met dev-friendly naamconventie
 (`heartbeat_*`). Kanaal-toewijzing: wit-varianten voor gradient-headers (Streamlit, PDF),
 kleur-varianten voor lichte achtergronden (favicon, sidebar), transparante variant voor
 matplotlib-watermark.
 
 **5. Poppins TTF lokaal gebundeld**
 
-Poppins Light (300) en ExtraBold (800) opgenomen in `src/static/fonts/` zodat matplotlib
+Poppins Light (300) en ExtraBold (800) opgenomen in `assets/fonts/` zodat matplotlib
 ze kan gebruiken onafhankelijk van de systeeminstallatie. Streamlit en WeasyPrint
 gebruiken Google Fonts `@import`.
 

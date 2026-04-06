@@ -44,6 +44,7 @@ from csat.utils.branding import (  # noqa: E402
     apply_plotly_theme,
     inject_css,
     inject_sidebar_toggle,
+    inject_tab_font_css,
     render_topbar,
 )
 from csat.utils.date_utils import parse_period, period_label  # noqa: E402
@@ -159,18 +160,27 @@ def _render_sidebar(
 
         # --- Pijler ---
         st.markdown(f"**{d['pillar_select']}**")
-        pillar_options = [k for k in PILLAR_REGISTRY if k != "zorgi"]
-        pillar_labels = {
-            k: f"{PILLAR_REGISTRY[k]['name']} {'✅' if k in _ACTIVE_PILLARS else '⏳'}"
-            for k in pillar_options
-        }
+        sub_pillars = [k for k in PILLAR_REGISTRY if k != "zorgi"]
+        pillar_options = ["zorgi", *sub_pillars]
+        pillar_labels = {}
+        for k in pillar_options:
+            if k == "zorgi":
+                status = "✅" if k in _ACTIVE_PILLARS else "⏳"
+                pillar_labels[k] = f"ZORGI {status}"
+            else:
+                status = "✅" if k in _ACTIVE_PILLARS else "⏳"
+                pillar_labels[k] = f"{PILLAR_REGISTRY[k]['name']} {status}"
+        # Herstel geselecteerde pijler uit session_state (bewaard bij taalwissel)
+        _saved_pillar = st.session_state.get("selected_pillar", "zorgi")
+        _pillar_idx = pillar_options.index(_saved_pillar) if _saved_pillar in pillar_options else 0
         selected_pillar = st.radio(
             d["pillar_select"],
             options=pillar_options,
             format_func=lambda k: pillar_labels[k],
-            index=0,
+            index=_pillar_idx,
             label_visibility="collapsed",
         )
+        st.session_state["selected_pillar"] = selected_pillar
 
         st.divider()
 
@@ -185,8 +195,9 @@ def _render_sidebar(
         _colon_h = html.escape(_colon)
         _mf_h = html.escape(mode_full)
         _mt_h = html.escape(mode_trend)
-        _tipf_h = html.escape(_tip_full)
-        _tipt_h = html.escape(_tip_trend)
+        # Tip-velden bevatten developer-controlled HTML (<span style=...>) — niet escapen
+        _tipf_h = _tip_full
+        _tipt_h = _tip_trend
         # Zelfde structuur als Pijler/Taal: st.markdown bold + radio collapsed.
         # Tooltip via pure CSS hover (geen Streamlit help-parameter nodig).
         st.markdown(
@@ -199,12 +210,17 @@ def _render_sidebar(
             f"</span></span></p>",
             unsafe_allow_html=True,
         )
+        # Herstel geselecteerde modus uit session_state (bewaard bij taalwissel)
+        # Opslag als taalvrije sleutel "full"/"trend" — onafhankelijk van vertaling
+        _saved_mode_key = st.session_state.get("selected_mode_key", "full")
+        _mode_idx = 1 if _saved_mode_key == "trend" else 0
         selected_mode = st.radio(
             d["mode_select"],
             options=[mode_full, mode_trend],
-            index=0,
+            index=_mode_idx,
             label_visibility="collapsed",
         )
+        st.session_state["selected_mode_key"] = "trend" if selected_mode == mode_trend else "full"
         window_start = _TREND_WINDOW_START if selected_mode == mode_trend else None
 
         st.divider()
@@ -856,6 +872,10 @@ def main() -> None:
     # Session state initialiseren
     if "lang" not in st.session_state:
         st.session_state["lang"] = "nl"
+    if "selected_pillar" not in st.session_state:
+        st.session_state["selected_pillar"] = "zorgi"
+    if "selected_mode_key" not in st.session_state:
+        st.session_state["selected_mode_key"] = "full"
 
     # Vertalingen laden (op basis van huidige session lang)
     lang = st.session_state["lang"]
@@ -913,7 +933,7 @@ def main() -> None:
         period_str=f"{data.baseline_label} → {data.current_label}",
     )
 
-    # 6 tabs (direct onder topbalk — geen aparte header-div meer)
+    # 6 tabs
     tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(
         [
             d["tab_summary"],
@@ -937,6 +957,9 @@ def main() -> None:
         _tab_hospitals(data, t, lang)
     with tab6:
         _tab_targets(data, t, lang)
+
+    # Tab-font CSS NA tabs injecteren (wint cascade van Streamlit emotion-CSS)
+    inject_tab_font_css(st)
 
     # Sidebar-toggle knop injecteren (NA alle content — blokkeert rendering niet)
     inject_sidebar_toggle()

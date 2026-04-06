@@ -47,9 +47,9 @@ GRADIENT_CSS = ZORGI_GRADIENT_CSS
 # Paden — statische assets
 # =============================================================================
 
-_STATIC_DIR = Path(__file__).resolve().parent.parent.parent / "static"
-_IMG_DIR = _STATIC_DIR / "img"
-_FONTS_DIR = _STATIC_DIR / "fonts"
+_ASSETS_DIR = Path(__file__).resolve().parent.parent.parent.parent / "assets"
+_IMG_DIR = _ASSETS_DIR / "img"
+_FONTS_DIR = _ASSETS_DIR / "fonts"
 
 # =============================================================================
 # Logo-assets — conform Design System sectie 4
@@ -203,6 +203,17 @@ STREAMLIT_CSS: str = f"""
         max-width: {_SIDEBAR_MAX_WIDTH}px !important;
         width: {_SIDEBAR_MIN_WIDTH}px !important;
     }}
+    /* Sidebar-divider: compactere lijn — zelfde visueel gewicht als Weergave-modus/Taal */
+    [data-testid="stSidebar"] [data-testid="stDivider"] {{
+        margin-top: 0.3rem !important;
+        margin-bottom: 0.3rem !important;
+    }}
+    /* Pijler sub-items naar rechts: radio-group met 5 labels = uniek de pijlerselectie.
+       :has(label:nth-child(5)) treft enkel die radio, niet mode (2) of taal (2).
+       padding-left schuift zowel het rondje als de tekst naar rechts. */
+    [data-testid="stSidebar"] [role="radiogroup"]:has(label:nth-child(5)) label:not(:first-child) {{
+        padding-left: 1.2rem !important;
+    }}
     /* Resize-handle verbergen — veilige selectors + scoped col-resize binnen sidebar */
     [data-testid="stSidebarUserResizeHandle"],
     [data-testid="stSidebarResizeHandle"],
@@ -232,24 +243,49 @@ STREAMLIT_CSS: str = f"""
         padding-bottom: 6px !important;
         flex-wrap: wrap !important;
     }}
-    [data-baseweb="tab"] {{
+    /* Tabs - meerdere selectors voor Streamlit 1.28-1.55 compatibiliteit.
+       font-size ook op alle kindelementen (*) gezet: Streamlit plaatst de tekst
+       in een binnenste <p> of <span> met font-size:inherit die anders de
+       button-font-size negeert (inherit-chain gaat voorbij onze regel). */
+    [data-baseweb="tab"],
+    [role="tab"],
+    button[role="tab"],
+    [data-baseweb="tab-list"] button {{
         background-color: {ZORGI_DARK_BLUE} !important;
         color: {ZORGI_WHITE} !important;
         border-radius: 50px !important;
         padding: 0.55rem 1.5rem !important;
-        font-size: 0.92rem !important;
+        font-size: 1.1rem !important;
         font-weight: 600 !important;
         border: none !important;
         min-height: 2.5rem !important;
         transition: background 0.2s ease, transform 0.15s ease !important;
         margin: 2px 0 !important;
     }}
-    [data-baseweb="tab"]:hover {{
+    /* Kindelementen: enkel font-size + color forceren, geen eigen box-model */
+    [data-baseweb="tab"] *,
+    [role="tab"] *,
+    button[role="tab"] *,
+    [data-baseweb="tab-list"] button * {{
+        font-size: 1.1rem !important;
+        font-weight: 600 !important;
+        color: {ZORGI_WHITE} !important;
+        background-color: transparent !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+        min-height: unset !important;
+    }}
+    [data-baseweb="tab"]:hover,
+    [role="tab"]:hover,
+    button[role="tab"]:hover {{
         background-color: {ZORGI_GREY_BLUE} !important;
         color: white !important;
         transform: translateY(-1px) !important;
     }}
-    [data-baseweb="tab"][aria-selected="true"] {{
+    [data-baseweb="tab"][aria-selected="true"],
+    [role="tab"][aria-selected="true"],
+    button[role="tab"][aria-selected="true"] {{
         background: {ZORGI_GRADIENT_CSS} !important;
         color: white !important;
         box-shadow: 0 3px 10px rgba(0, 58, 112, 0.3) !important;
@@ -285,6 +321,24 @@ STREAMLIT_CSS: str = f"""
         margin: 0 !important;
         overflow: visible !important;
         box-sizing: border-box !important;
+    }}
+    /* Streamlit-navigatieknop in sidebar-header verbergen (single-page app).
+       In Streamlit 1.37+ rendert Streamlit automatisch een klikbaar paginapictogram
+       (stSidebarNavLink / stLogoLink / stPageLink) in de sidebar-header.
+       Klikken op dit icoon triggert een navigatie-event en breekt de sidebar-layout.
+       Oplossing: alle sidebar-navigatie-elementen verbergen én onklikbaar maken.
+       selector :not([data-testid="stSidebarCollapseButton"]) behoudt de << knop. */
+    [data-testid="stSidebarNavItems"],
+    [data-testid="stSidebarNav"],
+    [data-testid="stSidebarNavSeparator"],
+    [data-testid="stSidebarNavLink"],
+    [data-testid="stLogoLink"],
+    [data-testid="stLogo"],
+    [data-testid="stPageLink"],
+    section[data-testid="stSidebar"] nav,
+    [data-testid="stSidebarHeader"] > *:not([data-testid="stSidebarCollapseButton"]) {{
+        display: none !important;
+        pointer-events: none !important;
     }}
     /* << collapse-knop: left 182px, top _BTN_TOP_PX */
     [data-testid="stSidebarCollapseButton"] {{
@@ -490,8 +544,25 @@ STREAMLIT_CSS: str = f"""
         display: block !important;
     }}
     .zorgi-help-tip-content strong {{
-        color: rgba(255, 255, 255, 0.80) !important;
-        font-weight: 600 !important;
+        color: {ZORGI_WHITE} !important;
+        font-weight: 400 !important;
+    }}
+    /* Maandnamen (januari/juli, janvier/juillet): bold */
+    .zorgi-help-tip-content .zorgi-tip-month {{
+        font-weight: 700 !important;
+        color: {ZORGI_WHITE} !important;
+    }}
+
+    /* Ankerlink-icoon (⛓) naast headings verbergen.
+       Streamlit genereert automatisch [data-testid="stHeaderAnchor"] naast elke heading.
+       Klikken op dit icoon verandert de URL-hash en triggert een browser-scroll,
+       waardoor de position:fixed topbalk tijdelijk wegspringt.
+       Oplossing: volledig verbergen + niet-klikbaar. */
+    [data-testid="stHeaderAnchor"],
+    .stMarkdown a[href^="#"],
+    h1 a, h2 a, h3 a, h4 a, h5 a, h6 a {{
+        display: none !important;
+        pointer-events: none !important;
     }}
 
     /* Inhoudspaneel: normale padding-top */
@@ -623,6 +694,35 @@ def inject_css(st, prod_mode: bool = False) -> None:
             """.replace("PROD_BTN_TOP", f"{_BTN_TOP_PX}px"),
             unsafe_allow_html=True,
         )
+
+
+def inject_tab_font_css(st) -> None:
+    """
+    Injecteer tab-font-size CSS NA het renderen van de tabs.
+
+    Moet ná st.tabs() worden aangeroepen zodat deze <style>-tag in de DOM
+    verschijnt na de emotion-CSS van Streamlit en de cascade wint.
+    Font-size ook op kindelementen (*) gezet: Streamlit plaatst de tab-tekst
+    in een binnenste <p>/<span> met font-size:inherit.
+
+    Args:
+        st: Streamlit module
+    """
+    st.markdown(
+        "<style>"
+        "html body [data-baseweb='tab'],"
+        "html body [role='tab'],"
+        "html body button[role='tab'] {"
+        "    font-size: 1.1rem !important;"
+        "}"
+        "html body [data-baseweb='tab'] *,"
+        "html body [role='tab'] *,"
+        "html body button[role='tab'] * {"
+        "    font-size: 1.1rem !important;"
+        "}"
+        "</style>",
+        unsafe_allow_html=True,
+    )
 
 
 # =============================================================================

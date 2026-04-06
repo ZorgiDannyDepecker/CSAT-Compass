@@ -17,6 +17,7 @@ from csat.utils.branding import (
     add_watermark,
     apply_plotly_theme,
     inject_css,
+    inject_tab_font_css,
     render_topbar,
 )
 
@@ -224,6 +225,38 @@ class TestRenderTopbar:
         render_topbar(mock_st, today_str="06/04/2026")
         html = mock_st.markdown.call_args[0][0]
         assert "zorgi-topbar" in html
+
+
+# ------------------------------------------------------------------
+# inject_tab_font_css()
+# ------------------------------------------------------------------
+
+
+class TestInjectTabFontCss:
+    """Test inject_tab_font_css() — injecteert tab font-size CSS via Streamlit."""
+
+    def test_markdown_aangeroepen(self) -> None:
+        mock_st = MagicMock()
+        inject_tab_font_css(mock_st)
+        mock_st.markdown.assert_called_once()
+
+    def test_unsafe_allow_html_true(self) -> None:
+        mock_st = MagicMock()
+        inject_tab_font_css(mock_st)
+        _, kwargs = mock_st.markdown.call_args
+        assert kwargs.get("unsafe_allow_html") is True
+
+    def test_css_bevat_tab_selector(self) -> None:
+        mock_st = MagicMock()
+        inject_tab_font_css(mock_st)
+        css_arg = mock_st.markdown.call_args[0][0]
+        assert "tab" in css_arg.lower()
+
+    def test_css_bevat_font_size(self) -> None:
+        mock_st = MagicMock()
+        inject_tab_font_css(mock_st)
+        css_arg = mock_st.markdown.call_args[0][0]
+        assert "font-size" in css_arg
 
 
 # ------------------------------------------------------------------
