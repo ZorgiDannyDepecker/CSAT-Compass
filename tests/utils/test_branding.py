@@ -1,6 +1,6 @@
 """
 Unit tests voor src/csat/utils/branding.py.
-Test constanten, apply_plotly_theme() en inject_css() via mocks.
+Test constanten, apply_plotly_theme(), inject_css() en render_topbar() via mocks.
 """
 
 from unittest.mock import MagicMock, patch
@@ -17,6 +17,7 @@ from csat.utils.branding import (
     add_watermark,
     apply_plotly_theme,
     inject_css,
+    render_topbar,
 )
 
 # ------------------------------------------------------------------
@@ -105,6 +106,124 @@ class TestInjectCss:
         inject_css(mock_st)
         css_arg = mock_st.markdown.call_args[0][0]
         assert "Poppins" in css_arg
+
+    def test_prod_mode_roept_markdown_twee_keer_aan(self) -> None:
+        """inject_css() met prod_mode=True moet st.markdown() tweemaal aanroepen."""
+        mock_st = MagicMock()
+        inject_css(mock_st, prod_mode=True)
+        assert mock_st.markdown.call_count == 2
+
+    def test_prod_mode_tweede_call_bevat_deploy_knop_selector(self) -> None:
+        """Tweede markdown-call verbergt de deploy-knop (prod-CSS)."""
+        mock_st = MagicMock()
+        inject_css(mock_st, prod_mode=True)
+        tweede_call_css = mock_st.markdown.call_args_list[1][0][0]
+        assert "stAppDeployButton" in tweede_call_css
+
+    def test_prod_mode_false_roept_markdown_een_keer_aan(self) -> None:
+        """inject_css() zonder prod_mode mag st.markdown() slechts eenmaal aanroepen."""
+        mock_st = MagicMock()
+        inject_css(mock_st, prod_mode=False)
+        assert mock_st.markdown.call_count == 1
+
+
+# ------------------------------------------------------------------
+# C1 — render_topbar()
+# ------------------------------------------------------------------
+
+
+class TestRenderTopbar:
+    """Test render_topbar() — vaste ZORGI branded topbalk."""
+
+    def _make_st(self) -> MagicMock:
+        mock_st = MagicMock()
+        mock_st.markdown = MagicMock()
+        return mock_st
+
+    def test_markdown_aangeroepen(self) -> None:
+        """render_topbar() roept st_container.markdown() aan."""
+        mock_st = self._make_st()
+        render_topbar(mock_st, today_str="06/04/2026")
+        mock_st.markdown.assert_called_once()
+
+    def test_unsafe_allow_html_true(self) -> None:
+        """render_topbar() geeft unsafe_allow_html=True mee."""
+        mock_st = self._make_st()
+        render_topbar(mock_st, today_str="06/04/2026")
+        _, kwargs = mock_st.markdown.call_args
+        assert kwargs.get("unsafe_allow_html") is True
+
+    def test_today_str_in_html(self) -> None:
+        """De datum-string verschijnt in de gegenereerde HTML."""
+        mock_st = self._make_st()
+        render_topbar(mock_st, today_str="06/04/2026")
+        html = mock_st.markdown.call_args[0][0]
+        assert "06/04/2026" in html
+
+    def test_pillar_name_in_html(self) -> None:
+        """pillar_name wordt opgenomen in de topbalk-HTML."""
+        mock_st = self._make_st()
+        render_topbar(mock_st, today_str="06/04/2026", pillar_name="ZORGI PHARMA")
+        html = mock_st.markdown.call_args[0][0]
+        assert "ZORGI PHARMA" in html
+
+    def test_zonder_pillar_name_csat_compass_in_html(self) -> None:
+        """Zonder pillar_name verschijnt 'CSAT-Compass' als fallback-label."""
+        mock_st = self._make_st()
+        render_topbar(mock_st, today_str="06/04/2026")
+        html = mock_st.markdown.call_args[0][0]
+        assert "CSAT-Compass" in html
+
+    def test_mode_label_in_html_als_pillar_opgegeven(self) -> None:
+        """mode_label en period_str verschijnen in de HTML als pillar_name opgegeven is."""
+        mock_st = self._make_st()
+        render_topbar(
+            mock_st,
+            today_str="06/04/2026",
+            pillar_name="ZORGI PHARMA",
+            mode_label="📊 Volledig venster",
+            period_str="2025 → mrt 2026",
+        )
+        html = mock_st.markdown.call_args[0][0]
+        assert "Volledig venster" in html
+        assert "2025" in html
+
+    def test_zonder_mode_label_geen_sub_lijn(self) -> None:
+        """Zonder mode_label mag geen <span class="zorgi-topbar-pillar-sub"> in de HTML-body zitten."""
+        mock_st = self._make_st()
+        render_topbar(mock_st, today_str="06/04/2026", pillar_name="ZORGI PHARMA")
+        html = mock_st.markdown.call_args[0][0]
+        # De CSS-definitie mag aanwezig zijn, maar de concrete <span>-tag niet
+        assert '<span class="zorgi-topbar-pillar-sub">' not in html
+
+    def test_logo_html_aanwezig_als_logo_bestaat(self) -> None:
+        """Als het logo-bestand bestaat, verschijnt een <img>-tag in de HTML."""
+        mock_st = self._make_st()
+        logo_path = LOGO_ASSETS["logo_icoon_144_wit"]
+        assert logo_path.exists(), "Voorwaarde: logo moet op schijf bestaan"
+        render_topbar(mock_st, today_str="06/04/2026")
+        html = mock_st.markdown.call_args[0][0]
+        assert "<img" in html
+
+    def test_geen_logo_html_als_logo_ontbreekt(self) -> None:
+        """Als het logo-bestand niet bestaat, mag er geen <img>-tag zijn."""
+        from pathlib import Path
+
+        mock_st = self._make_st()
+        with patch(
+            "csat.utils.branding.LOGO_ASSETS",
+            {"logo_icoon_144_wit": Path("/nonexistent/logo.png")},
+        ):
+            render_topbar(mock_st, today_str="06/04/2026")
+        html = mock_st.markdown.call_args[0][0]
+        assert "<img" not in html
+
+    def test_zorgi_topbar_class_aanwezig(self) -> None:
+        """De topbalk-container heeft altijd de klasse 'zorgi-topbar'."""
+        mock_st = self._make_st()
+        render_topbar(mock_st, today_str="06/04/2026")
+        html = mock_st.markdown.call_args[0][0]
+        assert "zorgi-topbar" in html
 
 
 # ------------------------------------------------------------------
