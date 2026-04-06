@@ -65,6 +65,7 @@ LOGO_ASSETS: dict[str, Path] = {
     "heartbeat_hires_transparant": _IMG_DIR / "Logo-icoon cirkel 512 x 512 px.png",
     "heartbeat_klein_kleur": _IMG_DIR / "Logo-icoon 144 x 144 px.png",
     "logo_icoon_144_wit": _IMG_DIR / "Logo-icoon 144 x 144 px wit.png",
+    "zorgi_wit_full": _IMG_DIR / "Zorgi_wit.png",
 }
 
 # =============================================================================
@@ -801,46 +802,72 @@ def render_topbar(
     today_str: str,
     prod_mode: bool = False,
     pillar_name: str = "",
-    mode_label: str = "",
-    period_str: str = "",
+    version: str = "v0.4",
+    full_window_label: str = "",
+    trend_window_label: str = "",
 ) -> None:
     """
     Render de vaste ZORGI branded topbalk bovenaan het dashboard.
 
     Args:
-        st_container:  st module of st.empty() container
-        today_str:     Datum in DD/MM/YYYY formaat
-        prod_mode:     True → stToolbar/stDecoration verborgen (via inject_css)
-        pillar_name:   Naam van de actieve pijler (bijv. "ZORGI PHARMA")
-        mode_label:    Weergavemodus (bijv. "📊 Volledig venster")
-        period_str:    Periodestring (bijv. "2025 → mrt 2026")
+        st_container:        st module of st.empty() container
+        today_str:           Datum (PROD: DD/MM/YYYY) of datum+tijd (DEMO: DD/MM/YYYY · HH:MM)
+        prod_mode:           True → stToolbar/stDecoration verborgen (via inject_css)
+        pillar_name:         Naam van de actieve pijler (bijv. "ZORGI PHARMA")
+        version:             Versienummer (bijv. "v0.4")
+        full_window_label:   Label volledig venster incl. maanden (bijv. "📊 Volledig venster · jan 2025 → mrt 2026")
+        trend_window_label:  Label tendensvenster incl. maanden (bijv. "📈 Tendensvenster · jul 2025 → mrt 2026")
     """
-    logo_path = LOGO_ASSETS.get("logo_icoon_144_wit")
+    # Logo laden: volledig ZORGI wit logo (icoon + woordmerk + tagline)
+    logo_path = LOGO_ASSETS.get("zorgi_wit_full")
     logo_html = ""
     if logo_path and logo_path.exists():
         b64 = base64.b64encode(logo_path.read_bytes()).decode()
         logo_html = (
             f'<img src="data:image/png;base64,{b64}" '
-            f'height="60" style="display:block;margin:0" alt="ZORGI">'
+            f'height="40" style="display:block;opacity:1;margin-left:16px" alt="ZORGI">'
         )
 
-    if pillar_name:
-        _sep = f" &nbsp;·&nbsp; {period_str}" if period_str else ""
-        sub_line = (
-            f'<span class="zorgi-topbar-pillar-sub">{mode_label}{_sep}</span>' if mode_label else ""
+    # DEMO-badge — enkel zichtbaar wanneer niet in productie-modus
+    demo_badge = "" if prod_mode else '<span class="zorgi-topbar-demo-badge">DEMO</span>'
+
+    # Linker sectie — kompas icoon (huidig app-icoon 🧭) + CSAT-Compass label + pijlernaam + vensters
+    _compass_svg = '<span style="font-size:13px;line-height:1;flex-shrink:0">🧭</span>'
+
+    # Venster-label — enkel de actieve modus tonen (full_window_label bevat de geselecteerde)
+    _active_label = full_window_label or trend_window_label
+    windows_html = (
+        (
+            f'<div class="zorgi-topbar-windows">'
+            f'<span class="zorgi-topbar-win">{_active_label}</span>'
+            f"</div>"
         )
+        if _active_label
+        else ""
+    )
+
+    if pillar_name:
         left_html = (
             f'<div class="zorgi-topbar-pillar">'
-            f'<span class="zorgi-topbar-app-label">🧭&nbsp;CSAT-Compass</span>'
+            f'<div class="zorgi-topbar-app-label-row">'
+            f"{_compass_svg}"
+            f'<span class="zorgi-topbar-app-label">CSAT-Compass</span>'
+            f"{demo_badge}"
+            f"</div>"
             f'<span class="zorgi-topbar-pillar-name">{pillar_name}</span>'
-            f"{sub_line}"
+            f"{windows_html}"
             f"</div>"
         )
     else:
         left_html = (
-            '<div class="zorgi-topbar-pillar">'
-            '<span class="zorgi-topbar-pillar-name">🧭&nbsp;CSAT-Compass</span>'
-            "</div>"
+            f'<div class="zorgi-topbar-pillar">'
+            f'<div class="zorgi-topbar-app-label-row">'
+            f"{_compass_svg}"
+            f'<span class="zorgi-topbar-app-label">CSAT-Compass</span>'
+            f"{demo_badge}"
+            f"</div>"
+            f'<span class="zorgi-topbar-pillar-name">ZORGI</span>'
+            f"</div>"
         )
 
     markup = f"""
@@ -850,54 +877,79 @@ def render_topbar(
     height: 110px; z-index: 100000;
     background: {ZORGI_GRADIENT_CSS};
     display: flex; align-items: center; justify-content: space-between;
-    padding: 0 2rem;
+    padding: 0 28px;
     box-shadow: 0 3px 14px rgba(0, 0, 0, 0.32);
+    font-family: 'Poppins', Verdana, sans-serif;
 }}
 .zorgi-topbar-left {{
-    display: flex; align-items: center; gap: 1rem; padding-left: 2.5rem;
+    display: flex; align-items: center; gap: 1rem; padding-left: 28px;
 }}
 .zorgi-topbar-pillar {{
     display: flex; flex-direction: column; gap: 0.15rem;
 }}
+.zorgi-topbar-app-label-row {{
+    display: flex; align-items: center; gap: 6px;
+}}
 .zorgi-topbar-app-label {{
     color: rgba(255,255,255,0.62); font-size: 0.68rem; font-weight: 600;
-    letter-spacing: 0.14em; text-transform: uppercase;
+    letter-spacing: 0.14em;
+}}
+.zorgi-topbar-demo-badge {{
+    font-size: 9px; font-weight: 800; letter-spacing: 1.5px;
+    padding: 2px 7px; border-radius: 4px;
+    background: #dc2b26; color: #fff;
+    border: 1px solid rgba(255,255,255,0.3);
+    margin-left: 4px;
 }}
 .zorgi-topbar-pillar-name {{
     color: white; font-weight: 800; font-size: 1.8rem;
     line-height: 1.1; letter-spacing: 0.01em;
 }}
-.zorgi-topbar-pillar-sub {{
-    color: rgba(255,255,255,0.78); font-size: 0.88rem;
-    font-weight: 400; letter-spacing: 0.02em;
+.zorgi-topbar-windows {{
+    display: flex; align-items: center; gap: 8px; margin-top: 2px;
+}}
+.zorgi-topbar-win {{
+    color: rgba(255,255,255,0.72); font-size: 0.69rem; font-weight: 300;
+}}
+.zorgi-topbar-win-sep {{
+    width: 1px; height: 10px; background: rgba(255,255,255,0.25);
+    display: inline-block; vertical-align: middle;
 }}
 .zorgi-topbar-right {{
-    display: flex; align-items: center; gap: 1rem;
+    display: flex; align-items: center; gap: 14px;
 }}
-.zorgi-topbar-brand {{
-    display: flex; flex-direction: column; line-height: 1.2;
+.zorgi-topbar-meta-block {{
+    display: flex; align-items: center; gap: 10px;
 }}
-.zorgi-topbar-brand-name {{
-    color: white; font-weight: 800; font-size: 1.2rem; letter-spacing: 0.1em;
+.zorgi-topbar-meta-text {{
+    display: flex; flex-direction: column; align-items: flex-start;
 }}
-.zorgi-topbar-brand-tagline {{
-    color: rgba(255,255,255,0.72); font-size: 0.6rem;
-    letter-spacing: 0.22em; text-transform: uppercase; font-weight: 300;
+.zorgi-topbar-version {{
+    font-size: 11px; font-weight: 300; color: #ffffff; line-height: 1.4;
 }}
 .zorgi-topbar-date {{
-    color: rgba(255,255,255,0.62); font-size: 0.68rem;
-    letter-spacing: 0.03em; margin-top: 0.25rem;
+    font-size: 11px; font-weight: 300; color: #ffffff; line-height: 1.4;
+}}
+.zorgi-topbar-copy {{
+    font-size: 10px; font-weight: 300; color: #ffffff; line-height: 1.4;
+}}
+.zorgi-topbar-dvline {{
+    width: 1px; height: 40px; background: rgba(255,255,255,0.18);
+    display: inline-block;
 }}
 </style>
 <div class="zorgi-topbar">
     <div class="zorgi-topbar-left">{left_html}</div>
     <div class="zorgi-topbar-right">
-        {logo_html}
-        <div class="zorgi-topbar-brand">
-            <span class="zorgi-topbar-brand-name">ZORGI</span>
-            <span class="zorgi-topbar-brand-tagline">smarter care</span>
-            <span class="zorgi-topbar-date">{today_str}</span>
+        <div class="zorgi-topbar-meta-block">
+            <span style="font-size:20px;line-height:1;flex-shrink:0">🧭</span>
+            <div class="zorgi-topbar-meta-text">
+                <span class="zorgi-topbar-version">{version}</span>
+                <span class="zorgi-topbar-date">{today_str}</span>
+                <span class="zorgi-topbar-copy">&copy; ZORGI by Danny Depecker</span>
+            </div>
         </div>
+        {logo_html}
     </div>
 </div>
 """

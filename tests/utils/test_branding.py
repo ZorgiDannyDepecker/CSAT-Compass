@@ -176,14 +176,13 @@ class TestRenderTopbar:
         assert "CSAT-Compass" in html
 
     def test_mode_label_in_html_als_pillar_opgegeven(self) -> None:
-        """mode_label en period_str verschijnen in de HTML als pillar_name opgegeven is."""
+        """full_window_label verschijnt in de HTML als pillar_name opgegeven is."""
         mock_st = self._make_st()
         render_topbar(
             mock_st,
             today_str="06/04/2026",
             pillar_name="ZORGI PHARMA",
-            mode_label="📊 Volledig venster",
-            period_str="2025 → mrt 2026",
+            full_window_label="📊 Volledig venster · 2025 → mrt 2026",
         )
         html = mock_st.markdown.call_args[0][0]
         assert "Volledig venster" in html

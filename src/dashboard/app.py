@@ -65,6 +65,7 @@ from csat.utils.zorgi_theme import (  # noqa: E402
 _BASELINE_YEAR: int = 2025
 _TREND_WINDOW_START: str = "2025-07-01"
 _ACTIVE_PILLARS: frozenset[str] = frozenset({"pharma"})
+_APP_VERSION: str = "v0.2"
 
 
 # Fasegebaseerde puntkleur (tijdlijn combo-grafiek)
@@ -886,12 +887,17 @@ def main() -> None:
     inject_css(st, prod_mode=DASHBOARD_PROD_MODE)
 
     # Datum voor topbalk (Belgisch formaat DD/MM/YYYY)
+    # PROD-modus: enkel datum — DEMO-modus: datum + uur
     today = datetime.now(tz=UTC).date()
-    today_str = today.strftime("%d/%m/%Y")
+    if DASHBOARD_PROD_MODE:
+        today_str = today.strftime("%d/%m/%Y")
+    else:
+        now_full = datetime.now(tz=UTC)
+        today_str = now_full.strftime("%d/%m/%Y · %H:%M")
 
     # Placeholder voor topbalk — direct zichtbaar, pijlerinfo volgt na dataladen
     _topbar = st.empty()
-    render_topbar(_topbar, today_str, prod_mode=DASHBOARD_PROD_MODE)
+    render_topbar(_topbar, today_str, prod_mode=DASHBOARD_PROD_MODE, version=_APP_VERSION)
 
     # Sidebar
     last_year, last_month = _last_complete_period(today)
@@ -900,7 +906,13 @@ def main() -> None:
     # Niet-PHARMA pijlers → Coming soon
     if selected_pillar not in _ACTIVE_PILLARS:
         pillar_name = PILLAR_REGISTRY[selected_pillar].get("report_name", selected_pillar)
-        render_topbar(_topbar, today_str, prod_mode=DASHBOARD_PROD_MODE, pillar_name=pillar_name)
+        render_topbar(
+            _topbar,
+            today_str,
+            prod_mode=DASHBOARD_PROD_MODE,
+            pillar_name=pillar_name,
+            version=_APP_VERSION,
+        )
         _render_coming_soon(t, pillar_name)
         # Sidebar-toggle knop (NA content — blokkeert rendering niet)
         inject_sidebar_toggle()
@@ -923,14 +935,20 @@ def main() -> None:
     data = DashboardExporter.prepare(result, window_start)
 
     # Topbar bijwerken met pijler- en periodeinfo
-    mode_label = d["mode_trend"] if data.mode == "trend" else d["mode_full"]
+    _cur_label = period_label(f"{last_year}-{last_month:02d}", lang=lang)
+    _full_start = period_label(f"{_BASELINE_YEAR}-01", lang=lang)
+    _trend_start = period_label(_TREND_WINDOW_START[:7], lang=lang)
+    full_window = f"{d['mode_full']} · {_full_start} → {_cur_label}"
+    trend_window = f"{d['mode_trend']} · {_trend_start} → {_cur_label}"
+    _active_window = trend_window if data.mode == "trend" else full_window
     render_topbar(
         _topbar,
         today_str,
         prod_mode=DASHBOARD_PROD_MODE,
         pillar_name=data.pillar_name,
-        mode_label=mode_label,
-        period_str=f"{data.baseline_label} → {data.current_label}",
+        version=_APP_VERSION,
+        full_window_label=_active_window,
+        trend_window_label="",
     )
 
     # 6 tabs
