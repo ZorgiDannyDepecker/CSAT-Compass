@@ -23,10 +23,21 @@ def _purge_csat() -> None:
 
 @pytest.fixture(autouse=True)
 def _isolate_csat_module():
-    """Zorg voor een schone module-state voor én na elke test."""
+    """Zorg voor een schone module-state vóór én na elke test.
+
+    Na de test worden de originele csat-modules hersteld zodat andere
+    testbestanden (die klassen bij import-time inladen) hun module-referenties
+    niet verliezen. Zonder herstel zouden patch()-aanroepen in andere tests
+    een nieuw module-object patchen terwijl de al-geïmporteerde klassen
+    nog de globals van het originele object gebruiken.
+    """
+    # Sla de actuele csat-modules op vóór de test
+    saved = {k: v for k, v in sys.modules.items() if k == "csat" or k.startswith("csat.")}
     _purge_csat()
     yield
     _purge_csat()
+    # Herstel de originele modules zodat andere tests ongestoord blijven
+    sys.modules.update(saved)
 
 
 def test_version_from_metadata() -> None:
