@@ -196,19 +196,18 @@ STREAMLIT_CSS: str = f"""
     .trend-stable {{ color: {ZORGI_GREY_BLUE}; font-weight: 800; }}
 
     /* Sidebar — vaste breedte (min = max = 220px), resize uitgeschakeld.
-       width !important overschrijft ook Streamlit JS / localStorage. */
+       height: calc(100vh - 110px) → sidebar stopt exact aan onderkant scherm.
+       overflow-y: auto → scroll mogelijk wanneer inhoud groter is dan venster. */
     [data-testid="stSidebar"] {{
         background: {ZORGI_ULTRA_LIGHT};
         top: 110px !important;
+        height: calc(100vh - 110px) !important;
+        overflow-y: auto !important;
         min-width: {_SIDEBAR_MIN_WIDTH}px !important;
         max-width: {_SIDEBAR_MAX_WIDTH}px !important;
         width: {_SIDEBAR_MIN_WIDTH}px !important;
     }}
-    /* Sidebar-divider: compactere lijn — zelfde visueel gewicht als Weergave-modus/Taal */
-    [data-testid="stSidebar"] [data-testid="stDivider"] {{
-        margin-top: 0.3rem !important;
-        margin-bottom: 0.3rem !important;
-    }}
+    /* Sidebar-divider: compacte lijn — beheerd via widget-sectie CSS hieronder */
     /* Pijler sub-items naar rechts: radio-group met 5 labels = uniek de pijlerselectie.
        :has(label:nth-child(5)) treft enkel die radio, niet mode (2) of taal (2).
        padding-left schuift zowel het rondje als de tekst naar rechts. */
@@ -227,16 +226,42 @@ STREAMLIT_CSS: str = f"""
         min-width: 0 !important;
         overflow: hidden !important;
     }}
-    /* Inner wrapper: geen padding-override — Streamlit's standaard 1rem padding blijft.
-       overflow: visible → laat .zorgi-help-tip-content de sidebar verlaten zonder clipping. */
-    [data-testid="stSidebar"] > div:first-child,
-    [data-testid="stSidebarContent"],
+    /* stSidebarUserContent: overflow visible → tooltip kan sidebar verlaten.
+       padding-top:0.75rem → meer ruimte tov topbalk.
+       padding-left:0.6rem → icoon dichter bij linkerrand. */
     [data-testid="stSidebarUserContent"] {{
         width: 100% !important;
         overflow: visible !important;
+        padding-top: 0.75rem !important;
+        padding-left: 0.6rem !important;
     }}
-
-    /* Tabs — ZORGI pill-stijl */
+    /* Sidebar blokken: compactere verticale tussenruimte */
+    [data-testid="stSidebar"] [data-testid="stVerticalBlock"] {{
+        gap: 0.15rem !important;
+    }}
+    /* Sidebar markdown titels (Pijler / Weergave-modus / Taal):
+       minder ruimte boven de titel, geen extra ruimte onder de laatste keuze */
+    [data-testid="stSidebar"] [data-testid="stMarkdown"] p {{
+        margin-bottom: 0.1rem !important;
+        margin-top: 0 !important;
+    }}
+    /* Sidebar radio-container: negatieve margin trekt de volgende divider dichter naar
+       de laatste radioknop toe (compenseert Streamlit's interne bottom-padding ~4-6px) */
+    [data-testid="stSidebar"] [data-testid="stRadio"] {{
+        margin-bottom: -0.3rem !important;
+        padding-bottom: 0 !important;
+    }}
+    /* Laatste radio-label: interne padding minimaliseren */
+    [data-testid="stSidebar"] [data-testid="stRadio"] label:last-of-type,
+    [data-testid="stSidebar"] [data-testid="stRadio"] label:last-child {{
+        padding-bottom: 2px !important;
+        margin-bottom: 0 !important;
+    }}
+    /* Ruimte voor/na divider strak houden */
+    [data-testid="stSidebar"] [data-testid="stDivider"] {{
+        margin-top: 0.1rem !important;
+        margin-bottom: 0.1rem !important;
+    }}
     [data-baseweb="tab-list"] {{
         background: transparent !important;
         gap: 8px !important;
@@ -314,10 +339,11 @@ STREAMLIT_CSS: str = f"""
         animation: zorgi-btn-appear 0.15s ease 0.35s both;
     }}
 
-    /* stSidebarHeader — minimale hoogte, geen negatieve marges meer.
-       De << knop is position:fixed en staat buiten de DOM-flow. */
+    /* stSidebarHeader — minimale hoogte: content start zo hoog mogelijk.
+       De << knop is position:fixed en staat buiten de DOM-flow → hoogte heeft
+       geen invloed op de knoppositie. */
     [data-testid="stSidebarHeader"] {{
-        height: 50px !important;
+        height: 4px !important;
         padding: 0 !important;
         margin: 0 !important;
         overflow: visible !important;
@@ -341,10 +367,10 @@ STREAMLIT_CSS: str = f"""
         display: none !important;
         pointer-events: none !important;
     }}
-    /* << collapse-knop: left 182px, top _BTN_TOP_PX */
+    /* << collapse-knop: left 179px, top _BTN_TOP_PX */
     [data-testid="stSidebarCollapseButton"] {{
         position: fixed !important;
-        left: 182px !important;
+        left: 179px !important;
         top: {_BTN_TOP_PX}px !important;
         z-index: 999998 !important;
         margin: 0 !important;
@@ -479,15 +505,23 @@ STREAMLIT_CSS: str = f"""
         padding: 0 !important;
         line-height: 1.6 !important;
     }}
-    /* De widget-label container: zelfde bottom-margin als een st.markdown-paragraaf */
+    /* De widget-label container: compactere bottom-margin */
     [data-testid="stWidgetLabel"] {{
-        margin-bottom: 0.5rem !important;
+        margin-bottom: 0.2rem !important;
         padding-bottom: 0 !important;
     }}
     /* Radio-opties: geen extra top-margin zodat afstand overal gelijk is */
     [data-testid="stRadio"] > div + div {{
         margin-top: 0 !important;
         padding-top: 0 !important;
+    }}
+    /* Radio optietekst: uniforme letterhoogte in alle secties (Pijler/Modus/Taal) */
+    [data-testid="stSidebar"] [data-testid="stRadio"] label {{
+        font-size: 0.9375rem !important;
+    }}
+    [data-testid="stSidebar"] [data-testid="stRadio"] label p,
+    [data-testid="stSidebar"] [data-testid="stRadio"] label span {{
+        font-size: 0.9375rem !important;
     }}
 
     /* ── Pure CSS tooltip voor Weergave-modus / Mode d'affichage ─────────────
@@ -518,12 +552,14 @@ STREAMLIT_CSS: str = f"""
         margin-left: 3px;
         flex-shrink: 0;
         overflow: visible;
+        outline: none;
         /* position: static (default) → tooltip positioneert t.o.v. de <p> */
     }}
-    /* Tooltip popup — left:0 = linkerrand <p>.
-       white-space: nowrap + width: max-content → tooltip groeit mee met tekst,
-       elke <br> = één item exact op één lijn. overflow: visible op sidebar-wrapper
-       laat de tooltip de zijbalk verlaten zonder clipping. */
+    /* Tooltip popup — standaard verborgen.
+       Bij hover/focus: position:fixed om overflow clipping te omzeilen.
+       left:165px → rechts van het ?-icoon (icoon staat op ~155px viewport-x).
+       top:390px → zelfde hoogte als het ?-icoon (Weergave-modus ~390px viewport-y).
+       width:190px → past exact voor de twee modusnamen op één lijn elk. */
     .zorgi-help-tip-content {{
         display: none;
         position: absolute;
@@ -532,17 +568,31 @@ STREAMLIT_CSS: str = f"""
         color: {ZORGI_WHITE} !important;
         border-radius: 8px;
         padding: 0.4rem 0.8rem;
-        font-size: 0.82rem;
+        font-size: 0.875rem;
         font-weight: 400 !important;
-        white-space: nowrap;
-        width: max-content;
+        white-space: normal;
+        width: 190px;
         left: 0;
         top: calc(100% + 2px);
         line-height: 1.5;
         box-shadow: 0 4px 12px rgba(0, 58, 112, 0.35);
     }}
-    .zorgi-help-tip:hover .zorgi-help-tip-content {{
+    .zorgi-help-tip:hover .zorgi-help-tip-content,
+    .zorgi-help-tip:focus .zorgi-help-tip-content,
+    .zorgi-help-tip:focus-within .zorgi-help-tip-content {{
         display: block !important;
+        position: fixed !important;
+        left: 165px !important;
+        top: 390px !important;
+        width: 310px !important;
+        max-width: 310px !important;
+        white-space: nowrap !important;
+        font-size: 0.9rem !important;
+        padding: 0.5rem 0.8rem !important;
+        line-height: 1.6 !important;
+        border-radius: 6px !important;
+        box-shadow: 0 4px 16px rgba(0, 58, 112, 0.45) !important;
+        z-index: 999999 !important;
     }}
     .zorgi-help-tip-content strong {{
         color: {ZORGI_WHITE} !important;
@@ -802,7 +852,7 @@ def render_topbar(
     today_str: str,
     prod_mode: bool = False,
     pillar_name: str = "",
-    version: str = "v0.4",
+    version: str = "",
     full_window_label: str = "",
     trend_window_label: str = "",
 ) -> None:
@@ -909,7 +959,7 @@ def render_topbar(
     display: flex; align-items: center; gap: 8px; margin-top: 2px;
 }}
 .zorgi-topbar-win {{
-    color: rgba(255,255,255,0.72); font-size: 0.69rem; font-weight: 300;
+    color: rgba(255,255,255,0.72); font-size: 0.89rem; font-weight: 300;
 }}
 .zorgi-topbar-win-sep {{
     width: 1px; height: 10px; background: rgba(255,255,255,0.25);
@@ -919,16 +969,16 @@ def render_topbar(
     display: flex; align-items: center; gap: 14px;
 }}
 .zorgi-topbar-meta-block {{
-    display: flex; align-items: center; gap: 10px;
+    display: flex; align-items: center; gap: 2px;
 }}
 .zorgi-topbar-meta-text {{
     display: flex; flex-direction: column; align-items: flex-start;
 }}
 .zorgi-topbar-version {{
-    font-size: 11px; font-weight: 300; color: #ffffff; line-height: 1.4;
+    font-size: 12px; font-weight: 300; color: #ffffff; line-height: 1.4;
 }}
 .zorgi-topbar-date {{
-    font-size: 11px; font-weight: 300; color: #ffffff; line-height: 1.4;
+    font-size: 12px; font-weight: 300; color: #ffffff; line-height: 1.4;
 }}
 .zorgi-topbar-copy {{
     font-size: 10px; font-weight: 300; color: #ffffff; line-height: 1.4;
@@ -942,7 +992,7 @@ def render_topbar(
     <div class="zorgi-topbar-left">{left_html}</div>
     <div class="zorgi-topbar-right">
         <div class="zorgi-topbar-meta-block">
-            <span style="font-size:20px;line-height:1;flex-shrink:0">🧭</span>
+            <span style="font-size:40px;line-height:1;flex-shrink:0">🧭</span>
             <div class="zorgi-topbar-meta-text">
                 <span class="zorgi-topbar-version">{version}</span>
                 <span class="zorgi-topbar-date">{today_str}</span>

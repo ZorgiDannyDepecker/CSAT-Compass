@@ -211,7 +211,7 @@
     }
   },
   "dashboard": {
-    "title": "CSAT-Compass Dashboard",
+    "title": "Instellingen",
     "pillar_select": "Pijler",
     "mode_select": "Weergave-modus",
     "mode_full": "📊 Volledig venster",

@@ -28,6 +28,7 @@ _SRC = Path(__file__).resolve().parent.parent
 if str(_SRC) not in sys.path:
     sys.path.insert(0, str(_SRC))
 
+from csat import __version__  # noqa: E402
 from csat.config.pillars import PILLAR_REGISTRY  # noqa: E402
 from csat.config.settings import (  # noqa: E402
     CSV_FALLBACK_PATH,
@@ -65,7 +66,7 @@ from csat.utils.zorgi_theme import (  # noqa: E402
 _BASELINE_YEAR: int = 2025
 _TREND_WINDOW_START: str = "2025-07-01"
 _ACTIVE_PILLARS: frozenset[str] = frozenset({"pharma"})
-_APP_VERSION: str = "v0.2"
+_APP_VERSION: str = f"v{__version__}"
 
 
 # Fasegebaseerde puntkleur (tijdlijn combo-grafiek)
@@ -149,11 +150,13 @@ def _render_sidebar(
     lang = st.session_state.get("lang", "nl")
 
     with st.sidebar:
-        # Geen extra spacer nodig: sidebar-panel start al op top:110px via CSS.
+        # --- Header: links uitgelijnd 🧭 + sectietitel naast elkaar ---
         st.markdown(
-            f"<div style='text-align:center;padding:0.5rem 0'>"
-            f"<span style='font-size:2rem'>🧭</span><br>"
-            f"<b style='color:{ZORGI_DARK_BLUE};font-size:1.1rem'>{d['title']}</b>"
+            f"<div style='display:flex;align-items:center;justify-content:flex-start;"
+            f"gap:2px;padding:0.15rem 0 0.1rem 0;margin-left:-0.15rem'>"
+            f"<span style='font-size:1.3rem;line-height:1'>🧭</span>"
+            f"<span style='font-size:1.15rem;font-weight:700;color:{ZORGI_DARK_BLUE}'>"
+            f"{d['title']}</span>"
             f"</div>",
             unsafe_allow_html=True,
         )
@@ -161,6 +164,7 @@ def _render_sidebar(
 
         # --- Pijler ---
         st.markdown(f"**{d['pillar_select']}**")
+        st.markdown("<div style='height:2rem;min-height:2rem'></div>", unsafe_allow_html=True)
         sub_pillars = [k for k in PILLAR_REGISTRY if k != "zorgi"]
         pillar_options = ["zorgi", *sub_pillars]
         pillar_labels = {}
@@ -199,18 +203,29 @@ def _render_sidebar(
         # Tip-velden bevatten developer-controlled HTML (<span style=...>) — niet escapen
         _tipf_h = _tip_full
         _tipt_h = _tip_trend
+        # Compacte tooltip-tekst: modusnaam + "vanaf/depuis" + vetgedrukte startmaand (2 regels, nowrap)
+        _months_i18n = t.get("months", [])
+        _trend_m_idx = int(_TREND_WINDOW_START[5:7]) - 1  # 6 → juli/juillet
+        _m_full = _months_i18n[0] if _months_i18n else "jan"
+        _m_trend = _months_i18n[_trend_m_idx] if len(_months_i18n) > _trend_m_idx else "jul"
+        _vanaf = "données depuis" if lang == "fr" else "data vanaf"
         # Zelfde structuur als Pijler/Taal: st.markdown bold + radio collapsed.
         # Tooltip via pure CSS hover (geen Streamlit help-parameter nodig).
         st.markdown(
             f'<p class="zorgi-section-label">'
             f"<strong>{_label_h}</strong>&nbsp;"
-            f'<span class="zorgi-help-tip">?'
+            f'<span class="zorgi-help-tip" tabindex="0">?'
             f'<span class="zorgi-help-tip-content">'
-            f"<strong>{_mf_h}{_colon_h}</strong> {_tipf_h}<br>"
-            f"<strong>{_mt_h}{_colon_h}</strong> {_tipt_h}"
+            f"<span style='display:block'>"
+            f"{_mf_h} &middot; {_vanaf} <span style='font-weight:700'>{_m_full}</span> {_BASELINE_YEAR}"
+            f"</span>"
+            f"<span style='display:block;margin-top:0.3rem'>"
+            f"{_mt_h} &middot; {_vanaf} <span style='font-weight:700'>{_m_trend}</span> {_BASELINE_YEAR}"
+            f"</span>"
             f"</span></span></p>",
             unsafe_allow_html=True,
         )
+        st.markdown("<div style='height:2rem;min-height:2rem'></div>", unsafe_allow_html=True)
         # Herstel geselecteerde modus uit session_state (bewaard bij taalwissel)
         # Opslag als taalvrije sleutel "full"/"trend" — onafhankelijk van vertaling
         _saved_mode_key = st.session_state.get("selected_mode_key", "full")
@@ -226,14 +241,9 @@ def _render_sidebar(
 
         st.divider()
 
-        # --- Periode (informatief) ---
-        cur_label = period_label(f"{last_year}-{last_month:02d}", lang=lang)
-        st.markdown(f"**{d['period_label']}**  \n{_BASELINE_YEAR} → {cur_label}")
-
-        st.divider()
-
         # --- Taal ---
         st.markdown(f"**{d['lang_select']}**")
+        st.markdown("<div style='height:2rem;min-height:2rem'></div>", unsafe_allow_html=True)
         lang_options = ["nl", "fr"]
         new_lang = st.radio(
             d["lang_select"],
@@ -245,6 +255,7 @@ def _render_sidebar(
         if new_lang != lang:
             st.session_state["lang"] = new_lang
             st.rerun()
+        st.divider()
 
     return selected_pillar, window_start, lang
 

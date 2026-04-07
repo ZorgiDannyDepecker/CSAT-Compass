@@ -211,7 +211,7 @@
     }
   },
   "dashboard": {
-    "title": "CSAT-Compass Dashboard",
+    "title": "Paramètres",
     "pillar_select": "Pilier",
     "mode_select": "Mode d'affichage",
     "mode_full": "📊 Vue complète",
