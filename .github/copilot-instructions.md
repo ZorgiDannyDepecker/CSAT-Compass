@@ -4,8 +4,8 @@ applyTo: '**/*'
 
 # CSAT-Compass - Copilot Instructions
 
-**Versie:** 3.3
-**Laatst bijgewerkt:** 27/03/2026
+**Versie:** 3.4
+**Laatst bijgewerkt:** 08/04/2026
 
 **Doel:** CSAT-Compass projectspecifieke GHC-instructies
 **Type:** Reference
@@ -166,6 +166,7 @@ in `zorgi_design_system.md § 12` raadplegen.
 | `/email` | ❌ | — |
 | `/git` | ✅ | Dit bestand |
 | `/cve` | ✅ | Dit bestand |
+| `/pytest` | ✅ | Dit bestand |
 | `/smd` | ❌ | — |
 
 ---
@@ -232,6 +233,42 @@ Wait for the user's answer (1, 2 or 3), then execute the matching flow below.
 
 ---
 
+## /pytest
+
+When the user types `/pytest` (optionally followed by `1`, `2`, or `3`), execute the matching flow below.
+`/pytest` zonder getal is identiek aan `/pytest 1`.
+
+### Pytest-basisflow — tests uitvoeren
+
+1. **Voer uit:** `python -m pytest tests/ -v`
+2. **Toon** de volledige output
+3. **Rapporteer:** aantal geslaagd / gefaald / overgeslagen
+4. Als tests **falen:** stop altijd hier — vermeld welke tests gefaald hebben; voer geen verdere stappen uit
+
+### /pytest 1 — alleen tests
+
+Voer uitsluitend de pytest-basisflow uit. Stop daarna.
+
+### /pytest 2 — tests + lint
+
+1. Voer de **pytest-basisflow** uit
+2. Als tests **slagen:** voer `/git` **Flow 2** uit (alleen `.\tools\lint.ps1`, geen commit)
+3. Als tests **falen:** stop — geen lint
+
+### /pytest 3 — tests + lint + commit
+
+1. Voer de **pytest-basisflow** uit
+2. Als tests **slagen:** voer `/git` **Flow 3** uit (lint → commit als lint slaagt, inclusief CVE-herinnering)
+3. Als tests **falen:** stop — geen lint, geen commit
+
+**Gedragsregels:**
+
+- Execute autonomously — geen bevestigingsvraag, geen uitleg vooraf
+- Tests moeten altijd als eerste stap slagen; nooit verder gaan bij test failures
+- Toon altijd het pytest-rapport (passed/failed/skipped) vóór verdere stappen
+
+---
+
 ## /cve
 
 When the user types `/cve` as the entire message, immediately execute this sequence autonomously:
@@ -264,3 +301,4 @@ When the user types `/cve` as the entire message, immediately execute this seque
 | 3.1 | 25/03/2026 | Architectuurrefactor: /pdf, /GIT, /cve implementaties teruggeplaatst vanuit base naar project; command-tabel herwerkt naar project-centric formaat; /email expliciet als ❌ gedocumenteerd | Danny Depecker |
 | 3.2 | 25/03/2026 | /git hernoemd naar /git | Danny Depecker |
 | 3.3 | 27/03/2026 | /git Flow 1 + Flow 3: CVE-herinnering toegevoegd als stap 6 na succesvolle commit | Danny Depecker |
+| 3.4 | 08/04/2026 | /pytest toegevoegd (3 flows: tests only / tests+lint / tests+lint+commit) | Danny Depecker |
