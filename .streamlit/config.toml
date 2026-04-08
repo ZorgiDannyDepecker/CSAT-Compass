@@ -1,3 +1,13 @@
+[client]
+# toolbarMode bepaalt welke knoppen Streamlit toont in de header.
+# "developer" → alles zichtbaar (Rerun, Clear cache, Deploy, ⋮)
+# "viewer"    → alles verborgen
+# Standaard op "developer" — prod_mode CSS in branding.py verbergt ze selectief.
+toolbarMode = "developer"
+
+[browser]
+gatherUsageStats = false
+
 [theme]
 # ZORGI brand theme — afgeleid van zorgi-design-system.md
 primaryColor            = "#003a70"

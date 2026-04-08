@@ -162,8 +162,8 @@ class TestRenderBasis:
         self, exporter_nl: EvolutionExporter, evolution_result: EvolutionResult
     ) -> None:
         result = exporter_nl.render(evolution_result)
-        assert "H1 2025" in result
-        assert "H2 2025" in result
+        assert "S1 2025" in result
+        assert "S2 2025" in result
 
     def test_render_bevat_ziekenhuizen(
         self, exporter_nl: EvolutionExporter, evolution_result: EvolutionResult

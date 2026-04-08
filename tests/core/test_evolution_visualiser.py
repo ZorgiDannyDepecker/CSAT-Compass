@@ -639,7 +639,7 @@ class TestSubplots:
                 avg_score=3.5,
                 total_tickets=5,
                 pct_negative=20.0,
-                fase="H1 2025",
+                fase="S1 2025",
                 priority_counts={},  # ← leeg → total == 0 branch
             ),
             MonthlyDataPoint(
@@ -647,7 +647,7 @@ class TestSubplots:
                 avg_score=4.0,
                 total_tickets=3,
                 pct_negative=10.0,
-                fase="H1 2026",
+                fase="S1 2026",
                 priority_counts={},  # ← leeg → total == 0 branch
             ),
         ]

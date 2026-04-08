@@ -838,10 +838,10 @@ class TestTurningPointAnalysis:
             trend_is_structural=True,
             trend_breadth="breed",
             monthly_timeline=[
-                MonthlyDataPoint("2025-06", 3.0, 5, 30.0, "H1 2025"),
-                MonthlyDataPoint("2025-07", 3.5, 5, 20.0, "H2 2025"),
-                MonthlyDataPoint("2026-01", 4.0, 5, 10.0, "H1 2026"),
-                MonthlyDataPoint("2026-02", 4.5, 5, 5.0, "H1 2026"),
+                MonthlyDataPoint("2025-06", 3.0, 5, 30.0, "S1 2025"),
+                MonthlyDataPoint("2025-07", 3.5, 5, 20.0, "S2 2025"),
+                MonthlyDataPoint("2026-01", 4.0, 5, 10.0, "S1 2026"),
+                MonthlyDataPoint("2026-02", 4.5, 5, 5.0, "S1 2026"),
             ],
         )
         gen = InsightsGenerator(nl_translations, lang="nl", seed=1)
@@ -1084,10 +1084,10 @@ class TestCoverageOntbrekendesPaden:
             trend_is_structural=True,
             trend_breadth="breed",
             monthly_timeline=[
-                MonthlyDataPoint("2025-06", 3.0, 5, 30.0, "H1 2025"),
-                MonthlyDataPoint("2025-07", 3.5, 5, 20.0, "H2 2025"),
-                MonthlyDataPoint("2026-01", 4.0, 5, 10.0, "H1 2026"),
-                MonthlyDataPoint("2026-02", 4.5, 5, 5.0, "H1 2026"),
+                MonthlyDataPoint("2025-06", 3.0, 5, 30.0, "S1 2025"),
+                MonthlyDataPoint("2025-07", 3.5, 5, 20.0, "S2 2025"),
+                MonthlyDataPoint("2026-01", 4.0, 5, 10.0, "S1 2026"),
+                MonthlyDataPoint("2026-02", 4.5, 5, 5.0, "S1 2026"),
             ],
         )
         gen = InsightsGenerator(nl_translations, lang="nl", seed=1)
@@ -1120,10 +1120,10 @@ class TestCoverageOntbrekendesPaden:
             trend_is_structural=False,
             trend_breadth="beperkt",
             monthly_timeline=[
-                MonthlyDataPoint("2025-10", 4.5, 5, 5.0, "H2 2025"),
-                MonthlyDataPoint("2025-11", 4.0, 5, 10.0, "H2 2025"),
-                MonthlyDataPoint("2026-01", 3.5, 5, 20.0, "H1 2026"),
-                MonthlyDataPoint("2026-02", 3.0, 5, 25.0, "H1 2026"),
+                MonthlyDataPoint("2025-10", 4.5, 5, 5.0, "S2 2025"),
+                MonthlyDataPoint("2025-11", 4.0, 5, 10.0, "S2 2025"),
+                MonthlyDataPoint("2026-01", 3.5, 5, 20.0, "S1 2026"),
+                MonthlyDataPoint("2026-02", 3.0, 5, 25.0, "S1 2026"),
             ],
         )
         gen = InsightsGenerator(nl_translations, lang="nl", seed=1)
@@ -1156,13 +1156,13 @@ class TestCoverageOntbrekendesPaden:
             trend_is_structural=True,
             trend_breadth="breed",
             monthly_timeline=[
-                MonthlyDataPoint("2025-07", 3.5, 5, 20.0, "H2 2025"),
-                MonthlyDataPoint("2026-01", 4.5, 5, 5.0, "H1 2026"),
+                MonthlyDataPoint("2025-07", 3.5, 5, 20.0, "S2 2025"),
+                MonthlyDataPoint("2026-01", 4.5, 5, 5.0, "S1 2026"),
             ],
         )
         gen = InsightsGenerator(nl_translations, lang="nl", seed=1)
         tpa = gen.generate(result).turning_point_analysis
-        # 2 fasen: H2 2025 + H1 2026
+        # 2 fasen: S2 2025 + S1 2026
         assert "halfjaarperiode" in tpa
 
     # --- score_distribution lege df (line 810 in analyser) ---
@@ -1576,14 +1576,14 @@ class TestNarrativeBranches:
                     avg_score=4.0,
                     total_tickets=10,
                     pct_negative=5.0,
-                    fase="H1 2026",
+                    fase="S1 2026",
                 ),
                 MonthlyDataPoint(
                     period="2026-02",
                     avg_score=4.02,
                     total_tickets=8,
                     pct_negative=4.0,
-                    fase="H1 2026",
+                    fase="S1 2026",
                 ),
             ],
         )

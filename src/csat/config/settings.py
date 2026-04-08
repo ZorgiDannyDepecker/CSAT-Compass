@@ -70,3 +70,11 @@ HOSPITAL_RETENTION_MIN: float = float(os.getenv("CSAT_HOSPITAL_RETENTION_MIN", "
 def db_available() -> bool:
     """Controleer of een DB-wachtwoord beschikbaar is voor connectie."""
     return bool(DB_PASSWORD)
+
+
+# --- Dashboard weergave-modus ---
+# CSAT_DASHBOARD_MODE = "prod"  → Deploy-knop en drie-puntjes-menu verborgen
+# CSAT_DASHBOARD_MODE = "demo"  → volledig zichtbaar
+# Standaard = "demo" (dev/test); zet op "prod" voor productie-gebruik
+DASHBOARD_MODE: str = os.getenv("CSAT_DASHBOARD_MODE", "prod").lower()
+DASHBOARD_PROD_MODE: bool = DASHBOARD_MODE == "prod"

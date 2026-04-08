@@ -60,7 +60,7 @@ class HospitalWithCause:
 class PeriodGroup:
     """Geaggregeerd datapunt voor de vergelijkingsbalk (Tab 2)."""
 
-    label: str  # "H1 2025", "H2 2025", "Q1 2026" …
+    label: str  # "S1 2025", "S2 2025", "Q1 2026" …
     avg_score: float
     pct_negative: float
     total: int
@@ -94,7 +94,7 @@ class DashboardData:
     baseline_label: str
     current_label: str
 
-    # --- KPI-kaarten (8 st.metric()-blokken) ---
+    # --- KPI-kaarten (8 st.metric()-blokken — Rij A: KPI-targets, Rij B: Context & Risico) ---
     kpi_avg_score: float = 0.0
     kpi_avg_score_delta: float = 0.0
     kpi_avg_score_ref_label: str = ""
@@ -107,8 +107,14 @@ class DashboardData:
     kpi_responses_total: int = 0
     kpi_streak_months: int = 0
     kpi_critical_accounts: int = 0
+    kpi_attention_accounts: int = 0
+    kpi_critical_account_names: list[str] = field(default_factory=list)
+    zh_attention_list: list[ZhSignalEntry] = field(default_factory=list)
     kpi_targets_met: int = 0
     kpi_targets_total: int = 3  # avg_score · pct_positive · pct_negative
+    kpi_high_critical_ratio: float = 0.0
+    kpi_recent_month_label: str = ""
+    kpi_recent_month_score: float = 0.0
 
     # --- Mini-signaalkaart (Tab 1) ---
     zh_top3: list[ZhSignalEntry] = field(default_factory=list)
@@ -160,7 +166,8 @@ class DashboardExporter:
     _DISENGAGEMENT_SCORE_THRESHOLD: float = 2.5
     _DISENGAGEMENT_TICKET_THRESHOLD: int = 6
     _STREAK_THRESHOLD: float = 4.0
-    _CRITICAL_SCORE_THRESHOLD: float = 2.5
+    _CRITICAL_SCORE_THRESHOLD: float = 3.0  # was: 2.5
+    _ATTENTION_SCORE_THRESHOLD: float = 4.0  # nieuw: 3.0 ≤ score < 4.0
     _SCORE_TARGET_KEYS: frozenset[str] = frozenset(
         {"avg_score_min", "pct_positive_min", "pct_negative_max"}
     )
@@ -196,7 +203,12 @@ class DashboardExporter:
         kpi_best_month_label, kpi_best_month_score = cls._best_month(timeline)
         kpi_streak = cls._calc_streak(result.monthly_timeline)
         kpi_critical = cls._count_critical_accounts(result.hospital_comparison)
+        kpi_attention = cls._count_attention_accounts(result.hospital_comparison)
+        kpi_critical_names = cls._get_critical_account_names(result.hospital_comparison)
+        zh_attention = cls._build_attention_list(result.hospital_comparison)
         kpi_targets_met, kpi_targets_total = cls._count_targets_met(result.kpi_targets)
+        kpi_hc_ratio = cls._get_hc_ratio(result.kpi_targets)
+        kpi_recent_label, kpi_recent_score = cls._recent_month(timeline)
 
         # Mini-signaalkaart
         zh_top3 = cls._build_top3(result.hospital_top5)
@@ -248,8 +260,14 @@ class DashboardExporter:
             kpi_responses_total=result.current_total,
             kpi_streak_months=kpi_streak,
             kpi_critical_accounts=kpi_critical,
+            kpi_attention_accounts=kpi_attention,
+            kpi_critical_account_names=kpi_critical_names,
+            zh_attention_list=zh_attention,
             kpi_targets_met=kpi_targets_met,
             kpi_targets_total=kpi_targets_total,
+            kpi_high_critical_ratio=kpi_hc_ratio,
+            kpi_recent_month_label=kpi_recent_label,
+            kpi_recent_month_score=kpi_recent_score,
             # Mini-signaalkaart
             zh_top3=zh_top3,
             zh_bottom3=zh_bottom3,
@@ -360,7 +378,7 @@ class DashboardExporter:
 
     @staticmethod
     def _count_critical_accounts(hospital_comparison: list[HospitalComparison]) -> int:
-        """Tel ziekenhuizen met current_score < 2,5★ en min. 1 ticket in huidige periode."""
+        """Tel ziekenhuizen met current_score < 3,0★ en min. 1 ticket in huidige periode."""
         return sum(
             1
             for h in hospital_comparison
@@ -370,11 +388,75 @@ class DashboardExporter:
         )
 
     @staticmethod
+    def _count_attention_accounts(
+        hospital_comparison: list[HospitalComparison],
+    ) -> int:
+        """Tel ziekenhuizen met score >= 3.0 en < 4.0 (min. 1 ticket huidig)."""
+        return sum(
+            1
+            for h in hospital_comparison
+            if h.current_score is not None
+            and h.current_total > 0
+            and DashboardExporter._CRITICAL_SCORE_THRESHOLD
+            <= h.current_score
+            < DashboardExporter._ATTENTION_SCORE_THRESHOLD
+        )
+
+    @staticmethod
+    def _get_critical_account_names(
+        hospital_comparison: list[HospitalComparison],
+    ) -> list[str]:
+        """Geef namen van kritieke ziekenhuizen (score < 3.0, min. 1 ticket)."""
+        return [
+            h.hospital
+            for h in sorted(hospital_comparison, key=lambda h: h.current_score or 0.0)
+            if h.current_score is not None
+            and h.current_total > 0
+            and h.current_score < DashboardExporter._CRITICAL_SCORE_THRESHOLD
+        ]
+
+    @staticmethod
+    def _build_attention_list(
+        hospital_comparison: list[HospitalComparison],
+    ) -> list[ZhSignalEntry]:
+        """Bouw de aandachtslijst (score >= 3.0 en < 4.0) gesorteerd op score."""
+        return [
+            ZhSignalEntry(
+                hospital=h.hospital,
+                score=h.current_score,
+                tickets=h.current_total,
+            )
+            for h in sorted(hospital_comparison, key=lambda h: h.current_score or 0.0)
+            if h.current_score is not None
+            and h.current_total > 0
+            and DashboardExporter._CRITICAL_SCORE_THRESHOLD
+            <= h.current_score
+            < DashboardExporter._ATTENTION_SCORE_THRESHOLD
+        ]
+
+    @staticmethod
     def _count_targets_met(kpi_targets: list[KpiTarget]) -> tuple[int, int]:
         """Tel de 3 score-targets die bereikt zijn (avg_score / pct_positive / pct_negative)."""
         score_targets = [t for t in kpi_targets if t.name in DashboardExporter._SCORE_TARGET_KEYS]
         met = sum(1 for t in score_targets if t.on_track)
         return met, len(score_targets)
+
+    @staticmethod
+    def _get_hc_ratio(kpi_targets: list[KpiTarget]) -> float:
+        """Geef de huidige High/Critical-ratio terug uit kpi_targets."""
+        for kp in kpi_targets:
+            if kp.name == "high_critical_max":
+                return round(kp.current, 1)
+        return 0.0
+
+    @staticmethod
+    def _recent_month(timeline: list[MonthlyDataPoint]) -> tuple[str, float]:
+        """Geef de meest recente maand met tickets terug (niet de beste)."""
+        candidates = [p for p in timeline if p.total_tickets > 0]
+        if not candidates:
+            return "—", 0.0
+        latest = max(candidates, key=lambda p: p.period)
+        return latest.period, round(latest.avg_score, 2)
 
     # ------------------------------------------------------------------
     # Intern — mini-signaalkaart
@@ -483,8 +565,8 @@ class DashboardExporter:
         """
         Groepeer maandelijkse datapunten per halfjaar (baseline) of kwartaal (huidig jaar).
 
-        Volledig:       H1 2025 / H2 2025 / Q1 2026 / Q2 2026 …
-        Tendensvenster: H2 2025 / Q1 2026 / Q2 2026 …
+        Volledig:       S1 2025 / S2 2025 / Q1 2026 / Q2 2026 …
+        Tendensvenster: S2 2025 / Q1 2026 / Q2 2026 …
         """
         ws_period = window_start[:7] if window_start else None
 
@@ -503,9 +585,9 @@ class DashboardExporter:
             if ws_period and dp.period < ws_period:
                 continue
             year, month = parse_period(dp.period)
-            # Baseline-jaar (2025 en ouder) → halfjaar; huidig jaar → kwartaal
+            # Baseline-jaar (2025 en ouder) → semester; huidig jaar → kwartaal
             if year <= 2025:
-                label = f"H1 {year}" if month <= 6 else f"H2 {year}"
+                label = f"S1 {year}" if month <= 6 else f"S2 {year}"
             else:
                 q = (month - 1) // 3 + 1
                 label = f"Q{q} {year}"

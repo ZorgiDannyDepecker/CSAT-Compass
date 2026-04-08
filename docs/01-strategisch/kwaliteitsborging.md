@@ -1,7 +1,7 @@
 # CSAT-Compass - Kwaliteitsborging - Q²
 
-**Versie:** 2.0
-**Laatst bijgewerkt:** 31/03/2026
+**Versie:** 2.1
+**Laatst bijgewerkt:** 02/04/2026
 
 **Doel:** Strategisch overzicht van de kwaliteitsarchitectuur — welke tools, welke lagen, waarom
 **Type:** Reference
@@ -98,9 +98,11 @@ worden bewust uitgesloten — die vragen manuele evaluatie.
 | Interrogate | Lokaal | git commit | Docstring-coverage |
 | Vulture | Lokaal | git commit | Dode code |
 | pytest + Coverage.py | Cloud | push/PR | Testdekking |
+| pytest-randomly | Lokaal + Cloud | pytest run | Willekeurige testvolgorde — detecteert volgorde-afhankelijke tests |
 | Codecov | Cloud | push (3.13) | Dekkingstrend |
 | Markdown Lint | Cloud | push `.md` | Documentkwaliteit |
 | Dependabot | Cloud | wekelijks | Dependency-updates |
+| pip-audit | Lokaal (optioneel) | lint.ps1 / manueel | CVE-scan geïnstalleerde packages (ZORGI-proxy: gebruik `/cve`) |
 
 ---
 
@@ -111,3 +113,4 @@ worden bewust uitgesloten — die vragen manuele evaluatie.
 | 1.0 | 31/03/2026 | Initiële versie | Danny Depecker |
 | 1.1 | 31/03/2026 | Opgemaakt conform md-style-guide | GHC |
 | 2.0 | 31/03/2026 | Herschreven als strategisch document — operationele details verplaatst naar kwaliteitscontrole.md | GHC |
+| 2.1 | 02/04/2026 | §4: pytest-randomly en pip-audit toegevoegd aan tool-overzicht | Danny Depecker + GHC |

@@ -1,6 +1,6 @@
 [project]
 name = "csat-compass"
-version = "0.1.0"
+version = "0.2.3"
 description = "ZORGI CSAT analyse en rapportage voor alle pijlers"
 requires-python = ">=3.11"
 
@@ -40,7 +40,7 @@ ignore = [
     "S101",    # assert — toegestaan in tests
     "S105",    # Hardcoded passwords — false positives
     "S608",    # SQL injection — false positives bij string-queries
-    
+
     "T201",    # print() — toegestaan in scripts/debug
     "RUF100",  # Ongebruikte noqa
 ]

@@ -1,7 +1,7 @@
 # CSAT-Compass - Kwaliteitscontrole overzicht
 
-**Versie:** 1.6
-**Laatst bijgewerkt:** 31/03/2026
+**Versie:** 1.7
+**Laatst bijgewerkt:** 02/04/2026
 
 **Doel:** Operationeel runbook — dagelijkse kwaliteitscontroles, commando's en FAQ
 **Type:** Runbook
@@ -136,6 +136,7 @@ Copilot toont tabel: Package | Versie | CVE | Ernst | Actie
 | Bij elke `git commit` | Python syntax check | pre-commit |
 | Bij elke `git commit` | Merge-conflict check | pre-commit |
 | Bij elke push/PR | Tests op Python 3.11, 3.12, 3.13 | GitHub Actions |
+| Bij elke push/PR | Tests in willekeurige volgorde (`pytest-randomly`) — seed verschilt per run | GitHub Actions |
 | Bij elke push/PR (`.md`) | Markdown lint | GitHub Actions |
 | Bij `/git` keuze 1 of 3 | Commit message genereren | Copilot |
 
@@ -190,6 +191,17 @@ ignore_missing_imports = true
 **pip-audit geeft SSL-fout op kantoor?**
 Normaal — ZORGI corporate proxy. Gebruik `/cve` in Copilot Chat als alternatief.
 
+**Tests lopen elke keer in een andere volgorde — is dat normaal?**
+Ja, dit is bewust. Het project gebruikt `pytest-randomly` om bij elke run de testvolgorde
+te shuffelen. Doel: volgorde-afhankelijke tests opsporen (een test die slaagt omdat een
+andere test eerst zijn state heeft klaargezet).
+
+- **`--randomly-seed=last`** (ingesteld in `pyproject.toml`): herhaalt automatisch de seed
+  van de vorige run. Zo reproduceer je een falende volgorde zonder de seed handmatig te noteren.
+- **Manueel reproduceren:** `pytest --randomly-seed=<getal>` met het seed-getal uit de output.
+- **In CI:** elke run krijgt een nieuwe seed → volgorde-afhankelijke tests worden vroeg of laat
+  zichtbaar als ze falen.
+
 ---
 
 ## Versiehistorie
@@ -203,3 +215,4 @@ Normaal — ZORGI corporate proxy. Gebruik `/cve` in Copilot Chat als alternatie
 | 1.4 | 28/03/2026 | Formatter-label herzien naar 'Ruff - formatter (ex Black)' | Danny Depecker + GHC |
 | 1.5 | 31/03/2026 | Opgemaakt conform md-style-guide | GHC |
 | 1.6 | 31/03/2026 | §2 (tool-beschrijvingen) verwijderd — verplaatst naar kwaliteitsborging.md; secties hernummerd | GHC |
+| 1.7 | 02/04/2026 | §5 testvolgorde-rij toegevoegd; FAQ pytest-randomly uitleg + seed-reproductie | Danny Depecker + GHC |

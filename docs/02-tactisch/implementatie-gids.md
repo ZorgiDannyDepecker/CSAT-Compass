@@ -1,7 +1,7 @@
 # CSAT-Compass - Implementatiegids
 
-**Versie:** 2.4
-**Laatst bijgewerkt:** 02/04/2026
+**Versie:** 2.5
+**Laatst bijgewerkt:** 06/04/2026
 
 **Doel:** Index van alle implementatiefasen met status en verwijzingen
 **Type:** Guide
@@ -26,7 +26,7 @@
 | Fase 3e | [fase3e-run-monthly.md](fasen/fase3e-run-monthly.md) | Maandelijkse batch-runner | S | ✅ Compleet |
 | Fase 3f | [fase3f-evolutie-advieskader.md](fasen/fase3f-evolutie-advieskader.md) | Evolutie-advieskader — gap-analyse, 12 beslissingen DDP, release 1 scope | S | ✅ Compleet (v3.0) |
 | Fase 3g | [fase3g-evolutie-rapport-verfijning.md](fasen/fase3g-evolutie-rapport-verfijning.md) | Evolutierapport verfijning — implementatie release 1 | M | ✅ Compleet |
-| Fase 5a | `fase5a-dashboard-pharma.md` | Streamlit dashboard PHARMA-only — app.py, dashboard_exporter.py, KPI-kaarten, NL/FR toggle | S | 🔄 In Progress |
+| Fase 5a | [fase5a-streamlit-dashboard.md](fasen/fase5a-streamlit-dashboard.md) | Streamlit dashboard PHARMA-only — app.py, dashboard_exporter.py, KPI-kaarten, NL/FR toggle | L | 🔄 In uitvoering |
 | Fase 4 | `fase4-pijlers.md` | CARE / CARE ADMIN / ERP4HC pijleranalysers | M | ⏳ Gepland |
 | Fase 5b | `fase5b-dashboard-uitbreiding.md` | Pijleruitbreiding dashboard — CARE / CARE ADMIN / ERP4HC activeren (na Fase 4) | S | ⏳ Gepland |
 | Fase 5c | `fase5c-dashboard-plotly.md` | Plotly interactieve grafieken — vervangt matplotlib PNG embed | S | ⏳ Gepland |
@@ -174,7 +174,7 @@ src/csat/utils/zorgi_theme.py                      ← pure constanten, geen fra
 | 1.3 | 22/03/2026 | Fase 2 status bijgewerkt naar Compleet | GHC |
 | 1.4 | 23/03/2026 | Fase 3 hernoemd naar 3a; sub-fasen 3b/3c/3d toegevoegd (Option C — EvolutionExporter); Mermaid diagram uitgebreid | Danny Depecker + GHC |
 | 1.5 | 23/03/2026 | Fase 3b + 3c status bijgewerkt naar Compleet (472 tests, 100% coverage) | GHC |
-| 1.6 | 25/03/2026 | Fase 3d status Compleet; kleurarchitectuur sectie toegevoegd (zorgi_theme.py 3-laags) | Danny Depecker + GHC |
+| 1.6 | 25/03/2026 | Fase 3d status Compleet; kleurarchitectuur sectie toegevoegd (zorgi_theme.py 3-laags) | GHC |
 | 1.7 | 26/03/2026 | Fase 3e toegevoegd (run_monthly.py); mermaid diagram bijgewerkt; T-shirt tabel en totaal bijgewerkt | Danny Depecker + GHC |
 | 1.8 | 27/03/2026 | Fase 3f toegevoegd (in planning); mermaid diagram + t-shirt tabel bijgewerkt | Danny Depecker + GHC |
 | 1.9 | 29/03/2026 | Fase 3f hergedefinieerd als advieskader; implementatiefase doorgeschoven naar 3g; tabellen, afhankelijkheden en totaalinschatting bijgewerkt | Danny Depecker + GHC |
@@ -183,3 +183,4 @@ src/csat/utils/zorgi_theme.py                      ← pure constanten, geen fra
 | 2.2 | 31/03/2026 | Fase 3g status bijgewerkt naar Compleet (727 tests, 100% coverage, CI stabiel) | Danny Depecker + GHC |
 | 2.3 | 01/04/2026 | Fase 3d doc bijgewerkt naar v1.7: subplot 3 prioriteitscompositie, i18n, output-structuur datumsubmap, 61 tests | Danny Depecker + GHC |
 | 2.4 | 02/04/2026 | Fase 5 opgesplitst in 5a/5b/5c/5d; fasevolgorde herzien (5a vóór 4 — strategische keuze); Fase 5a status In Progress; Mermaid diagram + T-shirt tabel bijgewerkt | Danny Depecker + GHC |
+| 2.5 | 06/04/2026 | Fase 5a link gecorrigeerd naar fase5a-streamlit-dashboard.md; status In uitvoering; T-shirt L (was S) | GHC |

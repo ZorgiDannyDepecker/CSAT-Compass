@@ -5,13 +5,65 @@ Formaat gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.0.0/).
 
 ---
 
-## [Unreleased]
+## [Fase 5a — Dashboard implementatie + sidebar verfijning] — 06/04/2026
 
 ### Toegevoegd
 
-- Initile projectstructuur aangemaakt
-- README.md, .gitignore, requirements.txt
-- Mappenstructuur voor 4 pijlers (PHARMA, CARE, CARE ADMIN, ERP4HC)
+- **`src/dashboard/app.py`** — Streamlit entry point volledig geïmplementeerd:
+  - 6 tabs: Samenvatting, Tijdlijn, Tickets & Prioriteit, Responstijd, Ziekenhuizen, KPI Targets
+  - Sidebar: Pijler (radio), Weergave-modus (Volledig venster / Tendensvenster), Periode (informatief), Taal (NL/FR)
+  - ZORGI branded topbalk (gradient, logo, datum) via `render_topbar()`
+  - `@st.cache_data` op dataloader + EvolutionAnalyser (TTL 1u) voor performantie
+  - DEMO/PROD modus via `CSAT_DASHBOARD_MODE` omgevingsvariabele
+- **`src/csat/core/exporters/dashboard_exporter.py`** — DashboardExporter volledig geïmplementeerd:
+  - `DashboardData` dataclass: `window_start`, KPI-berekeningen, tijdlijn, ziekenhuizen, targets
+  - `prepare(result, window_start)` — pure data-transformatie, niet gecached
+  - Volledig venster: `window_start=None` / Tendensvenster: `window_start="2025-07-01"`
+- **Pure CSS hover-tooltip** voor Weergave-modus sectie:
+  - `.zorgi-help-tip` — ronde badge (16×16px, ZORGI_GREY_BLUE) identiek aan Streamlit native ?-knop
+  - `.zorgi-help-tip-content` — ZORGI_DARK_BLUE popup, `white-space: nowrap`, `width: max-content`
+  - Sidebar `overflow: visible` zodat tooltip de zijbalk kan verlaten zonder clipping
+  - `position: absolute; left: 0; top: 100%` relatief aan `<p>` (niet aan het icoon) voor correcte uitlijning
+- **Per-taal dubbele punt** via `"colon"` i18n-sleutel: NL `":"` / FR `" :"` (Franse typografie)
+- **ZORGI badge CSS** voor Streamlit `[role="tooltip"]` en `[data-baseweb="popover"]`
+- **Sidebar `[data-testid="stWidgetLabel"]`** CSS voor consistente label-stijl
+
+### Gewijzigd
+
+**Sidebar — `src/dashboard/app.py`:**
+
+- Weergave-modus label van `st.radio(label_visibility="visible")` naar `st.markdown(**bold**)` +
+  `st.radio(label_visibility="collapsed")` — zelfde visuele stijl als Pijler en Taal
+- Tooltip teksten NL: `"Alle data van"` → `"Data van"`, `"S2 2025 (jul)"` → `"juli 2025"`
+- Tooltip teksten FR: `"Toutes les données"` → `"Données"`, `"S2 2025 (juil.)"` → `"juillet 2025"`
+- `import html` toegevoegd voor veilige HTML-injectie in Streamlit markdown
+- Ongebruikte `SIDEBAR_DEFAULT_MAX / _MIN / MAX_WIDTH / MIN_WIDTH` imports verwijderd
+
+**Branding — `src/csat/utils/branding.py`:**
+
+- `LOGO_ASSETS`: `heartbeat_*.png` (verwijderd) → `Logo-icoon *.png` (hernoemde assets)
+  Sleutelnamen bewaard voor backward-compatibiliteit (`add_watermark`, `render_topbar`, tests)
+- Sidebar inner wrapper: `overflow: visible !important` op `[data-testid="stSidebar"] > div:first-child`
+  en `[data-testid="stSidebarContent"]`
+- Tooltip-achtergrond CSS: `[role="tooltip"]` + `[data-baseweb="popover"]` — `ZORGI_DARK_BLUE`
+- Widget-label CSS: `[data-testid="stWidgetLabel"] p, label` — `font-weight: 700` + `1rem`
+
+**i18n — `src/csat/i18n/nl.json` + `fr.json`:**
+
+- `"colon"` sleutel toegevoegd: `":"` (NL) en `" :"` (FR)
+- `"mode_full_help"`: NL `"Alle data van"` → `"Data van"` / FR `"Toutes les données"` → `"Données"`
+- `"mode_trend_help"`: NL `"S2 2025 (jul)"` → `"juli 2025"` / FR `"S2 2025 (juil.)"` → `"juillet 2025"`
+
+### Opgelost
+
+- CI-failures (Python 3.11 / 3.12 / 3.13): `LOGO_ASSETS` verwees naar verwijderde `heartbeat_*.png`
+  → bijgewerkt naar `Logo-icoon *.png` (commit `a23336e`)
+
+**Teststand:** 790 tests — 100% coverage — CI stabiel (Python 3.11 / 3.12 / 3.13)
+
+---
+
+## [Unreleased]
 
 ---
 

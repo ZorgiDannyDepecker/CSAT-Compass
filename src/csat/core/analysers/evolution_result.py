@@ -31,7 +31,7 @@ class MonthlyDataPoint:
     avg_score: float  # Gemiddelde CSAT-score (alleen gescoorde tickets)
     total_tickets: int  # Totaal tickets (inclusief ongescoorde)
     pct_negative: float  # % scores <= 2 t.o.v. gescoorde tickets
-    fase: str  # "H1 YYYY" of "H2 YYYY"
+    fase: str  # "S1 YYYY" of "S2 YYYY"
     priority_counts: dict[str, int] = field(default_factory=dict)
     # Tickettelling per Jira-prioriteit (Blocker/Critical/Major/Minor/Trivial)
     # Gebruikt door EvolutionVisualiser subplot 3 (prioriteitscompositie).
@@ -174,9 +174,9 @@ class KpiTarget:
 
 @dataclass
 class BenchmarkComparison:
-    """Vergelijkingspunt voor dubbele benchmark (volledig 2025 + H2 2025)."""
+    """Vergelijkingspunt voor dubbele benchmark (volledig 2025 + S2 2025)."""
 
-    label: str  # "H2 2025" of "2025"
+    label: str  # "S2 2025" of "2025"
     avg_score: float = 0.0
     pct_positive: float = 0.0
     pct_negative: float = 0.0
@@ -270,7 +270,7 @@ class EvolutionResult:
     # KPI target tracking — 7 targets (beslissing 5)
     kpi_targets: list[KpiTarget] = field(default_factory=list)
 
-    # Dubbele benchmark: H2 van het baselinejaar
+    # Dubbele benchmark: S2 van het baselinejaar
     benchmark_h2: BenchmarkComparison | None = field(default=None)
 
     # Shortlist ziekenhuizen (top/bottom movers) — boven de volledige tabel

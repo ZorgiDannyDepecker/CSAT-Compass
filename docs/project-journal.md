@@ -1,7 +1,7 @@
 # 📓 CSAT-Compass - Project Journal
 
-**Versie:** 2.2
-**Laatst bijgewerkt:** 01/04/2026
+**Versie:** 2.3
+**Laatst bijgewerkt:** 06/04/2026
 
 **Doel:** Chronologisch logboek van beslissingen, bevindingen en voortgang  
 **Type:** Reference  
@@ -30,6 +30,7 @@
 - [2026-03-29 — Fase 3f/3g herstructurering](#2026-03-29--fase-3f3g-herstructurering)
 - [2026-03-31 — Fase 3g afsluiting](#2026-03-31--fase-3g-afsluiting)
 - [2026-04-01 — Visualisatie-verfijning + output-structuur](#2026-04-01--visualisatie-verfijning--output-structuur)
+- [2026-04-06 — Fase 5a Dashboard implementatie + sidebar verfijning](#2026-04-06--fase-5a-dashboard-implementatie--sidebar-verfijning)
 - [Versiehistorie](#versiehistorie)
 
 ---
@@ -437,6 +438,59 @@ Fase 3g is volledig afgerond. Alle deliverables uit het advieskader (fase 3f v3.
 
 ---
 
+## 2026-04-06 — Fase 5a Dashboard implementatie + sidebar verfijning
+
+### Wijzigingen
+
+**Fase 5a core implementatie:**
+
+- `app.py` volledig gebouwd: ZORGI topbalk, 6 tabs, sidebar (Pijler/Modus/Periode/Taal),
+  `@st.cache_data` op dataloader + EvolutionAnalyser (TTL 1u), DEMO/PROD modus
+- `dashboard_exporter.py` volledig geïmplementeerd: `DashboardData` dataclass +
+  `prepare(result, window_start)` — pure transformatie, niet gecached
+- Volledig venster: `window_start=None` (jan 2025 → nu)
+  Tendensvenster: `window_start="2025-07-01"` (jul 2025 → nu)
+- 790 tests — CI stabiel op Python 3.11/3.12/3.13
+
+**Sidebar Weergave-modus label + tooltip redesign:**
+
+- Probleem: `st.radio(label_visibility="visible")` rendeert label in Streamlit-widget-stijl
+  (lichter, andere spacing) — inconsistent met "Pijler" en "Taal" die via `st.markdown` bold renderen
+- Oplossing: `st.markdown("<strong>Weergave-modus</strong>")` + `label_visibility="collapsed"` +
+  pure CSS hover-tooltip via `.zorgi-help-tip` / `.zorgi-help-tip-content` klassen
+- Sidebar `overflow: visible` gezet op inner wrapper → tooltip kan sidebar verlaten zonder clipping
+- Tooltip positionering: `position: absolute; left: 0; top: 100%` relatief aan `<p>` met `position: relative`
+  → popup start aan linkerrand van sidebar content (niet aan het icoon ~145px naar rechts)
+- `white-space: nowrap; width: max-content` → elk item precies op één lijn
+
+**i18n verfijning (NL + FR):**
+
+- Per-taal dubbele punt: `"colon": ":"` (NL) / `"colon": " :"` (FR — Franse typografie)
+- Tooltip teksten verkort en verduidelijkt: "Alle data van" → "Data van", "S2 2025 (jul)" → "juli 2025"
+- Hetzelfde in FR: "Toutes les données" → "Données", "S2 2025 (juil.)" → "juillet 2025"
+
+**Logo-assets fix (CI):**
+
+- Oorzaak: `heartbeat_*.png` bestanden hernoemd naar `Logo-icoon *.png` maar `LOGO_ASSETS`
+  in `branding.py` bleef verwijzen naar de oude namen → 2 test-failures op alle 3 Python-versies
+- Fix: alle 6 sleutels bijgewerkt naar nieuwe bestandsnamen (sleutelnamen bewaard voor compatibiliteit)
+
+### Beslissingen
+
+- Pure CSS tooltip (`::hover` + `:hover` descendant) verkozen boven Streamlit `help=` parameter:
+  CSS is versie-onafhankelijk, betrouwbaar bold via `<strong>`, positioneerbaar buiten sidebar-overflow
+- `import html` (stdlib) voor veilige HTML-escape in Streamlit `unsafe_allow_html` calls
+- ZORGI badge-stijl (16×16px ronde knop) consistent met Streamlit's native `?` help-knop
+- `overflow: visible` op sidebar inner wrapper is veilig zolang sidebar-content op scherm past
+  (geen scroll nodig — 4 secties passen altijd in de viewport)
+
+### Teststand
+
+- **790 tests** — 100% coverage — CI stabiel (Python 3.11 / 3.12 / 3.13)
+- Commits: `3218d7f` (feat: tooltip redesign + i18n) · `a23336e` (fix: LOGO_ASSETS CI-fix)
+
+---
+
 ## Versiehistorie
 
 | Versie | Datum | Wijzigingen | Auteur               |
@@ -454,6 +508,7 @@ Fase 3g is volledig afgerond. Alle deliverables uit het advieskader (fase 3f v3.
 | 2.0 | 29/03/2026 | Fase 3f/3g herstructurering: advieskader formeel naar fase 3f, implementatie doorgeschoven naar 3g, documentatie opgeschoond | Danny Depecker + GHC |
 | 2.1 | 31/03/2026 | Fase 3g afsluiting: NL/FR taalcorrecties, testfixes, 727 tests; beslissing Fase 5a PHARMA-first | Danny Depecker + GHC |
 | 2.2 | 01/04/2026 | Visualisatie-verfijning: subplot 3 prioriteitscompositie, i18n, output-structuur datumsubmap, lint-fixes, 61 visualiser-tests | Danny Depecker + GHC |
+| 2.3 | 06/04/2026 | Fase 5a dashboard implementatie + sidebar verfijning: pure CSS tooltip, i18n fixes, LOGO_ASSETS CI-fix, 790 tests | Danny Depecker + GHC |
 
 ---
 *ZORGI — Danny Depecker*
