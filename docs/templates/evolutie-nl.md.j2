@@ -176,6 +176,24 @@
 {% endfor %}
 {% endif %}
 
+{% if critical_hospitals %}
+### 🔴 Kritieke accounts (< 3,0★)
+
+| {{ t.evolution.table.hospital }} | {{ t.evolution.table.avg_score }} ({{ current_label }}) | {{ t.evolution.table.n_tickets }} |
+| --- | --- | --- |
+{% for h in critical_hospitals %}| {{ h.hospital }} | **{{ h.current_score | fmt(2) }}★** | {{ h.current_total }} |
+{% endfor %}
+{% endif %}
+
+{% if attention_hospitals %}
+### 🟡 Aandachtsaccounts (3,0★ – 4,0★)
+
+| {{ t.evolution.table.hospital }} | {{ t.evolution.table.avg_score }} ({{ current_label }}) | {{ t.evolution.table.n_tickets }} |
+| --- | --- | --- |
+{% for h in attention_hospitals %}| {{ h.hospital }} | {{ h.current_score | fmt(2) }}★ | {{ h.current_total }} |
+{% endfor %}
+{% endif %}
+
 {% if hospital_shortlist %}
 ### {{ t.evolution.sections.hospital_shortlist }}
 

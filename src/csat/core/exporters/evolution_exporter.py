@@ -246,6 +246,31 @@ class EvolutionExporter:
         def kpi_target_name(name: str) -> str:
             return str(target_tracking_labels.get("kpi_names", {}).get(name, name))
 
+        # Kritieke accounts (score < 3,0★) en aandachtsaccounts (3,0★ ≤ score < 4,0★)
+        # Gesorteerd op score oplopend — min. 1 ticket in huidige periode
+        _crit_thr = 3.0
+        _attn_thr = 4.0
+        critical_hospitals = sorted(
+            [
+                h
+                for h in result.hospital_comparison
+                if h.current_score is not None
+                and h.current_total > 0
+                and h.current_score < _crit_thr
+            ],
+            key=lambda h: h.current_score or 0.0,
+        )
+        attention_hospitals = sorted(
+            [
+                h
+                for h in result.hospital_comparison
+                if h.current_score is not None
+                and h.current_total > 0
+                and _crit_thr <= h.current_score < _attn_thr
+            ],
+            key=lambda h: h.current_score or 0.0,
+        )
+
         return {
             "t": t,
             "lang": self._lang,
@@ -319,4 +344,7 @@ class EvolutionExporter:
             "hospital_ranking_min_tickets": result.hospital_ranking_min_tickets,
             "hospital_bottom_min_tickets": result.hospital_bottom_min_tickets,
             "hospital_status": _hospital_status_label(self._lang),
+            # Kritieke en aandachtsaccounts (score-categorieën)
+            "critical_hospitals": critical_hospitals,
+            "attention_hospitals": attention_hospitals,
         }

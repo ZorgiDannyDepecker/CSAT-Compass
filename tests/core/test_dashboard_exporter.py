@@ -320,11 +320,11 @@ class TestCountCriticalAccounts:
         )
 
     def test_counts_below_threshold(self):
-        """Telt ziekenhuizen met score < 2.5 en tickets > 0."""
+        """Telt ziekenhuizen met score < 3.0 en tickets > 0."""
         comps = [
             self._make_hc("A", 2.0, 5),  # Kritiek
             self._make_hc("B", 2.4, 3),  # Kritiek
-            self._make_hc("C", 2.5, 4),  # Net niet kritiek (grens exclusief)
+            self._make_hc("C", 3.0, 4),  # Net niet kritiek (grens exclusief)
             self._make_hc("D", 4.0, 10),  # OK
         ]
         assert DashboardExporter._count_critical_accounts(comps) == 2

@@ -550,45 +550,68 @@ def _tab_summary(data: DashboardData, t: dict, lang: str) -> None:
         d["vs_h2"] if data.mode == "trend" else d["vs_baseline"].format(label=data.baseline_label)
     )
 
-    # --- 8 KPI-kaarten (2 rijen van 4) ---
+    # --- Rij A: Prestatie-KPIs (target in label, delta vs referentieperiode) ---
     row1 = st.columns(4)
-    row2 = st.columns(4)
+
+    _tgt = {kp.name: kp for kp in data.kpi_targets}
+
+    _avg_tgt = _tgt.get("avg_score_min")
+    _pos_tgt = _tgt.get("pct_positive_min")
+    _neg_tgt = _tgt.get("pct_negative_max")
+    _hc_tgt = _tgt.get("high_critical_max")
+
+    _hc_delta = round(_hc_tgt.target - data.kpi_high_critical_ratio, 1) if _hc_tgt else 0.0
+
+    _avg_tgt_str = f"{_avg_tgt.target:.2f}★".replace(".", ",") if _avg_tgt else "4,00★"
+    _pos_tgt_str = f"{_pos_tgt.target:.0f}%" if _pos_tgt else "75%"
+    _neg_tgt_str = f"{_neg_tgt.target:.0f}%" if _neg_tgt else "15%"
+    _hc_tgt_str = f"{_hc_tgt.target:.0f}%" if _hc_tgt else "15%"
 
     row1[0].metric(
-        d["kpi_avg_score"],
-        f"{data.kpi_avg_score:.2f}★",
+        f"{d['kpi_avg_score']}  ({d['kpi_target_above'].format(t=_avg_tgt_str)})",
+        f"{data.kpi_avg_score:.2f}★".replace(".", ","),
         f"{data.kpi_avg_score_delta:+.2f}★ {ref_str}",
     )
     row1[1].metric(
-        d["kpi_pct_positive"],
+        f"{d['kpi_pct_positive']}  ({d['kpi_target_above'].format(t=_pos_tgt_str)})",
         f"{data.kpi_pct_positive:.1f}%",
         f"{data.kpi_pct_positive_delta:+.1f} ppt {ref_str}",
     )
     row1[2].metric(
-        d["kpi_pct_negative"],
+        f"{d['kpi_pct_negative']}  ({d['kpi_target_below'].format(t=_neg_tgt_str)})",
         f"{data.kpi_pct_negative:.1f}%",
         f"{data.kpi_pct_negative_delta:+.1f} ppt {ref_str}",
         delta_color="inverse",
     )
     row1[3].metric(
-        d["kpi_best_month"],
-        data.kpi_best_month_label,
-        f"{data.kpi_best_month_score:.2f}★",
-        delta_color="off",
+        f"{d['kpi_high_critical']}  ({d['kpi_target_below'].format(t=_hc_tgt_str)})",
+        f"{data.kpi_high_critical_ratio:.1f}%",
+        f"{_hc_delta:+.1f} ppt",
     )
 
-    row2[0].metric(d["kpi_responses"], str(data.kpi_responses_total), delta_color="off")
-    row2[1].metric(
-        d["kpi_streak"], f"{data.kpi_streak_months} {d['streak_unit']}", delta_color="off"
+    # --- Rij B: Context & Risico ---
+    row2 = st.columns(4)
+
+    row2[0].metric(
+        d["kpi_recent_month"],
+        data.kpi_recent_month_label,
+        f"{data.kpi_recent_month_score:.2f}★".replace(".", ","),
+        delta_color="off",
     )
+    row2[1].metric(d["kpi_responses"], str(data.kpi_responses_total), delta_color="off")
     row2[2].metric(
-        d["kpi_critical_accounts"],
-        f"{data.kpi_critical_accounts} {d['critical_unit']}",
+        d["kpi_streak"],
+        f"{data.kpi_streak_months} {d['streak_unit']}",
         delta_color="off",
     )
     row2[3].metric(
-        d["kpi_targets_met"], f"{data.kpi_targets_met}/{data.kpi_targets_total}", delta_color="off"
+        label=d["kpi_accounts_label"],
+        value=f"{data.kpi_critical_accounts} · {data.kpi_attention_accounts}",
+        delta_color="off",
     )
+    if data.kpi_critical_account_names:
+        _names_str = " · ".join(data.kpi_critical_account_names)
+        row2[3].caption(f"{d['kpi_critical_names_prefix']}: {_names_str}")
 
     st.divider()
 
@@ -602,8 +625,12 @@ def _tab_summary(data: DashboardData, t: dict, lang: str) -> None:
     with col_bot:
         st.markdown(f"**{d['top3_worst']}**")
         for zh in data.zh_bottom3:
-            icon = "🔴" if zh.disengagement_risk else "🟡"
+            icon = "🔴" if zh.score < 3.0 else "🟡"
             st.markdown(f"{icon} **{zh.hospital}** — {zh.score:.2f}★ ({zh.tickets} tickets)")
+        if data.zh_attention_list:
+            st.markdown(f"**{d['kpi_attention_accounts_title']}**")
+            for zh in data.zh_attention_list[:3]:
+                st.markdown(f"🟡 **{zh.hospital}** — {zh.score:.2f}★ ({zh.tickets} tickets)")
     st.caption(d["see_tab5"])
 
     st.divider()
@@ -811,6 +838,25 @@ def _tab_hospitals(data: DashboardData, t: dict, lang: str) -> None:
                         tickets=h.tickets,
                     )
                 )
+
+    # --- Aandachtsaccounts sectie ---
+    if data.zh_attention_list:
+        st.divider()
+        st.markdown(f"#### {d['kpi_attention_accounts_title']}")
+        st.dataframe(
+            pd.DataFrame(
+                [
+                    {
+                        d["col_hospital"]: zh.hospital,
+                        d["col_score"]: f"{zh.score:.2f}★",
+                        d["col_tickets"]: zh.tickets,
+                    }
+                    for zh in data.zh_attention_list
+                ]
+            ),
+            hide_index=True,
+            width="stretch",
+        )
 
 
 def _tab_targets(data: DashboardData, t: dict, lang: str) -> None:

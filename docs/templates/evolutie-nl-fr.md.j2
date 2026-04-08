@@ -157,6 +157,24 @@
 {% endfor %}
 {% endif %}
 
+{% if critical_hospitals %}
+### 🔴 Kritieke accounts (< 3,0★)
+
+| {{ t.evolution.table.hospital }} | {{ t.evolution.table.avg_score }} ({{ current_label }}) | {{ t.evolution.table.n_tickets }} |
+| --- | --- | --- |
+{% for h in critical_hospitals %}| {{ h.hospital }} | **{{ h.current_score | fmt(2) }}★** | {{ h.current_total }} |
+{% endfor %}
+{% endif %}
+
+{% if attention_hospitals %}
+### 🟡 Aandachtsaccounts (3,0★ – 4,0★)
+
+| {{ t.evolution.table.hospital }} | {{ t.evolution.table.avg_score }} ({{ current_label }}) | {{ t.evolution.table.n_tickets }} |
+| --- | --- | --- |
+{% for h in attention_hospitals %}| {{ h.hospital }} | {{ h.current_score | fmt(2) }}★ | {{ h.current_total }} |
+{% endfor %}
+{% endif %}
+
 {% if hospitals_disappeared %}
 ### Verdwenen ziekenhuizen ({{ hospitals_disappeared | length }})
 {% set sorted_d = hospitals_disappeared | sort %}
@@ -534,6 +552,24 @@ Controleer of dit te wijten is aan data-aanlevering of stopzetting.
 | {{ t.evolution.table.hospital }} | {{ t.evolution.table.avg_score }} ({{ baseline_label }}) | {{ t.evolution.table.avg_score }} ({{ current_label }}) | {{ t.evolution.table.delta }} |
 | --- | --- | --- | --- |
 {% for h in hospital_shortlist %}| {{ h.hospital }} | {% if h.baseline_score > 0 %}{{ h.baseline_score | fmt(2) }}{% else %}—{% endif %} | {% if h.current_score is not none %}{{ h.current_score | fmt(2) }}{% else %}—{% endif %} | {% if h.baseline_score > 0 and h.current_score is not none %}{{ (h.current_score - h.baseline_score) | fmt_delta(2) }}{% else %}—{% endif %} |
+{% endfor %}
+{% endif %}
+
+{% if critical_hospitals %}
+### 🔴 Comptes critiques (< 3,0★)
+
+| {{ t.evolution.table.hospital }} | {{ t.evolution.table.avg_score }} ({{ current_label }}) | {{ t.evolution.table.n_tickets }} |
+| --- | --- | --- |
+{% for h in critical_hospitals %}| {{ h.hospital }} | **{{ h.current_score | fmt(2) }}★** | {{ h.current_total }} |
+{% endfor %}
+{% endif %}
+
+{% if attention_hospitals %}
+### 🟡 Comptes à surveiller (3,0★ – 4,0★)
+
+| {{ t.evolution.table.hospital }} | {{ t.evolution.table.avg_score }} ({{ current_label }}) | {{ t.evolution.table.n_tickets }} |
+| --- | --- | --- |
+{% for h in attention_hospitals %}| {{ h.hospital }} | {{ h.current_score | fmt(2) }}★ | {{ h.current_total }} |
 {% endfor %}
 {% endif %}
 
