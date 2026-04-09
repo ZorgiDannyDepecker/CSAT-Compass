@@ -115,6 +115,15 @@ class DashboardData:
     kpi_high_critical_ratio: float = 0.0
     kpi_recent_month_label: str = ""
     kpi_recent_month_score: float = 0.0
+    current_year: int = 0
+    kpi_recent_month_name: str = ""
+    kpi_recent_month_target_delta: float = 0.0
+    kpi_responses_baseline_monthly_avg: float = 0.0
+    kpi_responses_current_period_months: int = 0
+    kpi_streak_current_year: int = 0
+    kpi_streak_baseline_pct: float = 0.0
+    kpi_responses_h2_monthly_avg: float = 0.0  # S2 baseline gem. responses/mnd (Tendensvenster)
+    kpi_streak_h2_pct: float = 0.0  # % maanden >= 4,0★ in S2 baseline (Tendensvenster)
 
     # --- Mini-signaalkaart (Tab 1) ---
     zh_top3: list[ZhSignalEntry] = field(default_factory=list)
@@ -210,6 +219,31 @@ class DashboardExporter:
         kpi_hc_ratio = cls._get_hc_ratio(result.kpi_targets)
         kpi_recent_label, kpi_recent_score = cls._recent_month(timeline)
 
+        _current_year = int(window_start[:4]) if window_start else 0
+        # Bepaal het huidige jaar op basis van de meest recente periode in timeline
+        if timeline:
+            _current_year = int(sorted(timeline, key=lambda p: p.period)[-1].period[:4])
+
+        _baseline_year = _current_year - 1
+
+        kpi_streak_cy = cls._calc_streak_current_year(result.monthly_timeline, _current_year)
+        kpi_streak_bl_pct = cls._calc_streak_baseline_pct(result.monthly_timeline, _baseline_year)
+        kpi_resp_monthly_avg = cls._calc_responses_baseline_monthly_avg(result.baseline_total)
+        kpi_resp_months = len([p for p in timeline if p.total_tickets > 0])
+
+        # S2-specifieke baseline (voor Tendensvenster-vergelijking)
+        if result.benchmark_h2 is not None:
+            kpi_resp_h2_avg = round(result.benchmark_h2.total / 6, 1)
+            kpi_streak_h2_pct_val = cls._calc_streak_h2_pct(result.monthly_timeline, _baseline_year)
+        else:
+            kpi_resp_h2_avg = kpi_resp_monthly_avg
+            kpi_streak_h2_pct_val = kpi_streak_bl_pct
+
+        _avg_tgt_val = next(
+            (kt.target for kt in result.kpi_targets if kt.name == "avg_score_min"), 4.0
+        )
+        kpi_recent_target_delta = round(kpi_recent_score - _avg_tgt_val, 2)
+
         # Mini-signaalkaart
         zh_top3 = cls._build_top3(result.hospital_top5)
         zh_bottom3 = cls._build_bottom3(result.hospital_bottom5)
@@ -268,6 +302,15 @@ class DashboardExporter:
             kpi_high_critical_ratio=kpi_hc_ratio,
             kpi_recent_month_label=kpi_recent_label,
             kpi_recent_month_score=kpi_recent_score,
+            current_year=_current_year,
+            kpi_recent_month_name=kpi_recent_label,
+            kpi_recent_month_target_delta=kpi_recent_target_delta,
+            kpi_responses_baseline_monthly_avg=kpi_resp_monthly_avg,
+            kpi_responses_current_period_months=kpi_resp_months,
+            kpi_streak_current_year=kpi_streak_cy,
+            kpi_streak_baseline_pct=kpi_streak_bl_pct,
+            kpi_responses_h2_monthly_avg=kpi_resp_h2_avg,
+            kpi_streak_h2_pct=kpi_streak_h2_pct_val,
             # Mini-signaalkaart
             zh_top3=zh_top3,
             zh_bottom3=zh_bottom3,
@@ -457,6 +500,77 @@ class DashboardExporter:
             return "—", 0.0
         latest = max(candidates, key=lambda p: p.period)
         return latest.period, round(latest.avg_score, 2)
+
+    @staticmethod
+    def _calc_streak_current_year(
+        timeline: list[MonthlyDataPoint],
+        current_year: int,
+        threshold: float = 4.0,
+    ) -> int:
+        """Tel maanden >= threshold in het huidige kalenderjaar."""
+        return sum(
+            1
+            for p in timeline
+            if p.total_tickets > 0
+            and p.avg_score >= threshold
+            and p.period.startswith(str(current_year))
+        )
+
+    @staticmethod
+    def _calc_streak_baseline_pct(
+        timeline: list[MonthlyDataPoint],
+        baseline_year: int,
+        threshold: float = 4.0,
+    ) -> float:
+        """Bereken het % maanden >= threshold in het baseline kalenderjaar (/ 12)."""
+        count = sum(
+            1
+            for p in timeline
+            if p.total_tickets > 0
+            and p.avg_score >= threshold
+            and p.period.startswith(str(baseline_year))
+        )
+        return round(count / 12 * 100, 0)
+
+    @staticmethod
+    def _calc_responses_baseline_monthly_avg(
+        baseline_total: int,
+    ) -> float:
+        """Gemiddeld aantal responses per maand in het baseline jaar (/ 12)."""
+        return round(baseline_total / 12, 1)
+
+    @staticmethod
+    def _recent_month_name(
+        period_label: str,
+        months_i18n: list[str],
+    ) -> str:
+        """Zet een period-string 'YYYY-MM' om naar een leesbare maandnaam."""
+        if not period_label or period_label == "—":
+            return period_label
+        try:
+            parts = period_label.split("-")
+            year, month = int(parts[0]), int(parts[1])
+            month_name = months_i18n[month - 1] if len(months_i18n) >= month else parts[1]
+            return f"{month_name.capitalize()} {year}"
+        except (IndexError, ValueError):
+            return period_label
+
+    @staticmethod
+    def _calc_streak_h2_pct(
+        timeline: list[MonthlyDataPoint],
+        baseline_year: int,
+        threshold: float = 4.0,
+    ) -> float:
+        """Bereken het % maanden >= threshold in S2 (jul-dec) van het baseline jaar (/ 6)."""
+        count = sum(
+            1
+            for p in timeline
+            if p.total_tickets > 0
+            and p.avg_score >= threshold
+            and p.period.startswith(str(baseline_year))
+            and int(p.period[5:7]) >= 7
+        )
+        return round(count / 6 * 100, 0)
 
     # ------------------------------------------------------------------
     # Intern — mini-signaalkaart

@@ -4,8 +4,8 @@ applyTo: '**/*'
 
 # ZORGI PHARMA - Project Conventies
 
-**Versie:** 2.3
-**Laatst bijgewerkt:** 19/03/2026
+**Versie:** 2.7
+**Laatst bijgewerkt:** 09/04/2026
 **Overgedragen naar PHARMA-Conventions:** 24/03/2026
 
 **Doel:** Gedeelde afspraken en conventies voor alle ZORGI PHARMA-projecten
@@ -103,15 +103,15 @@ Voorbeelden: `# CSAT - Maandrapportage Januari 2026`, `# Scriptorium - ADR-003: 
 Het **Auteur** veld registreert transparant wie of wat het document heeft opgesteld.
 AI-tools zijn volwaardige auteurs binnen ZORGI PHARMA-projecten.
 
-| Situatie              | Waarde                    |
-| --------------------- | ------------------------- |
-| Menselijke auteur     | `Danny Depecker`          |
-| GitHub Copilot        | `GHC`                     |
-| Claude (Anthropic)    | `Claude`                  |
-| Gemini (Google)       | `Gemini`                  |
-| Mens + GitHub Copilot | `Danny Depecker + GHC`    |
-| Mens + Claude         | `Danny Depecker + Claude` |
-| Meerdere AI-tools     | `GHC + Claude`            |
+| Situatie              | Waarde                         |
+| --------------------- | ------------------------------ |
+| Menselijke auteur     | `Danny Depecker`               |
+| GitHub Copilot        | `GHC`                          |
+| Claude Pro (Anthropic)| `Claude-P`                     |
+| Gemini (Google)       | `Gemini`                       |
+| Mens + GitHub Copilot | `Danny Depecker + GHC`         |
+| Mens + Claude Pro     | `Danny Depecker + Claude-P`    |
+| Meerdere AI-tools     | `GHC + Claude-P`               |
 
 ### 4.3 Versiehistorie
 
@@ -286,15 +286,17 @@ Bij verplaatsing naar `archive/` blijven **Bestandsnaam** en **Path** ongewijzig
 
 ## 10. Afkortingen
 
-| Afkorting | Voluit                              | Toelichting                              |
-| --------- | ----------------------------------- | ---------------------------------------- |
-| GHC       | GitHub Copilot                      | AI-coding assistent in PyCharm           |
-| GHD       | GitHub Desktop                      | GUI-client voor Git-operaties op Windows |
-| PC2025    | PyCharm 2025.x                      | Primaire IDE                             |
-| ADR       | Architecture Decision Record        | Architectuurbeslissing                   |
-| NVT       | Niet Van Toepassing                 | Leeg verplicht veld                      |
-| TBD       | To Be Defined                       | Nog in te vullen veld                    |
-| PII       | Personally Identifiable Information | Persoonsgegevens                         |
+| Afkorting     | Voluit                              | Toelichting                              |
+| ------------- | ----------------------------------- | ---------------------------------------- |
+| GHC           | GitHub Copilot                      | AI-coding assistent in PyCharm           |
+| GHD           | GitHub Desktop                      | GUI-client voor Git-operaties op Windows |
+| PC2025        | PyCharm 2025.x                      | Primaire IDE                             |
+| ADR           | Architecture Decision Record        | Architectuurbeslissing                   |
+| NVT           | Niet Van Toepassing                 | Leeg verplicht veld                      |
+| TBD           | To Be Defined                       | Nog in te vullen veld                    |
+| PII           | Personally Identifiable Information | Persoonsgegevens                         |
+| Claude-P      | Claude Pro (Anthropic)              | AI-assistent voor analyse en redactie    |
+| M365 Copilot  | Microsoft 365 Copilot               | AI-integratie in Microsoft 365-suite     |
 
 ---
 
@@ -395,9 +397,11 @@ Write-Host "[OK] zorgi_design_system.md gesynchroniseerd vanuit PHARMA-Conventio
 | Versie | Datum | Wijzigingen | Auteur |
 | ------ | ---------- | ----------- | ------ |
 | 1.0 | 01/01/2026 | Initiële versie | Danny Depecker |
-| 2.0 | 17/03/2026 | Volledige herziening | Danny Depecker + Claude |
+| 2.0 | 17/03/2026 | Volledige herziening | Danny Depecker + Claude-P |
 | 2.1 | 19/03/2026 | T-shirt schattingen toegevoegd | Danny Depecker + GHC |
 | 2.2 | 19/03/2026 | T-shirt schaal herzien | Danny Depecker + GHC |
 | 2.3 | 19/03/2026 | Branding sectie toegevoegd | Danny Depecker + GHC |
 | 2.4 | 24/03/2026 | Gecentraliseerd in PHARMA-Conventions; referentie naar zorgi_design_system bijgewerkt | Danny Depecker |
 | 2.5 | 25/03/2026 | §12.3 toegevoegd: Design System sync-conventie (golden source, read-only kopie, sync-script) | Danny Depecker + GHC |
+| 2.6 | 09/04/2026 | §10: Claude-P en M365 Copilot toegevoegd aan afkortingenlijst | Danny Depecker + GHC |
+| 2.7 | 09/04/2026 | §4.2: Claude → Claude-P doorgeveerd in auteur-tabel en versiehistorie; documentheader bijgewerkt | Danny Depecker + GHC |

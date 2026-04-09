@@ -543,75 +543,215 @@ def _chart_kpi_targets(data: DashboardData, t: dict, lang: str) -> go.Figure:
 # ---------------------------------------------------------------------------
 
 
+def _build_kpi_suffixes(
+    data: DashboardData,
+    avg_abbrev: str,
+    hc_baseline: float,
+) -> tuple[str, str, str, str]:
+    """Bereken contextsuffixen per KPI (avg / pos / neg / hc) als baseline-referentie.
+
+    Returns:
+        Tuple (avg_sfx, pos_sfx, neg_sfx, hc_sfx) — lege strings als geen raw-data.
+    """
+    if data.mode == "trend" and data.raw and data.raw.benchmark_h2:
+        bh2 = data.raw.benchmark_h2
+        return (
+            f"  ({avg_abbrev} {str(round(bh2.avg_score, 2)).replace('.', ',')}★)",
+            f"  ({avg_abbrev} {bh2.pct_positive:.1f}%)",
+            f"  ({avg_abbrev} {bh2.pct_negative:.1f}%)",
+            f"  ({avg_abbrev} {bh2.hc_ratio:.1f}%)",
+        )
+    if data.raw:
+        return (
+            f"  ({avg_abbrev} {str(round(data.raw.baseline_avg_score, 2)).replace('.', ',')}★)",
+            f"  ({avg_abbrev} {data.raw.baseline_pct_positive:.1f}%)",
+            f"  ({avg_abbrev} {data.raw.baseline_pct_negative:.1f}%)",
+            f"  ({avg_abbrev} {hc_baseline:.1f}%)",
+        )
+    return "", "", "", ""
+
+
 def _tab_summary(data: DashboardData, t: dict, lang: str) -> None:
     """Tab 1 — Samenvatting: 8 KPI-kaarten, mini-signaalkaart, vergelijkingstabel."""
     d = t["dashboard"]
-    ref_str = (
+
+    # Referentie-label: verschilt per modus → maakt deltarij mode-gevoelig
+    _ref_str = (
         d["vs_h2"] if data.mode == "trend" else d["vs_baseline"].format(label=data.baseline_label)
     )
 
-    # --- Rij A: Prestatie-KPIs (target in label, delta vs referentieperiode) ---
+    # --- Individuele suffixen per KPI (baseline gemiddelde als context) ---
+    # Referentie HC-ratio: trend-modus → S2 baseline; full-modus → volledig baseline jaar
+    _hc_baseline = (
+        data.raw.benchmark_h2.hc_ratio
+        if data.mode == "trend" and data.raw and data.raw.benchmark_h2
+        else (data.raw.baseline_hc_ratio if data.raw else data.kpi_high_critical_ratio)
+    )
+    _avg_abbrev = d.get("kpi_avg_abbrev", "gem.")
+    _avg_sfx, _pos_sfx, _neg_sfx, _hc_sfx = _build_kpi_suffixes(data, _avg_abbrev, _hc_baseline)
+
+    # --- Rij A: Prestatie-KPIs ---
     row1 = st.columns(4)
 
     _tgt = {kp.name: kp for kp in data.kpi_targets}
-
     _avg_tgt = _tgt.get("avg_score_min")
     _pos_tgt = _tgt.get("pct_positive_min")
     _neg_tgt = _tgt.get("pct_negative_max")
     _hc_tgt = _tgt.get("high_critical_max")
 
-    _hc_delta = round(_hc_tgt.target - data.kpi_high_critical_ratio, 1) if _hc_tgt else 0.0
-
+    _yr = str(data.current_year)
     _avg_tgt_str = f"{_avg_tgt.target:.2f}★".replace(".", ",") if _avg_tgt else "4,00★"
     _pos_tgt_str = f"{_pos_tgt.target:.0f}%" if _pos_tgt else "75%"
     _neg_tgt_str = f"{_neg_tgt.target:.0f}%" if _neg_tgt else "15%"
     _hc_tgt_str = f"{_hc_tgt.target:.0f}%" if _hc_tgt else "15%"
 
+    _hc_delta_vs_baseline = round(data.kpi_high_critical_ratio - _hc_baseline, 1)
+
+    _dot3 = "\u00b7\u00b7\u00b7"
+
     row1[0].metric(
-        f"{d['kpi_avg_score']}  ({d['kpi_target_above'].format(t=_avg_tgt_str)})",
-        f"{data.kpi_avg_score:.2f}★".replace(".", ","),
-        f"{data.kpi_avg_score_delta:+.2f}★ {ref_str}",
+        label=f"{d['kpi_avg_score'].format(year=_yr)}  {_dot3} {d['kpi_target_above'].format(t=_avg_tgt_str)}",
+        value=f"{data.kpi_avg_score:.2f}★".replace(".", ","),
+        delta=f"{data.kpi_avg_score_delta:+.2f}★  {_ref_str}{_avg_sfx}",
     )
     row1[1].metric(
-        f"{d['kpi_pct_positive']}  ({d['kpi_target_above'].format(t=_pos_tgt_str)})",
-        f"{data.kpi_pct_positive:.1f}%",
-        f"{data.kpi_pct_positive_delta:+.1f} ppt {ref_str}",
+        label=f"{d['kpi_pct_positive'].format(year=_yr)}  {_dot3} {d['kpi_target_above'].format(t=_pos_tgt_str)}",
+        value=f"{data.kpi_pct_positive:.1f}%",
+        delta=f"{data.kpi_pct_positive_delta:+.1f} ppt  {_ref_str}{_pos_sfx}",
     )
     row1[2].metric(
-        f"{d['kpi_pct_negative']}  ({d['kpi_target_below'].format(t=_neg_tgt_str)})",
-        f"{data.kpi_pct_negative:.1f}%",
-        f"{data.kpi_pct_negative_delta:+.1f} ppt {ref_str}",
+        label=f"{d['kpi_pct_negative'].format(year=_yr)}  {_dot3} {d['kpi_target_below'].format(t=_neg_tgt_str)}",
+        value=f"{data.kpi_pct_negative:.1f}%",
+        delta=f"{data.kpi_pct_negative_delta:+.1f} ppt  {_ref_str}{_neg_sfx}",
         delta_color="inverse",
     )
     row1[3].metric(
-        f"{d['kpi_high_critical']}  ({d['kpi_target_below'].format(t=_hc_tgt_str)})",
-        f"{data.kpi_high_critical_ratio:.1f}%",
-        f"{_hc_delta:+.1f} ppt",
+        label=f"{d['kpi_high_critical'].format(year=_yr)}  {_dot3} {d['kpi_target_below'].format(t=_hc_tgt_str)}",
+        value=f"{data.kpi_high_critical_ratio:.1f}%",
+        delta=f"{_hc_delta_vs_baseline:+.1f} ppt  {_ref_str}{_hc_sfx}",
+        delta_color="inverse",
     )
 
     # --- Rij B: Context & Risico ---
     row2 = st.columns(4)
 
+    _months_i18n = t.get("months", [])
+
+    # T5: recentste maand — delta = vs huidig jaar + gem. voorafgaande maanden
+    _recent_name = ""
+    try:
+        _parts = data.kpi_recent_month_name.split("-")
+        _m_idx = int(_parts[1]) - 1
+        _recent_name = f"{_months_i18n[_m_idx].capitalize()} {_parts[0]}"
+    except (IndexError, ValueError):
+        _recent_name = data.kpi_recent_month_name
+
+    _cy_preceding = [
+        p
+        for p in data.timeline
+        if p.period.startswith(_yr)
+        and p.total_tickets > 0
+        and p.period < data.kpi_recent_month_name
+    ]
+    if _cy_preceding:
+        _ytd_tickets = sum(p.total_tickets for p in _cy_preceding)
+        _ytd_avg = round(
+            sum(p.avg_score * p.total_tickets for p in _cy_preceding) / _ytd_tickets, 2
+        )
+        _ytd_avg_str = str(_ytd_avg).replace(".", ",")
+        _t5_delta = (
+            f"{data.kpi_recent_month_target_delta:+.2f}★ vs {_yr} ({_avg_abbrev} {_ytd_avg_str}★)"
+        )
+    else:
+        _t5_delta = f"{data.kpi_recent_month_target_delta:+.2f}★ vs {_yr}"
+
     row2[0].metric(
-        d["kpi_recent_month"],
-        data.kpi_recent_month_label,
-        f"{data.kpi_recent_month_score:.2f}★".replace(".", ","),
-        delta_color="off",
+        label=f"{_recent_name}  {_dot3} {d['kpi_target_above'].format(t=_avg_tgt_str)}",
+        value=f"{data.kpi_recent_month_score:.2f}★".replace(".", ","),
+        delta=_t5_delta,
     )
-    row2[1].metric(d["kpi_responses"], str(data.kpi_responses_total), delta_color="off")
+
+    # T6: responses — absolute delta tickets/mnd vs S2 baseline (trend) of volledig baseline jaar
+    _yr_bl = str(data.current_year - 1)
+    _resp_unit = d.get("kpi_responses_unit_short", "/mnd")
+    if data.mode == "trend" and data.raw and data.raw.benchmark_h2:
+        _resp_baseline_avg = data.kpi_responses_h2_monthly_avg
+        _bl_lbl_t6 = data.raw.benchmark_h2.label  # bijv. "S2 2025"
+    else:
+        _resp_baseline_avg = data.kpi_responses_baseline_monthly_avg
+        _bl_lbl_t6 = _yr_bl
+    _resp_baseline_str = str(_resp_baseline_avg).replace(".", ",")
+    # Correct: enkel maanden van huidig jaar tellen
+    _cy_months_t6 = max(
+        len([p for p in data.timeline if p.total_tickets > 0 and p.period.startswith(_yr)]),
+        1,
+    )
+    _resp_rate = data.kpi_responses_total / _cy_months_t6
+    _resp_diff = round(_resp_rate - _resp_baseline_avg, 1)
+    _resp_diff_str = str(abs(_resp_diff)).replace(".", ",")
+    _resp_context = f"vs {_bl_lbl_t6} ({_avg_abbrev} {_resp_baseline_str}{_resp_unit})"
+    _resp_delta = (
+        f"+{_resp_diff_str} tickets{_resp_unit} {_resp_context}"
+        if _resp_diff >= 0
+        else f"-{_resp_diff_str} tickets{_resp_unit} {_resp_context}"
+    )
+    row2[1].metric(
+        label=d["kpi_responses"].format(year=_yr),
+        value=str(data.kpi_responses_total),
+        delta=_resp_delta,
+        delta_color="normal",
+    )
+
+    # T7: streak — huidig jaar % vs S2 baseline (trend) of volledig baseline jaar
+    # Correct: enkel maanden van huidig jaar tellen
+    _cy_months_t7 = max(
+        len([p for p in data.timeline if p.total_tickets > 0 and p.period.startswith(_yr)]),
+        1,
+    )
+    _cy_streak_pct = round(data.kpi_streak_current_year / _cy_months_t7 * 100, 0)
+    if data.mode == "trend" and data.raw and data.raw.benchmark_h2:
+        _bl_streak_pct = int(data.kpi_streak_h2_pct)
+        _bl_lbl_t7 = data.raw.benchmark_h2.label  # bijv. "S2 2025"
+    else:
+        _bl_streak_pct = int(data.kpi_streak_baseline_pct)
+        _bl_lbl_t7 = _yr_bl
+    _streak_diff_pct = int(_cy_streak_pct) - _bl_streak_pct
+    _streak_context = f"vs {_bl_lbl_t7} ({_avg_abbrev} {_bl_streak_pct}%)"
+    _streak_delta = (
+        f"+{_streak_diff_pct}% {_streak_context}"
+        if _streak_diff_pct >= 0
+        else f"-{abs(_streak_diff_pct)}% {_streak_context}"
+    )
     row2[2].metric(
-        d["kpi_streak"],
-        f"{data.kpi_streak_months} {d['streak_unit']}",
-        delta_color="off",
+        label=d["kpi_streak"].format(year=_yr),
+        value=str(data.kpi_streak_current_year),
+        delta=_streak_delta,
+        delta_color="normal",
+    )
+
+    # T8: ziekenhuizen kritiek · aandacht — standaard st.metric() identiek aan T1-T7
+    _crit_count = data.kpi_critical_accounts
+    _attn_count = data.kpi_attention_accounts
+    _t8_delta = (
+        "-" + " \u00b7 ".join(data.kpi_critical_account_names)
+        if data.kpi_critical_account_names
+        else None
     )
     row2[3].metric(
         label=d["kpi_accounts_label"],
-        value=f"{data.kpi_critical_accounts} · {data.kpi_attention_accounts}",
-        delta_color="off",
+        value=f"{_crit_count} \u00b7 {_attn_count}",
+        delta=_t8_delta,
+        delta_color="normal",
     )
-    if data.kpi_critical_account_names:
-        _names_str = " · ".join(data.kpi_critical_account_names)
-        row2[3].caption(f"{d['kpi_critical_names_prefix']}: {_names_str}")
+
+    # --- ppt-verklaring (markdown met vet) ---
+    _ppt_text = d.get("ppt_explanation", "")
+    if _ppt_text:
+        st.markdown(
+            f"<div style='font-size:0.85rem;color:#5f8495;margin-top:0.1rem;"
+            f"margin-bottom:0.25rem;line-height:1.55'>{_ppt_text}</div>",
+            unsafe_allow_html=True,
+        )
 
     st.divider()
 

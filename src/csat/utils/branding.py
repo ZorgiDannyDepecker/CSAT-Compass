@@ -186,9 +186,81 @@ STREAMLIT_CSS: str = f"""
     }}
 
     [data-testid="stMetric"] {{
-        background: {ZORGI_ULTRA_LIGHT};
+        background:
+            linear-gradient(to bottom, #003a70, #609fce 60%, transparent) left no-repeat,
+            {ZORGI_ULTRA_LIGHT};
+        background-size: 4px 100%, 100% 100%;
         border-radius: 12px;
-        padding: 0.75rem;
+        border: 2px solid rgba(0,58,112,0.20) !important;
+        padding: 0.75rem 0.9rem 0.75rem 1.2rem;
+        min-height: 110px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }}
+
+    /* ── GELIJKE TEGELHOOGTE: kolommen stretchen ── */
+    [data-testid="stHorizontalBlock"] {{
+        align-items: stretch !important;
+    }}
+    [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] {{
+        display: flex !important;
+        flex-direction: column !important;
+    }}
+    [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] > div {{
+        flex: 1 !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }}
+    /* stMetric: vult volledige kolomhoogte */
+    [data-testid="stMetric"] {{
+        flex: 1 !important;
+    }}
+    /* stMarkdown-wrapper voor T8: ook stretchen zodat .zorgi-tile de hoogte erft */
+    [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] > div > [data-testid="stMarkdown"] {{
+        flex: 1 !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }}
+    [data-testid="stHorizontalBlock"] > [data-testid="stColumn"] > div > [data-testid="stMarkdown"] > div {{
+        flex: 1 !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }}
+
+    /* ── T8 zorgi-tile: exacte kopie van stMetric-stijl + Poppins font ── */
+    .zorgi-tile {{
+        font-family: '{ZORGI_FONT_PRIMARY}', '{ZORGI_FONT_FALLBACK}', sans-serif !important;
+        flex: 1 !important;
+        background:
+            linear-gradient(to bottom, #003a70, #609fce 60%, transparent) left no-repeat,
+            {ZORGI_ULTRA_LIGHT};
+        background-size: 4px 100%, 100% 100%;
+        border-radius: 12px !important;
+        border: 2px solid rgba(0,58,112,0.20) !important;
+        padding: 0.75rem 0.9rem 0.75rem 1.2rem !important;
+        min-height: 110px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+        box-sizing: border-box !important;
+    }}
+
+    /* ZORGI kritiek-woord in T8 label */
+    .zorgi-crit {{
+        color: #dc2b26 !important;
+        font-weight: 800 !important;
+    }}
+    /* Metric delta-tekst: geen afbreking */
+    [data-testid="stMetricDelta"] > div {{
+        white-space: normal !important;
+        line-height: 1.3 !important;
+        font-size: 0.78rem !important;
+    }}
+    /* Metric label: vaste grootte */
+    [data-testid="stMetricLabel"] {{
+        font-size: 0.78rem !important;
+        line-height: 1.35 !important;
     }}
 
     .trend-up     {{ color: #00aa44; font-weight: 800; }}
