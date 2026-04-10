@@ -183,4 +183,3 @@ docker compose logs -f
 | Versie | Datum | Wijzigingen | Auteur |
 |---|---|---|---|
 | 1.0 | 10/04/2026 | Initiële versie — overgenomen vanuit WIP/hosting-opties-2026-04-07.md | Danny Depecker |
-
