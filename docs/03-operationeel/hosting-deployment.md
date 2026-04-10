@@ -97,7 +97,7 @@ Zodra de app draait zijn er vier niveaus, van eenvoudig naar professioneel:
 
 #### DNS-record aanvragen bij IT
 
-```
+```text
 Type  : A
 Naam  : csat.zorgi.local
 Waarde: <IP-adres van de server>
