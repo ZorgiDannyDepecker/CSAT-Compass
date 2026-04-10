@@ -595,13 +595,14 @@ def _zh_signal_card(zh: ZhSignalEntry) -> str:
         bar_color = ZORGI_RED
     bar_width = min(zh.score / 5.0 * 100, 100)
     hospital_safe = html.escape(zh.hospital)
+    ticket_label = "ticket" if zh.tickets == 1 else "tickets"
     return (
         f'<div class="zh-signal-card" style="border-left-color:{border_color}">'
         f'<div style="font-weight:700;font-size:0.9rem;color:{ZORGI_DARK_BLUE}">'
         f"{hospital_safe}"
         f"</div>"
         f'<div style="font-size:0.82rem;color:{ZORGI_GREY_BLUE};margin-top:2px">'
-        f"{zh.score:.2f}★ &nbsp;·&nbsp; {zh.tickets} tickets"
+        f"{zh.score:.2f}★ &nbsp;·&nbsp; {zh.tickets} {ticket_label}"
         f"</div>"
         f'<div class="zh-score-bar-wrap">'
         f'<div class="zh-score-bar" style="width:{bar_width:.1f}%;background:{bar_color}"></div>'
@@ -801,7 +802,7 @@ def _tab_summary(data: DashboardData, t: dict, lang: str) -> None:
     #   col_top, col_bot = st.columns(2)
     #   with col_top: plain markdown emoji-bullets
     #   with col_bot: plain markdown emoji-bullets + aandachtsaccounts
-    st.markdown(f"#### {d['verdict_title']}")
+    st.markdown(f"#### {d['verdict_title']} — {data.current_year}")
     col_best, col_worst, col_attn = st.columns(3)
     with col_best:
         st.markdown(f"**{d['top3_best']}**")
