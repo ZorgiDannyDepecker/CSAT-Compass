@@ -345,11 +345,13 @@ class EvolutionAnalyser:
             for h in hospital_comparison
             if h.current_score is not None and h.current_total >= _min_tickets_bottom
         ]
-        hospital_top5 = sorted(ranked_top, key=lambda h: (-(h.current_score or 0.0), h.hospital))[
-            :5
-        ]
+        hospital_top5 = sorted(
+            ranked_top,
+            key=lambda h: (-(h.current_score or 0.0), -h.current_total, h.hospital),
+        )[:5]
         hospital_bottom5 = sorted(
-            ranked_bottom, key=lambda h: (h.current_score or 0.0, h.hospital)
+            ranked_bottom,
+            key=lambda h: (h.current_score or 0.0, -h.current_total, h.hospital),
         )[:5]
         _min_tickets = _min_tickets_top  # drempel voor rapport-weergave (top)
 

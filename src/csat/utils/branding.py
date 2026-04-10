@@ -760,8 +760,8 @@ STREAMLIT_CSS: str = f"""
         border-radius: 10px;
         padding: 0.55rem 0.8rem 0.6rem 1rem;
         margin-bottom: 0.45rem;
-        border: 1px solid {ZORGI_ULTRA_LIGHT};
-        border-left: 6px solid transparent;
+        border: 2px solid {ZORGI_ULTRA_LIGHT};
+        border-left: 4px solid transparent;
         box-shadow: 0 1px 3px rgba(0, 58, 112, 0.08);
     }}
     .zh-score-bar-wrap {{
