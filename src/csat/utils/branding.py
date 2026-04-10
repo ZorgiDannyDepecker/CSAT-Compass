@@ -747,6 +747,40 @@ STREAMLIT_CSS: str = f"""
         padding-left: 1rem !important;
         max-width: 100% !important;
     }}
+
+    /* ── ZH MINI-SIGNAALKAART KAARTJES ────────────────────────────────────────
+       .zh-signal-card     : kaartje met kleurgecodeerde linker border
+       .zh-score-bar-wrap  : container progress bar + drempelmarkeringen
+       .zh-score-bar       : gekleurde invulbalk (breedte en kleur via inline style)
+       .zh-threshold-marker: verticale lijn op drempelposities (3,0★ en 4,0★)
+       REVERT: verwijder deze sectie + _zh_signal_card() helper in app.py
+    ── */
+    .zh-signal-card {{
+        background: {ZORGI_WHITE};
+        border-radius: 10px;
+        padding: 0.55rem 0.8rem 0.6rem 1rem;
+        margin-bottom: 0.45rem;
+        border-left: 4px solid transparent;
+        box-shadow: 0 1px 3px rgba(0, 58, 112, 0.08);
+    }}
+    .zh-score-bar-wrap {{
+        position: relative;
+        background: {ZORGI_ULTRA_LIGHT};
+        border-radius: 3px;
+        height: 5px;
+        margin-top: 5px;
+    }}
+    .zh-score-bar {{
+        height: 5px;
+        border-radius: 3px;
+    }}
+    .zh-threshold-marker {{
+        position: absolute;
+        top: -2px;
+        width: 1px;
+        height: 9px;
+        background: rgba(0, 0, 0, 0.22);
+    }}
 </style>
 """
 

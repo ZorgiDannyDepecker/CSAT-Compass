@@ -38,7 +38,11 @@ from csat.config.settings import (  # noqa: E402
 )
 from csat.core.analysers.evolution_analyser import EvolutionAnalyser  # noqa: E402
 from csat.core.analysers.evolution_result import EvolutionResult  # noqa: E402
-from csat.core.exporters.dashboard_exporter import DashboardData, DashboardExporter  # noqa: E402
+from csat.core.exporters.dashboard_exporter import (  # noqa: E402
+    DashboardData,
+    DashboardExporter,
+    ZhSignalEntry,
+)
 from csat.core.loaders import get_loader  # noqa: E402
 from csat.i18n import load_translations  # noqa: E402
 from csat.utils.branding import (  # noqa: E402
@@ -571,6 +575,43 @@ def _build_kpi_suffixes(
     return "", "", "", ""
 
 
+def _zh_signal_card(zh: ZhSignalEntry) -> str:
+    """Genereert HTML voor één ZH-signaalkaartje met score-progress bar.
+
+    Kleurcodering op basis van drempelwaarden:
+      >= 4,0 -> groen  |  3,0 - 4,0 -> amber  |  < 3,0 -> rood
+    Progress bar toont drempelmarkeringen op 60% (3,0★) en 80% (4,0★).
+    REVERT: verwijder deze functie + .zh-signal-card CSS-blok in branding.py,
+            en herstel de originele 2-kolomcode in _tab_summary().
+    """
+    if zh.score >= 4.0:
+        border_color = "#00aa44"
+        bar_color = "#00aa44"
+    elif zh.score >= 3.0:
+        border_color = "#f0a500"
+        bar_color = "#f0a500"
+    else:
+        border_color = ZORGI_RED
+        bar_color = ZORGI_RED
+    bar_width = min(zh.score / 5.0 * 100, 100)
+    hospital_safe = html.escape(zh.hospital)
+    return (
+        f'<div class="zh-signal-card" style="border-left-color:{border_color}">'
+        f'<div style="font-weight:700;font-size:0.9rem;color:{ZORGI_DARK_BLUE}">'
+        f"{hospital_safe}"
+        f"</div>"
+        f'<div style="font-size:0.82rem;color:{ZORGI_GREY_BLUE};margin-top:2px">'
+        f"{zh.score:.2f}★ &nbsp;·&nbsp; {zh.tickets} tickets"
+        f"</div>"
+        f'<div class="zh-score-bar-wrap">'
+        f'<div class="zh-score-bar" style="width:{bar_width:.1f}%;background:{bar_color}"></div>'
+        f'<div class="zh-threshold-marker" style="left:60%"></div>'
+        f'<div class="zh-threshold-marker" style="left:80%"></div>'
+        f"</div>"
+        f"</div>"
+    )
+
+
 def _tab_summary(data: DashboardData, t: dict, lang: str) -> None:
     """Tab 1 — Samenvatting: 8 KPI-kaarten, mini-signaalkaart, vergelijkingstabel."""
     d = t["dashboard"]
@@ -755,22 +796,28 @@ def _tab_summary(data: DashboardData, t: dict, lang: str) -> None:
 
     st.divider()
 
-    # --- ZH mini-signaalkaart ---
+    # --- ZH mini-signaalkaart (3 kolommen met HTML-kaartjes) ---
+    # REVERT: vervang onderstaande sectie door de originele 2-kolomcode:
+    #   col_top, col_bot = st.columns(2)
+    #   with col_top: plain markdown emoji-bullets
+    #   with col_bot: plain markdown emoji-bullets + aandachtsaccounts
     st.markdown(f"#### {d['verdict_title']}")
-    col_top, col_bot = st.columns(2)
-    with col_top:
+    col_best, col_worst, col_attn = st.columns(3)
+    with col_best:
         st.markdown(f"**{d['top3_best']}**")
         for zh in data.zh_top3:
-            st.markdown(f"🟢 **{zh.hospital}** — {zh.score:.2f}★ ({zh.tickets} tickets)")
-    with col_bot:
+            st.markdown(_zh_signal_card(zh), unsafe_allow_html=True)
+    with col_worst:
         st.markdown(f"**{d['top3_worst']}**")
         for zh in data.zh_bottom3:
-            icon = "🔴" if zh.score < 3.0 else "🟡"
-            st.markdown(f"{icon} **{zh.hospital}** — {zh.score:.2f}★ ({zh.tickets} tickets)")
+            st.markdown(_zh_signal_card(zh), unsafe_allow_html=True)
+    with col_attn:
+        st.markdown(f"**{d['kpi_attention_accounts_title']}**")
         if data.zh_attention_list:
-            st.markdown(f"**{d['kpi_attention_accounts_title']}**")
             for zh in data.zh_attention_list[:3]:
-                st.markdown(f"🟡 **{zh.hospital}** — {zh.score:.2f}★ ({zh.tickets} tickets)")
+                st.markdown(_zh_signal_card(zh), unsafe_allow_html=True)
+        else:
+            st.caption(d["kpi_no_attention_accounts"])
     st.caption(d["see_tab5"])
 
     st.divider()
