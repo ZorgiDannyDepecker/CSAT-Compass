@@ -1,7 +1,7 @@
 # 📓 CSAT-Compass - Project Journal
 
-**Versie:** 2.3
-**Laatst bijgewerkt:** 06/04/2026
+**Versie:** 2.4
+**Laatst bijgewerkt:** 10/04/2026
 
 **Doel:** Chronologisch logboek van beslissingen, bevindingen en voortgang  
 **Type:** Reference  
@@ -31,6 +31,7 @@
 - [2026-03-31 — Fase 3g afsluiting](#2026-03-31--fase-3g-afsluiting)
 - [2026-04-01 — Visualisatie-verfijning + output-structuur](#2026-04-01--visualisatie-verfijning--output-structuur)
 - [2026-04-06 — Fase 5a Dashboard implementatie + sidebar verfijning](#2026-04-06--fase-5a-dashboard-implementatie--sidebar-verfijning)
+- [2026-04-10 — Fase 5b sprint 1: vaste tabbalk + layout-verfijning](#2026-04-10--fase-5b-sprint-1-vaste-tabbalk--layout-verfijning)
 - [Versiehistorie](#versiehistorie)
 
 ---
@@ -491,6 +492,47 @@ Fase 3g is volledig afgerond. Alle deliverables uit het advieskader (fase 3f v3.
 
 ---
 
+## 2026-04-10 — Fase 5b sprint 1: vaste tabbalk + layout-verfijning
+
+### Context
+
+Eerste sprint van Fase 5b. Focust op de UX van de vaste elementen bovenaan het dashboard
+(topbalk + tabbalk + sidebar-knoppen) voordat de inhoud van de tabbladen wordt verfijnd.
+
+### Beslissingen
+
+- **`position: sticky` verlaten** — werkt niet in Streamlit door `overflow: hidden` op een
+  voorouder-container; vervangen door `position: fixed` (gegarandeerd werkend)
+- **`:has()`-selector** gekozen boven `~`-sibling selector voor sidebar-detectie —
+  robuuster bij DOM-nesting variaties tussen Streamlit-versies
+- **`padding-left: 5rem`** voor tabbalk — exact gelijk aan Streamlit 1.55 `wideSidePadding`
+  (gevonden in JS-bundle `index.RuhrnD1v.js`, geldig bij viewport > 864px)
+- **`flex-wrap: nowrap`** ipv `wrap` — voorkomt 2e rij die content afdekt bij kleiner venster;
+  horizontale scroll als veiligheidsnet bij heel kleine vensters
+- **`_BTN_TOP_PX = 123`** — handmatig bijgesteld via iteratieve feedback
+
+### Technische bevindingen
+
+| Probleem | Oorzaak | Oplossing |
+|----------|---------|-----------|
+| Sticky werkt niet | Streamlit overflow:hidden op ancestor | position: fixed |
+| Sidebar-toggle reageert niet | ~ selector vereist directe siblings | :has() + transition |
+| Knoppen niet uitgelijnd | 1rem ≠ Streamlit wideSidePadding | padding-left: 5rem |
+| Tabs wrappen naar 2e rij | flex-wrap: wrap (default) | flex-wrap: nowrap |
+| Content piept onder tabbalk | gap van 8px (top:118px vs topbar:110px) | top: 110px |
+
+### Teststand
+
+- **810 tests** — 99% coverage (dashboard_exporter 97%) — commit `1437102`
+- Versie: `0.2.8`
+
+### Volgende stap
+
+**Fase 5b sprint 2** — mini-signaalkaart herwerking (`_tab_summary` sectie 2):
+zie `WIP/handover-fase5b-signaalkaart.md`
+
+---
+
 ## Versiehistorie
 
 | Versie | Datum | Wijzigingen | Auteur               |
@@ -509,6 +551,7 @@ Fase 3g is volledig afgerond. Alle deliverables uit het advieskader (fase 3f v3.
 | 2.1 | 31/03/2026 | Fase 3g afsluiting: NL/FR taalcorrecties, testfixes, 727 tests; beslissing Fase 5a PHARMA-first | Danny Depecker + GHC |
 | 2.2 | 01/04/2026 | Visualisatie-verfijning: subplot 3 prioriteitscompositie, i18n, output-structuur datumsubmap, lint-fixes, 61 visualiser-tests | Danny Depecker + GHC |
 | 2.3 | 06/04/2026 | Fase 5a dashboard implementatie + sidebar verfijning: pure CSS tooltip, i18n fixes, LOGO_ASSETS CI-fix, 790 tests | Danny Depecker + GHC |
+| 2.4 | 10/04/2026 | Fase 5b sprint 1: vaste tabbalk (position:fixed), sidebar-responsiviteit, layout-verfijning, 810 tests; v0.2.8 | Danny Depecker + GHC |
 
 ---
 *ZORGI — Danny Depecker*

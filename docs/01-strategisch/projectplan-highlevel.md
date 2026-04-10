@@ -1,7 +1,7 @@
 # CSAT-Compass - Projectplan High-Level
 
-**Versie:** 1.5
-**Laatst bijgewerkt:** 01/04/2026
+**Versie:** 1.6
+**Laatst bijgewerkt:** 10/04/2026
 
 **Doel:** Fundament en referentiedocument voor de volledige CSAT-Compass opzet  
 **Type:** Planning  
@@ -179,8 +179,9 @@ PHARMA is de **referentie-implementatie**. Elke volgende pijler is een kopie + a
 | **Fase 3f** | Evolutie-advieskader | Gap-analyse, beslisrecord, release 1 scope | ✅ Compleet |
 | **Fase 3g** | Evolutierapport verfijning | Implementatie release 1 op basis van fase 3f | ✅ Compleet |
 | **Fase 4** | CARE / CARE ADMIN / ERP4HC | Alle 4 pillar-analysers actief | ⏳ Gepland |
-| **Fase 5a** | Streamlit dashboard PHARMA-only | Dashboard PHARMA volledig (6 tabs, NL/FR, pijler-agnostisch) | ⏳ In voorbereiding |
-| **Fase 5b** | Streamlit dashboard overige pijlers | CARE / CARE ADMIN / ERP4HC actief in dashboard | ⏳ Gepland |
+| **Fase 5a** | Streamlit dashboard PHARMA-only | Dashboard PHARMA volledig (6 tabs, NL/FR, pijler-agnostisch) | 🔄 In uitvoering |
+| **Fase 5b** | Dashboard UI-verfijning | Tabbalk, samenvatting-tab polish, mini-signaalkaart, vergelijkingstabel | 🔄 In uitvoering |
+| **Fase 5c** | Streamlit dashboard overige pijlers | CARE / CARE ADMIN / ERP4HC actief in dashboard | ⏳ Gepland |
 | **Fase 6** | ZORGI overall aggregatie | ZORGI-rapport + ZORGI-matrix + ZORGI dashboard tab | ⏳ Gepland |
 
 ### 6.2 Migratieaanpak
@@ -278,3 +279,4 @@ CSAT-Compass/
 | 1.3 | 29/03/2026 | Fase 3f hergedefinieerd als advieskader; implementatiefase doorgeschoven naar 3g | Danny Depecker + GHC |
 | 1.4 | 31/03/2026 | Fase 3g status bijgewerkt naar Compleet | Danny Depecker + GHC |
 | 1.5 | 01/04/2026 | Fase 5 opgesplitst in 5a (PHARMA dashboard) en 5b (overige pijlers); Fase 5a status → In voorbereiding; Fase 6 uitgebreid met ZORGI dashboard tab | Danny Depecker + CD |
+| 1.6 | 10/04/2026 | Fase 5a status → In uitvoering; Fase 5b hergedefinieerd als Dashboard UI-verfijning; Fase 5c hernoemd naar overige pijlers; fasering bijgewerkt (5a/5b In uitvoering) | Danny Depecker + GHC |

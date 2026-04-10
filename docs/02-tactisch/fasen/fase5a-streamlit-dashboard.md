@@ -1,12 +1,12 @@
 # CSAT-Compass — Fase 5a: Streamlit Dashboard PHARMA-only
 
-**Versie:** 1.2
-**Laatst bijgewerkt:** 06/04/2026
+**Versie:** 1.3
+**Laatst bijgewerkt:** 10/04/2026
 
 **Doel:** Implementatie van een interactief Streamlit-dashboard voor de PHARMA-pijler
 **Type:** Implementatie
 **Auteur:** Danny Depecker + GHC + CD
-**Status:** In uitvoering
+**Status:** Afgerond (UI-verfijning loopt door in Fase 5b)
 
 **Bestandsnaam:** fase5a-streamlit-dashboard.md
 **Path:** docs/02-tactisch/fasen/
@@ -31,7 +31,7 @@ De scope en structuur zijn gebaseerd op drie bronnen:
 **T-shirt:** L
 **Afhankelijkheid:** Fase 3g volledig afgerond (727 tests, 100% coverage, CI stabiel)
 **Teststand bij start:** 727 tests — 100% coverage — CI stabiel (Python 3.11 / 3.12 / 3.13)
-**Teststand huidig:** 790 tests — 100% coverage — CI stabiel (Python 3.11 / 3.12 / 3.13)
+**Teststand huidig:** 810 tests — 99% coverage — commit `1437102` — v0.2.8
 
 ---
 
@@ -449,3 +449,4 @@ streamlit run src/dashboard/app.py
 | 1.0 | 01/04/2026 | Initiële versie — gebaseerd op handover + analyse dashboard Q1 2026 | Danny Depecker + CD |
 | 1.1 | 01/04/2026 | §1 derde referentiebron toegevoegd (Thomas-review); §3.2 tendensvenster referentie; §4.1 sidebar Tendensvenster-modus + gedragstabel; §4.2 ZH mini-signaalkaart; §4.3 feedbackthema's actiekaarten als eerste inhoud Tab 3; §4.6 bottom-5 + oorzaakkolom; §5 KPI-tabel uitgebreid met Tendensvenster-delta; §6.2 window_start param + get_zh_mini_card; §6.3 pijler-agnostisch patroon bijgewerkt; §8.3 nieuwe methode; §9 acceptatiecriteria uitgebreid; §10 scope bijgewerkt; §12 aandachtspunten bijgewerkt | Danny Depecker + CD |
 | 1.2 | 06/04/2026 | Status In planning → In uitvoering; deliverables bijgewerkt (alles ✅); §1 teststand huidig 790 tests; §4.1 tooltip-sectie toegevoegd (pure CSS badge, CSS-architectuur, i18n colon); §6.2 DashboardExporter geïmplementeerd; §12 aandachtspunten bijgewerkt | Danny Depecker + GHC |
+| 1.3 | 10/04/2026 | Status → Afgerond (UI-verfijning loopt door in Fase 5b); §1 teststand 810 tests — 99% coverage — commit 1437102 — v0.2.8; §5 KPI-kaarten tabel bijgewerkt (Rij A prestatie + Rij B context); §6.2 DashboardExporter uitgebreid (10 nieuwe velden, 10 helper-methoden); §9 acceptatiecriteria aangevuld met tegel-herwerking; §12 aandachtspunten bijgewerkt | Danny Depecker + GHC |

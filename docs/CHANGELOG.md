@@ -63,6 +63,89 @@ Formaat gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.0.0/).
 
 ---
 
+## [Fase 5b — Dashboard UI-verfijning: tabbalk + layout] — 10/04/2026
+
+### Toegevoegd
+
+- **Vaste tabbalk** (`branding.py` — `STREAMLIT_CSS`):
+  - `position: fixed; top: 110px` — tabbalk vergrendeld bij scrollen (sticky werkte niet door Streamlit `overflow:hidden`)
+  - `:has([aria-expanded="false"])` + `~`-sibling selector voor robuuste sidebar-detectie
+  - `transition: left 0.3s ease` — vloeiende animatie bij sidebar in/uitklappen
+  - `padding-left: 5rem` — uitlijning met Streamlit 1.55 `wideSidePadding` (gevonden in JS-bundle)
+  - `flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none` — geen 2e rij bij smaller venster
+  - `padding-top: 12px; padding-bottom: 12px` — verhoogde balk
+  - Verborgen WebKit-scrollbar via `::-webkit-scrollbar { display: none }`
+- **Tab-paneel compensatie:** `[data-baseweb="tab-panel"] { padding-top: 68px }` voor vaste tabbalk
+- **Gap-fix:** `top: 110px` (was 118px) — sluit naadloos aan op topbalk, geen doorkijkruimte bij scrollen
+
+### Gewijzigd
+
+- **Tab-knoppen** (`branding.py`):
+  - `font-size: 1.1rem` → `1rem`
+  - `padding: 0.55rem 1.5rem` → `0.45rem 1.2rem`
+  - `gap: 8px` → `6px`
+  - `white-space: nowrap; flex-shrink: 0` toegevoegd
+- **Sidebar expand/collapse knoppen:** `_BTN_TOP_PX` bijgesteld van 130 → 123
+- **Prod-modus:** `.env` omgeschakeld naar `CSAT_DASHBOARD_MODE=prod`
+- **Versie:** `0.2.3` → `0.2.8` (7 incrementele patch-bumps)
+
+### Opgelost
+
+- Tabbalk scrolt mee bij pagina-scroll → opgelost via `position: fixed`
+- Tabbalk reageert niet op sidebar-toggle → opgelost via `:has()` + CSS transition
+- Knoppen niet links-uitgelijnd met content → opgelost via `padding-left: 5rem` (= Streamlit `wideSidePadding`)
+- Tabbalk springt naar 2 rijen bij kleiner venster → opgelost via `flex-wrap: nowrap + overflow-x: auto`
+- Doorkijkruimte tussen topbalk en tabbalk bij scrollen → opgelost via `top: 110px`
+
+**Teststand:** 810 tests — 99% coverage — commit `1437102`
+
+---
+
+## [Fase 5a — Samenvatting-tab tegel-herwerking + account-categorisering] — 08/04/2026
+
+### Toegevoegd
+
+- **`DashboardData`** — 10 nieuwe velden:
+  `kpi_high_critical_ratio`, `kpi_recent_month_label/score/name/target_delta`,
+  `kpi_responses_baseline_monthly_avg`, `kpi_responses_current_period_months`,
+  `kpi_streak_current_year/baseline_pct`, `current_year`,
+  `kpi_attention_accounts`, `kpi_critical_account_names`, `zh_attention_list`
+- **`DashboardExporter`** — 10 nieuwe helper-methoden:
+  `_get_hc_ratio`, `_recent_month`, `_calc_streak_current_year`, `_calc_streak_baseline_pct`,
+  `_calc_responses_baseline_monthly_avg`, `_recent_month_name`, `_count_attention_accounts`,
+  `_get_critical_account_names`, `_build_attention_list`, `_build_kpi_suffixes`
+- **`_tab_summary()`** — volledig herwerkt naar 2 rijen:
+  - Rij A (T1–T4): Prestatie-KPIs met target-label + vs-baseline delta + suffix (baseline gemiddelde)
+  - Rij B (T5–T8): Context & Risico — recente maand, responses, streak, accounts
+  - Individuele suffixen per KPI: trend-modus → vs H2 2025 gem.; volledig → vs baseline 2025 gem.
+  - T6/T7: absolute delta (tickets/mnd resp. %) vs baseline maandgemiddelde
+  - T8: `st.metric()` met kritieke namen als delta-tekst
+  - ppt-verklaring als `st.markdown()` HTML-blok
+- **ZORGI fade-rand + tegelhoogte** (`branding.py`):
+  - `[data-testid="stMetric"]`: blauwe links-fade, `min-height: 110px`, flex layout, `border: 2px`
+  - `.zorgi-crit`: rode tekst voor kritieke-woorden in labels
+  - `stMetricDelta` / `stMetricLabel`: `white-space: normal`, `font-size: 0.78rem`
+  - `stHorizontalBlock`: `align-items: stretch` + flex voor gelijke tegelhoogte
+- **Account-categorisering kritiek/aandacht**:
+  - `_CRITICAL_SCORE_THRESHOLD`: 2.5 → 3.0
+  - `_ATTENTION_SCORE_THRESHOLD`: 4.0 (nieuw)
+  - `_tab_hospitals()`: aandachtsaccounts-sectie als dataframe
+- **i18n nl/fr** — 14 nieuwe dashboard-sleutels:
+  `kpi_high_critical`, `kpi_recent_month`, `kpi_target_above/below`,
+  `kpi_accounts_label`, `kpi_critical_names_prefix`, `kpi_attention_accounts_title`,
+  `kpi_no_attention_accounts`, `kpi_vs_monthly_avg`, `kpi_streak_vs`,
+  `kpi_streak_unit_short`, `kpi_responses_unit_short`, `kpi_avg_abbrev`,
+  `kpi_accounts_label_html`, `ppt_explanation`
+
+### Opgelost
+
+- T4/T6/T7 referentie: volledig jaar 2025 → correcte S2 2025 (H2) in trend-modus
+- Elapsed months T6/T7: enkel maanden van huidig jaar (was: alle periodes)
+
+**Teststand:** 810 tests — 99% coverage — commit `e51c8b4`
+
+---
+
 ## [Unreleased]
 
 ---
