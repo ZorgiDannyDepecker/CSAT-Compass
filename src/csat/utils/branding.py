@@ -136,7 +136,7 @@ _SIDEBAR_DEFAULT_WIDTH: int = 220  # Idem
 # visibility:hidden (ipv display:none) voor toolbar-items zorgt ervoor dat
 # de layout-footprint zo identiek mogelijk blijft, maar Streamlit berekent
 # intern nog ~10px verschil. _BTN_TOP_PX_PROD compenseert dit.
-_BTN_TOP_PX: int = 130  # expand/collapse — identiek in demo én prod
+_BTN_TOP_PX: int = 123  # expand/collapse — identiek in demo én prod
 
 # Publieke exports — te gebruiken in app.py (bijv. debug display)
 SIDEBAR_MIN_WIDTH: int = _SIDEBAR_MIN_WIDTH
@@ -334,12 +334,46 @@ STREAMLIT_CSS: str = f"""
         margin-top: 0.1rem !important;
         margin-bottom: 0.1rem !important;
     }}
+    /* ── VASTE TABBALK (position:fixed) ─────────────────────────────────────
+       sticky werkt niet in Streamlit (overflow:hidden op een voorouder-container).
+       Originele waarden (voor volledige revert):
+         position: sticky; top: 110px; (geen left/right/box-shadow/padding-top/transition)
+         background: transparent !important;
+         padding-bottom: 6px !important; padding-top: 6px !important;
+    ── */
     [data-baseweb="tab-list"] {{
-        background: transparent !important;
-        gap: 8px !important;
+        position: fixed !important;
+        top: 110px !important;
+        left: {_SIDEBAR_MIN_WIDTH}px !important;
+        right: 0 !important;
+        z-index: 9990 !important;
+        background: {ZORGI_WHITE} !important;
+        gap: 6px !important;
         border-bottom: 2px solid {ZORGI_ULTRA_LIGHT} !important;
-        padding-bottom: 6px !important;
-        flex-wrap: wrap !important;
+        padding: 12px 1rem 12px 5rem !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        scrollbar-width: none !important;
+        box-shadow: 0 2px 6px rgba(0, 58, 112, 0.08) !important;
+        transition: left 0.3s ease, padding-left 0.3s ease !important;
+    }}
+    /* Verberg scrollbar in WebKit (Chrome/Edge/Safari) */
+    [data-baseweb="tab-list"]::-webkit-scrollbar {{
+        display: none !important;
+    }}
+    /* Sidebar ingeklapt — :has() voor robuuste DOM-detectie ongeacht nesting;
+       ~ sibling selector als fallback voor browsers zonder :has()-support.
+       padding-left: 5rem → uitlijning met content (zelfde als block-container).
+       5rem = 80px > 32px (breedte >> expand-knop) → geen overlap. */
+    body:has([data-testid="stSidebar"][aria-expanded="false"]) [data-baseweb="tab-list"],
+    [data-testid="stSidebar"][aria-expanded="false"]
+        ~ [data-testid="stAppViewContainer"] [data-baseweb="tab-list"] {{
+        left: 0 !important;
+        padding-left: 5rem !important;
+    }}
+    /* Tab-paneel: compensatie voor de vaste tabbalk (hoogte ≈ 64px) */
+    [data-baseweb="tab-panel"] {{
+        padding-top: 68px !important;
     }}
     /* Tabs - meerdere selectors voor Streamlit 1.28-1.55 compatibiliteit.
        font-size ook op alle kindelementen (*) gezet: Streamlit plaatst de tekst
@@ -352,11 +386,13 @@ STREAMLIT_CSS: str = f"""
         background-color: {ZORGI_DARK_BLUE} !important;
         color: {ZORGI_WHITE} !important;
         border-radius: 50px !important;
-        padding: 0.55rem 1.5rem !important;
-        font-size: 1.1rem !important;
+        padding: 0.45rem 1.2rem !important;
+        font-size: 1rem !important;
         font-weight: 600 !important;
         border: none !important;
         min-height: 2.5rem !important;
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
         transition: background 0.2s ease, transform 0.15s ease !important;
         margin: 2px 0 !important;
     }}
@@ -836,12 +872,12 @@ def inject_tab_font_css(st) -> None:
         "html body [data-baseweb='tab'],"
         "html body [role='tab'],"
         "html body button[role='tab'] {"
-        "    font-size: 1.1rem !important;"
+        "    font-size: 1rem !important;"
         "}"
         "html body [data-baseweb='tab'] *,"
         "html body [role='tab'] *,"
         "html body button[role='tab'] * {"
-        "    font-size: 1.1rem !important;"
+        "    font-size: 1rem !important;"
         "}"
         "</style>",
         unsafe_allow_html=True,
