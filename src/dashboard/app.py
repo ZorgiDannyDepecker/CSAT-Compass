@@ -602,7 +602,8 @@ def _zh_signal_card(zh: ZhSignalEntry) -> str:
         f"{hospital_safe}"
         f"</div>"
         f'<div style="font-size:0.82rem;color:{ZORGI_GREY_BLUE};margin-top:2px">'
-        f"{zh.score:.2f}★ &nbsp;·&nbsp; {zh.tickets} {ticket_label}"
+        f"{zh.score:.2f}★".replace(".", ",")
+        + f" &nbsp;·&nbsp; {zh.tickets} {ticket_label}"
         f"</div>"
         f'<div class="zh-score-bar-wrap">'
         f'<div class="zh-score-bar" style="width:{bar_width:.1f}%;background:{bar_color}"></div>'
