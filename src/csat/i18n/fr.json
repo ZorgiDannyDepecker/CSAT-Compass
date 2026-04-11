@@ -247,7 +247,7 @@
     "vs_baseline": "vs. {label}",
     "vs_h2": "vs. S2 2025",
     "top3_best": "🟢 Top 3 meilleurs (≥ 4,0★)",
-    "top3_worst": "🔴 Top 3 en difficulté (< 4,0★)",
+    "top3_worst": "🔴 Top 3 en difficulté (< 3,0★)",
     "see_tab5": "→ Détail dans l'onglet Hôpitaux",
     "see_tab5_btn": "🏥 Aller à l'onglet Hôpitaux",
     "signal_section_title": "Évaluation des hôpitaux",
