@@ -803,7 +803,7 @@ def _tab_summary(data: DashboardData, t: dict, lang: str) -> None:
     #   col_top, col_bot = st.columns(2)
     #   with col_top: plain markdown emoji-bullets
     #   with col_bot: plain markdown emoji-bullets + aandachtsaccounts
-    st.markdown(f"#### {d['verdict_title']} — {data.current_year}")
+    st.markdown(f"#### {d['signal_section_title']} — {d['signal_huidig']} {data.current_label}")
     col_best, col_worst, col_attn = st.columns(3)
     with col_best:
         st.markdown(f"**{d['top3_best']}**")
@@ -820,7 +820,13 @@ def _tab_summary(data: DashboardData, t: dict, lang: str) -> None:
                 st.markdown(_zh_signal_card(zh), unsafe_allow_html=True)
         else:
             st.caption(d["kpi_no_attention_accounts"])
-    st.caption(d["see_tab5"])
+    _tab5_js = (
+        "var t=document.querySelectorAll('[data-baseweb=\"tab\"]');if(t.length>4)t[4].click();"
+    )
+    st.markdown(
+        f'<button class="zorgi-tab-nav-btn" onclick="{_tab5_js}">{d["see_tab5_btn"]}</button>',
+        unsafe_allow_html=True,
+    )
 
     st.divider()
 

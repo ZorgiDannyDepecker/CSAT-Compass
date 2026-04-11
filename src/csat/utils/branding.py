@@ -782,6 +782,28 @@ STREAMLIT_CSS: str = f"""
         height: 9px;
         background: rgba(0, 0, 0, 0.22);
     }}
+
+    /* ── ZH SIGNAALKAART — navigatieknop naar tab Ziekenhuizen ─────────────
+       Inline HTML-knop (st.markdown unsafe_allow_html) — géén nested iframe,
+       onclick werkt direct in de Streamlit-app context.
+       REVERT: verwijder deze sectie en de .zorgi-tab-nav-btn in _tab_summary().
+    ── */
+    .zorgi-tab-nav-btn {{
+        background: none;
+        border: 1px solid {ZORGI_ULTRA_LIGHT};
+        border-radius: 6px;
+        color: {ZORGI_GREY_BLUE};
+        font-size: 0.82rem;
+        cursor: pointer;
+        padding: 0.25rem 0.7rem;
+        font-family: '{ZORGI_FONT_PRIMARY}', '{ZORGI_FONT_FALLBACK}', sans-serif;
+        margin-top: 0.35rem;
+        transition: background 0.15s ease, color 0.15s ease;
+    }}
+    .zorgi-tab-nav-btn:hover {{
+        background: {ZORGI_ULTRA_LIGHT};
+        color: {ZORGI_DARK_BLUE};
+    }}
 </style>
 """
 
