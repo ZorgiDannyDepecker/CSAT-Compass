@@ -614,6 +614,42 @@ def _zh_signal_card(zh: ZhSignalEntry) -> str:
     )
 
 
+def _render_zh_signal_section(data: DashboardData, d: dict) -> None:
+    """Render de ZH mini-signaalkaart: 3 kolommen (best | kritiek | aandacht) + nav-knop.
+
+    REVERT: verwijder deze functie en vervang de aanroep in _tab_summary() door
+    de originele 2-kolomcode met plain markdown en emoji-bullets.
+    """
+    _tab5_js = (
+        "var t=document.querySelectorAll('[data-baseweb=&quot;tab&quot;]');"
+        "if(t.length>4)t[4].click();"
+    )
+    st.markdown(f"#### {d['signal_section_title']} — {d['signal_huidig']} {data.current_label}")
+    col_best, col_worst, col_attn = st.columns(3)
+    with col_best:
+        st.markdown(f"**{d['top3_best']}**")
+        for zh in data.zh_top3:
+            st.markdown(_zh_signal_card(zh), unsafe_allow_html=True)
+    with col_worst:
+        st.markdown(f"**{d['top3_worst']}**")
+        if data.zh_bottom3:
+            for zh in data.zh_bottom3:
+                st.markdown(_zh_signal_card(zh), unsafe_allow_html=True)
+        else:
+            st.caption(d["kpi_no_critical_accounts"])
+    with col_attn:
+        st.markdown(f"**{d['kpi_attention_accounts_title']}**")
+        if data.zh_attention_list:
+            for zh in data.zh_attention_list[:3]:
+                st.markdown(_zh_signal_card(zh), unsafe_allow_html=True)
+        else:
+            st.caption(d["kpi_no_attention_accounts"])
+    st.markdown(
+        f'<button class="zorgi-tab-nav-btn" onclick="{_tab5_js}">{d["see_tab5_btn"]}</button>',
+        unsafe_allow_html=True,
+    )
+
+
 def _tab_summary(data: DashboardData, t: dict, lang: str) -> None:
     """Tab 1 — Samenvatting: 8 KPI-kaarten, mini-signaalkaart, vergelijkingstabel."""
     d = t["dashboard"]
@@ -797,37 +833,7 @@ def _tab_summary(data: DashboardData, t: dict, lang: str) -> None:
         )
 
     st.divider()
-
-    # --- ZH mini-signaalkaart (3 kolommen met HTML-kaartjes) ---
-    # REVERT: vervang onderstaande sectie door de originele 2-kolomcode:
-    #   col_top, col_bot = st.columns(2)
-    #   with col_top: plain markdown emoji-bullets
-    #   with col_bot: plain markdown emoji-bullets + aandachtsaccounts
-    st.markdown(f"#### {d['signal_section_title']} — {d['signal_huidig']} {data.current_label}")
-    col_best, col_worst, col_attn = st.columns(3)
-    with col_best:
-        st.markdown(f"**{d['top3_best']}**")
-        for zh in data.zh_top3:
-            st.markdown(_zh_signal_card(zh), unsafe_allow_html=True)
-    with col_worst:
-        st.markdown(f"**{d['top3_worst']}**")
-        for zh in data.zh_bottom3:
-            st.markdown(_zh_signal_card(zh), unsafe_allow_html=True)
-    with col_attn:
-        st.markdown(f"**{d['kpi_attention_accounts_title']}**")
-        if data.zh_attention_list:
-            for zh in data.zh_attention_list[:3]:
-                st.markdown(_zh_signal_card(zh), unsafe_allow_html=True)
-        else:
-            st.caption(d["kpi_no_attention_accounts"])
-    _tab5_js = (
-        "var t=document.querySelectorAll('[data-baseweb=\"tab\"]');if(t.length>4)t[4].click();"
-    )
-    st.markdown(
-        f'<button class="zorgi-tab-nav-btn" onclick="{_tab5_js}">{d["see_tab5_btn"]}</button>',
-        unsafe_allow_html=True,
-    )
-
+    _render_zh_signal_section(data, d)
     st.divider()
 
     # --- Kerncijfers vergelijkingstabel ---

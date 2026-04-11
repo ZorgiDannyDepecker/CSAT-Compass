@@ -246,7 +246,7 @@ class DashboardExporter:
 
         # Mini-signaalkaart
         zh_top3 = cls._build_top3(result.hospital_top5)
-        zh_bottom3 = cls._build_bottom3(result.hospital_bottom5)
+        zh_bottom3 = cls._build_bottom3(result.hospital_comparison)
 
         # Kerncijfers vergelijkingstabel
         comparison_rows = cls._build_comparison_rows(result)
@@ -462,14 +462,20 @@ class DashboardExporter:
     def _build_attention_list(
         hospital_comparison: list[HospitalComparison],
     ) -> list[ZhSignalEntry]:
-        """Bouw de aandachtslijst (score >= 3.0 en < 4.0) gesorteerd op score."""
+        """Bouw de aandachtslijst (score >= 3.0 en < 4.0) gesorteerd op score.
+
+        Sortering: laagste score eerst; bij gelijke score meer tickets eerst.
+        """
         return [
             ZhSignalEntry(
                 hospital=h.hospital,
-                score=h.current_score,
+                score=h.current_score,  # type: ignore[arg-type]
                 tickets=h.current_total,
             )
-            for h in sorted(hospital_comparison, key=lambda h: h.current_score or 0.0)
+            for h in sorted(
+                hospital_comparison,
+                key=lambda h: (h.current_score or 0.0, -h.current_total, h.hospital),
+            )
             if h.current_score is not None
             and h.current_total > 0
             and DashboardExporter._CRITICAL_SCORE_THRESHOLD
@@ -590,21 +596,34 @@ class DashboardExporter:
         ]
 
     @staticmethod
-    def _build_bottom3(hospital_bottom5: list[HospitalComparison]) -> list[ZhSignalEntry]:
-        """Bouw bottom-3 signaallijst (rood) met disengagement-flag."""
+    def _build_bottom3(
+        hospital_comparison: list[HospitalComparison],
+    ) -> list[ZhSignalEntry]:
+        """Bouw kritieke signaallijst (score < 3,0★) voor de mini-signaalkaart.
+
+        Enkel ziekenhuizen met current_score < _CRITICAL_SCORE_THRESHOLD (3,0).
+        Sortering: laagste score eerst; bij gelijke score meer tickets eerst.
+        Max. 3 entries — leeg als geen enkel ZH de kritieke grens overschrijdt.
+        """
+        critical = [
+            h
+            for h in hospital_comparison
+            if h.current_score is not None
+            and h.current_total > 0
+            and h.current_score < DashboardExporter._CRITICAL_SCORE_THRESHOLD
+        ]
+        critical.sort(key=lambda h: (h.current_score or 0.0, -h.current_total, h.hospital))
         return [
             ZhSignalEntry(
                 hospital=h.hospital,
-                score=h.current_score if h.current_score is not None else 0.0,
+                score=h.current_score,  # type: ignore[arg-type]
                 tickets=h.current_total,
                 disengagement_risk=(
-                    h.current_score is not None
-                    and h.current_score < DashboardExporter._DISENGAGEMENT_SCORE_THRESHOLD
+                    (h.current_score or 0.0) < DashboardExporter._DISENGAGEMENT_SCORE_THRESHOLD
                     and h.current_total < DashboardExporter._DISENGAGEMENT_TICKET_THRESHOLD
                 ),
             )
-            for h in hospital_bottom5[:3]
-            if h.current_score is not None
+            for h in critical[:3]
         ]
 
     # ------------------------------------------------------------------

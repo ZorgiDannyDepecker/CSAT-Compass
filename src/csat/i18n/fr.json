@@ -239,6 +239,7 @@
     "kpi_critical_names_prefix": "Critique",
     "kpi_attention_accounts_title": "🟡 Comptes à surveiller (3,0★ – 4,0★)",
     "kpi_no_attention_accounts": "Aucun compte à surveiller",
+    "kpi_no_critical_accounts": "Aucun compte critique",
     "kpi_targets_met": "Objectifs atteints",
     "kpi_high_critical": "High/Critical ratio {year}",
     "kpi_recent_month": "Mois récent",
