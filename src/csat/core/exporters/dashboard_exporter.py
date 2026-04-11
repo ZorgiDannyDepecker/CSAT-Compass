@@ -584,14 +584,21 @@ class DashboardExporter:
 
     @staticmethod
     def _build_top3(hospital_top5: list[HospitalComparison]) -> list[ZhSignalEntry]:
-        """Bouw top-3 signaallijst (groen) voor de mini-signaalkaart."""
+        """Bouw top-3 signaallijst (groen) voor de mini-signaalkaart.
+
+        Sortering: hoogste score eerst; bij gelijke score meer tickets eerst.
+        """
+        sorted_top = sorted(
+            hospital_top5,
+            key=lambda h: (-(h.current_score or 0.0), -h.current_total, h.hospital),
+        )
         return [
             ZhSignalEntry(
                 hospital=h.hospital,
                 score=h.current_score if h.current_score is not None else 0.0,
                 tickets=h.current_total,
             )
-            for h in hospital_top5[:3]
+            for h in sorted_top[:3]
             if h.current_score is not None
         ]
 
