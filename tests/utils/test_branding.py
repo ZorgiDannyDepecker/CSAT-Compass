@@ -268,11 +268,28 @@ class TestInjectTabScrollReset:
     """Test inject_tab_scroll_reset() — injecteert scroll-naar-boven JS via stc.html()."""
 
     def _call_with_mock(self):
-        """Voer inject_tab_scroll_reset() uit met gemockte streamlit.components.v1."""
+        """Voer inject_tab_scroll_reset() uit met gemockte streamlit.components.v1.
+
+        Bouwt een volledige mock-keten: streamlit → components → v1 = mock_stc,
+        zodat Python's attribute-walk (import a.b.c as x) ook zonder geïnstalleerde
+        streamlit correct naar mock_stc resolveert (CI-omgeving).
+        """
         from unittest.mock import MagicMock, patch
 
         mock_stc = MagicMock()
-        with patch.dict("sys.modules", {"streamlit.components.v1": mock_stc}):
+        mock_components = MagicMock()
+        mock_components.v1 = mock_stc
+        mock_st = MagicMock()
+        mock_st.components = mock_components
+
+        with patch.dict(
+            "sys.modules",
+            {
+                "streamlit": mock_st,
+                "streamlit.components": mock_components,
+                "streamlit.components.v1": mock_stc,
+            },
+        ):
             inject_tab_scroll_reset()
         return mock_stc
 
