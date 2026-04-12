@@ -776,14 +776,21 @@ class DashboardExporter:
     def _build_hospital_top5_full(
         hospital_top5: list[HospitalComparison],
     ) -> list[ZhSignalEntry]:
-        """Bouw de volledige top-5-lijst voor Tab 5."""
+        """Bouw de volledige top-5-lijst voor Tab 5.
+
+        Sortering: hoogste score eerst; bij gelijke score meer tickets eerst.
+        """
+        sorted_top = sorted(
+            hospital_top5,
+            key=lambda h: (-(h.current_score or 0.0), -h.current_total, h.hospital),
+        )
         return [
             ZhSignalEntry(
                 hospital=h.hospital,
                 score=h.current_score if h.current_score is not None else 0.0,
                 tickets=h.current_total,
             )
-            for h in hospital_top5
+            for h in sorted_top
             if h.current_score is not None
         ]
 
@@ -804,7 +811,10 @@ class DashboardExporter:
                 cause_counter[case.hospital][case.category] += 1
 
         result = []
-        for h in hospital_bottom5:
+        for h in sorted(
+            hospital_bottom5,
+            key=lambda h: (h.current_score or 0.0, -h.current_total, h.hospital),
+        ):
             if h.current_score is None:
                 continue
             cause = ""

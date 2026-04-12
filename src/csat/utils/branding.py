@@ -158,6 +158,17 @@ STREAMLIT_CSS: str = f"""
         font-family: '{ZORGI_FONT_PRIMARY}', '{ZORGI_FONT_FALLBACK}', sans-serif;
     }}
 
+    /* Voorkom dat browser scroll-positie "herstelt" na tab-wissel (DOM-anchoring) */
+    html, body {{
+        scroll-behavior: auto !important;
+        overflow-anchor: none !important;
+    }}
+    [data-baseweb="tab-panel"],
+    [data-testid="stAppViewMain"],
+    [data-testid="stMainBlockContainer"] {{
+        overflow-anchor: none !important;
+    }}
+
     /* Headers conform Design System sectie 3 */
     h1 {{ color: {ZORGI_DARK_BLUE}; font-weight: 800; }}
     h2 {{ color: {ZORGI_GREY_BLUE}; font-weight: 800; }}
@@ -760,8 +771,10 @@ STREAMLIT_CSS: str = f"""
         border-radius: 10px;
         padding: 0.55rem 0.8rem 0.6rem 1rem;
         margin-bottom: 0.45rem;
-        border: 2px solid {ZORGI_ULTRA_LIGHT};
-        border-left: 4px solid transparent;
+        border-top: 4px solid {ZORGI_ULTRA_LIGHT};
+        border-right: 4px solid {ZORGI_ULTRA_LIGHT};
+        border-bottom: 4px solid {ZORGI_ULTRA_LIGHT};
+        border-left: 3px solid transparent;
         box-shadow: 0 1px 3px rgba(0, 58, 112, 0.08);
     }}
     .zh-score-bar-wrap {{
@@ -1000,6 +1013,89 @@ _SIDEBAR_TOGGLE_JS: str = """
 })();
 </script>
 """
+
+
+def inject_tab_scroll_reset() -> None:
+    """
+    Injecteer scroll-naar-boven bij tabbladwissel.
+
+    Strategie (3 lagen):
+    1. CSS: overflow-anchor:none + scroll-behavior:auto in STREAMLIT_CSS
+       → voorkomt dat browser scroll-positie "herstelt" na DOM-wijziging
+    2. JavaScript _zorgiTop():
+       - blur() van actief element (voorkomt scroll-into-view na React-focus)
+       - scrollTo({top:0, behavior:'instant'}) op window
+       - scrollTop=0 op alle bekende Streamlit-containers
+       - ancestor-walk vanuit [data-baseweb="tab-panel"] omhoog
+       - rAF-keten (8 frames, ~133ms) + timeouts (100/300/600/1000ms)
+    3. Remove/re-add handler bij elke Streamlit-rerun (iframe vernietigd/hergemaakt)
+    """
+    import streamlit.components.v1 as _stc_inner
+
+    _js = """<style>html,body{margin:0;padding:0;height:1px;overflow:hidden}</style>
+<script>
+(function() {
+    var w = window.parent, d = w.document;
+
+    /* ── Scroll-functie: raakt alle mogelijke scroll-containers ── */
+    function _zorgiTop() {
+        /* Blur actief element - React focust na tabklik op de knop,
+           browser scrollt dan naar het gefocuste element (scroll-into-view).
+           Blur() annuleert dit. */
+        try { if (d.activeElement && d.activeElement !== d.body) d.activeElement.blur(); } catch(_) {}
+
+        /* Window + document root */
+        try { w.scrollTo({top:0, left:0, behavior:'instant'}); } catch(_) {
+            try { w.scrollTo(0, 0); } catch(_) {}
+        }
+        try { d.documentElement.scrollTop = 0; } catch(_) {}
+        try { d.body.scrollTop = 0; } catch(_) {}
+
+        /* Expliciete Streamlit-containers */
+        ['#root','[data-testid="stApp"]','[data-testid="stAppViewContainer"]',
+         '[data-testid="stAppViewMain"]','[data-testid="stMainBlockContainer"]','.main']
+        .forEach(function(q) {
+            try { var e = d.querySelector(q); if (e) e.scrollTop = 0; } catch(_) {}
+        });
+
+        /* Ancestor-walk vanuit het tab-panel omhoog (vangt alle versies op) */
+        try {
+            var tp = d.querySelector('[data-baseweb="tab-panel"]');
+            var el = tp ? tp.parentElement : null, n = 0;
+            while (el && el !== d.documentElement && n++ < 12) {
+                el.scrollTop = 0;
+                el = el.parentElement;
+            }
+        } catch(_) {}
+    }
+
+    /* ── Registreer handler (remove/re-add voor rerun-veiligheid) ── */
+    if (typeof d.__zorgiScrollHandler === 'function') {
+        d.removeEventListener('click', d.__zorgiScrollHandler, true);
+    }
+    d.__zorgiScrollHandler = function(e) {
+        var el = e.target;
+        while (el && el !== d.documentElement) {
+            if (el.getAttribute && el.getAttribute('data-baseweb') === 'tab') {
+                /* Direct + rAF-keten (8 frames) + timeouts */
+                _zorgiTop();
+                (function raf(n) {
+                    if (n <= 0) return;
+                    try { w.requestAnimationFrame(function() { _zorgiTop(); raf(n-1); }); } catch(_) {}
+                })(8);
+                setTimeout(_zorgiTop, 100);
+                setTimeout(_zorgiTop, 300);
+                setTimeout(_zorgiTop, 600);
+                setTimeout(_zorgiTop, 1000);
+                break;
+            }
+            el = el.parentElement;
+        }
+    };
+    d.addEventListener('click', d.__zorgiScrollHandler, true);
+})();
+</script>"""
+    _stc_inner.html(_js, height=1, scrolling=False)
 
 
 def inject_sidebar_toggle() -> None:

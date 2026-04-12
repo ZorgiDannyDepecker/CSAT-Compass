@@ -237,7 +237,7 @@
     "kpi_critical_accounts": "Comptes critiques",
     "kpi_accounts_label": "H\u00f4pitaux\u00a0: critique \u00b7 attention",
     "kpi_critical_names_prefix": "Critique",
-    "kpi_attention_accounts_title": "🟡 Comptes à surveiller (3,0★ – 4,0★)",
+    "kpi_attention_accounts_title": "🟡 Top 3 comptes à surveiller (3,0★ – 4,0★)",
     "kpi_no_attention_accounts": "Aucun compte à surveiller",
     "kpi_no_critical_accounts": "Aucun compte critique",
     "kpi_targets_met": "Objectifs atteints",

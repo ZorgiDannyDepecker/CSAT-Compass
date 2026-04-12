@@ -21,6 +21,7 @@ from pathlib import Path
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
+import streamlit.components.v1 as _stc
 from plotly.subplots import make_subplots
 
 # Zorg dat src/ op het Python-pad staat bij directe streamlit-run
@@ -50,6 +51,7 @@ from csat.utils.branding import (  # noqa: E402
     inject_css,
     inject_sidebar_toggle,
     inject_tab_font_css,
+    inject_tab_scroll_reset,
     render_topbar,
 )
 from csat.utils.date_utils import parse_period, period_label  # noqa: E402
@@ -595,7 +597,9 @@ def _zh_signal_card(zh: ZhSignalEntry) -> str:
         bar_color = ZORGI_RED
     bar_width = min(zh.score / 5.0 * 100, 100)
     hospital_safe = html.escape(zh.hospital)
-    ticket_label = "ticket" if zh.tickets == 1 else "tickets"
+    ticket_label = (
+        "ticket" if zh.tickets == 1 else "tickets"
+    )  # 0 → tickets, 1 → ticket, >1 → tickets
     return (
         f'<div class="zh-signal-card" style="border-left-color:{border_color}">'
         f'<div style="font-weight:700;font-size:0.9rem;color:{ZORGI_DARK_BLUE}">'
@@ -617,19 +621,15 @@ def _zh_signal_card(zh: ZhSignalEntry) -> str:
 def _render_zh_signal_section(data: DashboardData, d: dict) -> None:
     """Render de ZH mini-signaalkaart: 3 kolommen (best | kritiek | aandacht) + nav-knop.
 
+    Nav-knop via st.components.v1.html() (height=45, scrolling=False):
+    - st.markdown onclick wordt door DOMpurify gesaniteerd → werkt niet
+    - components.html() bypast sanitatie en kan window.parent.document bereiken
+    - Kleine niet-persistente iframe (45px) → geen browser-freeze (verschil met sidebar-toggle)
     REVERT: verwijder deze functie en vervang de aanroep in _tab_summary() door
     de originele 2-kolomcode met plain markdown en emoji-bullets.
     """
-    _tab5_js = (
-        "var t=document.querySelectorAll('[data-baseweb=&quot;tab&quot;]');"
-        "if(t.length>4)t[4].click();"
-    )
-    st.markdown(f"#### {d['signal_section_title']} — {d['signal_huidig']} {data.current_label}")
-    col_best, col_worst, col_attn = st.columns(3)
-    with col_best:
-        st.markdown(f"**{d['top3_best']}**")
-        for zh in data.zh_top3:
-            st.markdown(_zh_signal_card(zh), unsafe_allow_html=True)
+    st.markdown(f"#### {d['signal_section_title']} {data.current_year}")
+    col_worst, col_attn, col_best = st.columns(3)
     with col_worst:
         st.markdown(f"**{d['top3_worst']}**")
         if data.zh_bottom3:
@@ -644,10 +644,51 @@ def _render_zh_signal_section(data: DashboardData, d: dict) -> None:
                 st.markdown(_zh_signal_card(zh), unsafe_allow_html=True)
         else:
             st.caption(d["kpi_no_attention_accounts"])
-    st.markdown(
-        f'<button class="zorgi-tab-nav-btn" onclick="{_tab5_js}">{d["see_tab5_btn"]}</button>',
-        unsafe_allow_html=True,
+    with col_best:
+        st.markdown(f"**{d['top3_best']}**")
+        for zh in data.zh_top3:
+            st.markdown(_zh_signal_card(zh), unsafe_allow_html=True)
+    # Nav-knop: dezelfde uitgebreide _zorgiTop() als inject_tab_scroll_reset (ancestor-walk + rAF).
+    _btn_label = d["see_tab5_btn"]
+    _tab_sel = '[data-baseweb="tab-list"] [data-baseweb="tab"]'
+    _nav_html = (
+        "<style>"
+        "body{margin:0;padding:0;background:transparent}"
+        ".zh-nav-pill{"
+        f"background:{ZORGI_DARK_BLUE};"
+        "color:#fff;border:none;border-radius:50px;"
+        "padding:0.45rem 1.2rem;font-size:0.85rem;font-weight:600;"
+        "cursor:pointer;font-family:Poppins,Verdana,sans-serif;"
+        "transition:background 0.2s ease}"
+        f".zh-nav-pill:hover{{background:{ZORGI_GREY_BLUE}}}"
+        "</style>"
+        "<script>"
+        "function _zorgiTop(){"
+        "var w=window.parent,d=w.document;"
+        "try{if(d.activeElement&&d.activeElement!==d.body)d.activeElement.blur();}catch(e){}"
+        "try{w.scrollTo({top:0,left:0,behavior:'instant'});}catch(e){try{w.scrollTo(0,0);}catch(e){}}"
+        "try{d.documentElement.scrollTop=0;}catch(e){}"
+        "try{d.body.scrollTop=0;}catch(e){}"
+        "['#root','[data-testid=\"stApp\"]','[data-testid=\"stAppViewContainer\"]',"
+        "'[data-testid=\"stAppViewMain\"]','[data-testid=\"stMainBlockContainer\"]','.main']"
+        ".forEach(function(q){try{var e=d.querySelector(q);if(e)e.scrollTop=0;}catch(e){}});"
+        "try{var tp=d.querySelector('[data-baseweb=\"tab-panel\"]');"
+        "var el=tp?tp.parentElement:null,n=0;"
+        "while(el&&el!==d.documentElement&&n++<12){el.scrollTop=0;el=el.parentElement;}"
+        "}catch(e){}}"
+        f"function goToZh(){{var t=window.parent.document.querySelectorAll('{_tab_sel}');"
+        "if(t&&t.length>4){t[4].click();"
+        "_zorgiTop();"
+        "(function raf(n){if(n<=0)return;"
+        "try{window.parent.requestAnimationFrame(function(){_zorgiTop();raf(n-1);});}catch(e){}"
+        "})(8);"
+        "[100,300,600,1000].forEach(function(ms){setTimeout(_zorgiTop,ms);})}}"
+        "</script>"
+        f"<button class='zh-nav-pill' onclick='goToZh()'>{_btn_label}</button>"
     )
+    _stc.html(_nav_html, height=40, scrolling=False)
+    # Witregel-fix: negatieve marge compenseert Streamlit iframe-container padding
+    st.markdown("<div style='margin-top:-1.8rem'></div>", unsafe_allow_html=True)
 
 
 def _tab_summary(data: DashboardData, t: dict, lang: str) -> None:
@@ -1236,6 +1277,9 @@ def main() -> None:
 
     # Tab-font CSS NA tabs injecteren (wint cascade van Streamlit emotion-CSS)
     inject_tab_font_css(st)
+
+    # Scroll-reset bij tabbladwissel: altijd naar boven bij activeren nieuw tabblad
+    inject_tab_scroll_reset()
 
     # Sidebar-toggle knop injecteren (NA alle content — blokkeert rendering niet)
     inject_sidebar_toggle()
