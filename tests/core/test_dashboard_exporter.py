@@ -400,6 +400,58 @@ class TestCountTargetsMet:
 # ---------------------------------------------------------------------------
 
 
+# ---------------------------------------------------------------------------
+# Tests — _recent_month_name
+# ---------------------------------------------------------------------------
+
+
+_MONTHS_NL = [
+    "januari",
+    "februari",
+    "maart",
+    "april",
+    "mei",
+    "juni",
+    "juli",
+    "augustus",
+    "september",
+    "oktober",
+    "november",
+    "december",
+]
+
+
+class TestRecentMonthName:
+    """Tests voor _recent_month_name() — period-string naar leesbare maandnaam."""
+
+    def test_normale_periode(self):
+        """Valide 'YYYY-MM' met volledige maandenlijst geeft 'Maandnaam YYYY'."""
+        result = DashboardExporter._recent_month_name("2026-03", _MONTHS_NL)
+        assert result == "Maart 2026"
+
+    def test_leeg_string_retourneert_leeg(self):
+        """Lege string wordt ongewijzigd teruggegeven."""
+        assert DashboardExporter._recent_month_name("", _MONTHS_NL) == ""
+
+    def test_dash_retourneert_dash(self):
+        """'—' (em-dash vlag) wordt ongewijzigd teruggegeven."""
+        assert DashboardExporter._recent_month_name("—", _MONTHS_NL) == "—"
+
+    def test_te_korte_maandenlijst_fallback_naar_maandnummer(self):
+        """Als maandenlijst korter is dan maandindex, valt terug op het maandnummer."""
+        result = DashboardExporter._recent_month_name("2026-03", ["jan", "feb"])
+        assert result == "03 2026"
+
+    def test_ongeldig_formaat_retourneert_origineel(self):
+        """Bij een ongeldige string (ValueError/IndexError) wordt de invoer teruggegeven."""
+        assert DashboardExporter._recent_month_name("ongeldige-waarde", []) == "ongeldige-waarde"
+
+    def test_december(self):
+        """Maand 12 wordt correct omgezet."""
+        result = DashboardExporter._recent_month_name("2025-12", _MONTHS_NL)
+        assert result == "December 2025"
+
+
 class TestBuildSignalCards:
     def _make_hc(self, name: str, score: float, total: int) -> HospitalComparison:
         return HospitalComparison(

@@ -18,6 +18,7 @@ from csat.utils.branding import (
     apply_plotly_theme,
     inject_css,
     inject_tab_font_css,
+    inject_tab_scroll_reset,
     render_topbar,
 )
 
@@ -256,6 +257,53 @@ class TestInjectTabFontCss:
         inject_tab_font_css(mock_st)
         css_arg = mock_st.markdown.call_args[0][0]
         assert "font-size" in css_arg
+
+
+# ------------------------------------------------------------------
+# inject_tab_scroll_reset()
+# ------------------------------------------------------------------
+
+
+class TestInjectTabScrollReset:
+    """Test inject_tab_scroll_reset() — injecteert scroll-naar-boven JS via stc.html()."""
+
+    def _call_with_mock(self):
+        """Voer inject_tab_scroll_reset() uit met gemockte streamlit.components.v1."""
+        from unittest.mock import MagicMock, patch
+
+        mock_stc = MagicMock()
+        with patch.dict("sys.modules", {"streamlit.components.v1": mock_stc}):
+            inject_tab_scroll_reset()
+        return mock_stc
+
+    def test_html_aangeroepen(self) -> None:
+        """stc.html() wordt exact één keer aangeroepen."""
+        mock_stc = self._call_with_mock()
+        mock_stc.html.assert_called_once()
+
+    def test_html_height_is_1(self) -> None:
+        """height-parameter is 1 (onzichtbare iframe)."""
+        mock_stc = self._call_with_mock()
+        _, kwargs = mock_stc.html.call_args
+        assert kwargs.get("height") == 1
+
+    def test_html_scrolling_false(self) -> None:
+        """scrolling=False zodat de iframe geen eigen scrollbalk krijgt."""
+        mock_stc = self._call_with_mock()
+        _, kwargs = mock_stc.html.call_args
+        assert kwargs.get("scrolling") is False
+
+    def test_html_bevat_zorgi_scroll_functie(self) -> None:
+        """De gegenereerde HTML bevat de _zorgiTop JavaScript-functie."""
+        mock_stc = self._call_with_mock()
+        html_arg = mock_stc.html.call_args[0][0]
+        assert "_zorgiTop" in html_arg
+
+    def test_html_bevat_tab_listener(self) -> None:
+        """De gegenereerde HTML bevat een click-listener op tab-elementen."""
+        mock_stc = self._call_with_mock()
+        html_arg = mock_stc.html.call_args[0][0]
+        assert "data-baseweb" in html_arg
 
 
 # ------------------------------------------------------------------
