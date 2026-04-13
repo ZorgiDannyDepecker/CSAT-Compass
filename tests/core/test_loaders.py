@@ -48,7 +48,7 @@ class TestCsvLoader:
         sample_df.to_csv(bestand, index=False, sep=";")
         loader = CsvLoader(tmp_path)
         result = loader.load(pillar="PHARMA")
-        assert all(result["product"].str.upper() == "PHARMA")
+        assert all(result["product_domain"].str.upper() == "PHARMA")
 
     def test_laad_gooit_fout_bij_geen_bestanden(self, tmp_path: Path) -> None:
         loader = CsvLoader(tmp_path)

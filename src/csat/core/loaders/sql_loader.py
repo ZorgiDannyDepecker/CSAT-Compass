@@ -52,7 +52,7 @@ class SqlLoader(BaseLoader):
         Laad data vanuit [dbo].[V_CSAT_1].
 
         Args:
-            pillar: Filter op product-kolom (bv. 'PHARMA') of None voor alles
+            pillar: Filter op product_domain-kolom (bv. 'PHARMA') of None voor alles
             period: Filter op created-kolom in formaat 'YYYY-MM' of None voor alles
 
         Returns:
@@ -62,7 +62,7 @@ class SqlLoader(BaseLoader):
         conditions = []
 
         if pillar:
-            conditions.append(f"product = '{pillar.strip()}'")
+            conditions.append(f"product_domain = '{pillar.strip()}'")
         if period:
             jaar, maand = period.split("-")
             conditions.append(f"YEAR(created) = {jaar} AND MONTH(created) = {int(maand)}")

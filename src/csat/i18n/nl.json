@@ -395,6 +395,45 @@
       "reinforcing": ["Dit wordt bevestigd door", "In lijn hiermee", "Bovendien"],
       "concluding": ["Samenvattend", "De kernboodschap is", "Dit betekent concreet"]
     }
+  },
+  "gemeenschappelijk": {
+    "trend": {
+      "label_negatieve_evolutie": "Negatieve evolutie",
+      "label_positieve_evolutie": "Positieve evolutie",
+      "label_stabiel": "Stabiel",
+      "pijl_omhoog": "▲",
+      "pijl_omlaag": "▼",
+      "pijl_stabiel": "►"
+    }
+  },
+  "kpi_targets": {
+    "banner_bijgestelde_targets": "Bijgestelde targets (Q1 2026): avg_score ≥ 4,50★ · % positief ≥ 90% · % negatief ≤ 5% · Incident CSAT ≥ 4,60★",
+    "footnote_ziekenhuisretentie": "Target Ziekenhuisretentie wordt herzien na Q2 2026 zodra retentiepatroon stabiliseert",
+    "rij_critical_priority_csat_label": "Critical Priority CSAT (min ≥ 4,50★)",
+    "rij_incident_csat_label": "Incident CSAT (min ≥ 4,00★)",
+    "status_lage_n": "⚠️",
+    "status_onbekend": "❓ Onbekend"
+  },
+  "samenvatting": {
+    "kerncijfers": {
+      "kolom_delta": "Δ",
+      "kolom_huidig_tendens": "Huidige periode",
+      "kolom_huidig_volledig": "Huidig",
+      "kolom_kpi": "KPI",
+      "kolom_trend": "Trend",
+      "kolom_vorig_tendens": "Vorige periode",
+      "kolom_vorig_volledig": "Baseline",
+      "mediaan_toelichting": "<strong>Mediaan score</strong>\u00a0\u2014 de middelste waarde bij oplopend gesorteerde scores (enkel gescoorde tickets). Robuust tegen uitschieters: \u00e9\u00e9n extreem lage score trekt de mediaan minder snel naar beneden dan het gemiddelde.<br>Voorbeeld:\u00a01\u2605\u00a04\u2605\u00a0<strong>5\u2605</strong>\u00a05\u2605\u00a05\u2605 \u2192 mediaan\u00a0=\u00a05\u2605, gemiddelde\u00a0=\u00a04,0\u2605.",
+      "rij_actieve_ziekenhuizen": "Actieve ziekenhuizen",
+      "rij_gem_score": "Gem. score",
+      "rij_mediaan_score": "Mediaan score",
+      "rij_negatief": "% Negatief (< 3,0\u2605)",
+      "rij_neutraal": "% Neutraal (3,0\u2605\u00a0\u2013\u00a04,0\u2605)",
+      "rij_positief": "% Positief (\u2265\u202f4,0\u2605)",
+      "rij_totaal_responses": "Totaal responses",
+      "titel": "Kerncijfers vergelijking",
+      "trend_toelichting": "<strong>Trend-pijl</strong>\u00a0\u2014 \u25ba\u00a0grijs\u00a0= stabiel (binnen statistische ruis). Drempelwaarden: \u00b10,05\u2605 voor scores \u00b7 \u00b12,0\u00a0ppt voor percentages \u00b7 \u00b12 voor tellingen. Schommelingen onder de drempel krijgen altijd \u25ba (ook als de \u0394-waarde een kleur toont)."
+    }
   }
 }
 

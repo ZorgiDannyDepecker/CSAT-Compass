@@ -146,6 +146,61 @@ Formaat gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.0.0/).
 
 ---
 
+## [Bugfix — ISSUE-001: CsvLoader + SqlLoader pillar-filter] — 13/04/2026
+
+### Opgelost
+
+- **`src/csat/core/loaders/csv_loader.py`** — `load(pillar=...)` filterde op kolom `product`
+  i.p.v. `product_domain` → retourneerde 0 rijen voor `pillar="PHARMA"`.
+  Gefixte regel: `df["product_domain"].str.upper() == pillar.strip().upper()`
+- **`src/csat/core/loaders/sql_loader.py`** — SQL WHERE-clausule gebruikte `product = '...'`
+  i.p.v. `product_domain = '...'`.
+  Gefixte regel: `conditions.append(f"product_domain = '{pillar.strip()}'")`
+- Docstrings van beide `load()`-methoden bijgewerkt: `"product-kolom"` → `"product_domain-kolom"`
+- **`docs/issues/ISSUE-001-csvloader-pillar-filter.md`** — Status bijgewerkt naar Resolved
+
+Zie: `docs/issues/ISSUE-001-csvloader-pillar-filter.md`
+
+CD (specificatie) + GHC (implementatie)
+
+---
+
+## [Fase 5c — KPI-Targets nazorg: invariant-isolatie + bug-documentatie] — 13/04/2026
+
+### Gewijzigd
+
+- **`src/dashboard/app.py`** — Taak 1: bevestigd geen dode banner-code (`adjusted_targets_note` nooit aangemaakt)
+- **`src/dashboard/app.py`** — Taak 2 (Optie A): `_make_kc_dataframes()` docstring uitgebreid met INVARIANT-waarschuwing;
+  inline comment toegevoegd in `_tab_targets()` die expliciet vastlegt dat KPI-Targets altijd
+  `"volledig"` gebruikt, ongeacht venster-modus-instelling
+
+### Toegevoegd
+
+- **`docs/issues/ISSUE-001-csvloader-pillar-filter.md`** — CsvLoader pillar-filter bug gedocumenteerd:
+  `CsvLoader.load(pillar="PHARMA")` filtert op kolom `product` i.p.v. `product_domain` → 0 rijen.
+  Severity: Medium (productie-aanroepen in `app.py` en scripts gebruiken `loader.load()` zonder
+  `pillar`-argument; handmatige FILTER_COLUMN-filtering in `_make_kc_dataframes()` niet getroffen)
+
+CD (specificatie) + GHC (implementatie)
+
+---
+
+## [Fase 5c — KPI-Targets uitbreiding 7→9 rijen] — 12/04/2026
+
+### Gewijzigd
+
+- **`src/dashboard/app.py`** — `render_kpi_targets()` uitgebreid van 7 naar 9 rijen:
+  - Rij 8: Incident CSAT — filter `issue_type == "Incident"`, target ≥ 4,00★, edge-case n=0/n<5 afgedekt
+  - Rij 9: Critical Priority CSAT — filter `HIGH_CRITICAL_PRIORITIES` uit `pillars.py`, target ≥ 4,50★, edge-case afgedekt
+  - Footnote ¹ bij rij 7 (Ziekenhuisretentie) met i18n-key `kpi_targets.footnote_ziekenhuisretentie`
+  - Info-banner bijgewerkt naar i18n-key `kpi_targets.banner_bijgestelde_targets`
+  - Functiesignatuur: `render_kpi_targets(df_huidig, df_baseline, lang)` — vaste "volledig" semantiek
+  - `_CRITICAL_PRIORITY_CSAT_TARGET = 4.5` als module-constante
+
+CD (specificatie) + GHC (implementatie)
+
+---
+
 ## [Unreleased]
 
 ---

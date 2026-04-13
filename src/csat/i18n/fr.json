@@ -395,6 +395,45 @@
       "reinforcing": ["Cela est confirmé par", "Dans le même sens", "De plus"],
       "concluding": ["En résumé", "Le message clé est", "Concrètement"]
     }
+  },
+  "gemeenschappelijk": {
+    "trend": {
+      "label_negatieve_evolutie": "Évolution négative",
+      "label_positieve_evolutie": "Évolution positive",
+      "label_stabiel": "Stable",
+      "pijl_omhoog": "▲",
+      "pijl_omlaag": "▼",
+      "pijl_stabiel": "►"
+    }
+  },
+  "kpi_targets": {
+    "banner_bijgestelde_targets": "Objectifs révisés (T1 2026) : score moyen ≥ 4,50★ · % positif ≥ 90% · % négatif ≤ 5% · CSAT Incident ≥ 4,60★",
+    "footnote_ziekenhuisretentie": "L'objectif de rétention hospitalière sera révisé après le T2 2026, une fois le schéma de rétention stabilisé",
+    "rij_critical_priority_csat_label": "CSAT Priorité Critique (min ≥ 4,50★)",
+    "rij_incident_csat_label": "CSAT Incident (min ≥ 4,00★)",
+    "status_lage_n": "⚠️",
+    "status_onbekend": "❓ Inconnu"
+  },
+  "samenvatting": {
+    "kerncijfers": {
+      "kolom_delta": "Δ",
+      "kolom_huidig_tendens": "Période actuelle",
+      "kolom_huidig_volledig": "Actuel",
+      "kolom_kpi": "KPI",
+      "kolom_trend": "Tendance",
+      "kolom_vorig_tendens": "Période précédente",
+      "kolom_vorig_volledig": "Référence",
+      "mediaan_toelichting": "<strong>Score m\u00e9dian</strong>\u00a0\u2014 la valeur centrale des scores tri\u00e9s par ordre croissant (tickets \u00e9valu\u00e9s uniquement). Robuste aux valeurs atypiques\u00a0: un score tr\u00e8s bas tire moins la m\u00e9diane vers le bas que la moyenne.<br>Exemple\u00a0:\u00a01\u2605\u00a04\u2605\u00a0<strong>5\u2605</strong>\u00a05\u2605\u00a05\u2605 \u2192 m\u00e9diane\u00a0=\u00a05\u2605, moyenne\u00a0=\u00a04,0\u2605.",
+      "rij_actieve_ziekenhuizen": "H\u00f4pitaux actifs",
+      "rij_gem_score": "Score moyen",
+      "rij_mediaan_score": "Score m\u00e9dian",
+      "rij_negatief": "% N\u00e9gatif (< 3,0\u2605)",
+      "rij_neutraal": "% Neutre (3,0\u2605\u00a0\u2013\u00a04,0\u2605)",
+      "rij_positief": "% Positif (\u2265\u202f4,0\u2605)",
+      "rij_totaal_responses": "Total de réponses",
+      "titel": "Indicateurs cl\u00e9s comparaison",
+      "trend_toelichting": "<strong>Fl\u00e8che de tendance</strong>\u00a0\u2014 \u25ba\u00a0gris\u00a0= stable (dans le bruit statistique). Seuils\u00a0: \u00b10,05\u2605 pour les scores \u00b7 \u00b12,0\u00a0ppt pour les pourcentages \u00b7 \u00b12 pour les comptages. Les variations sous le seuil re\u00e7oivent toujours \u25ba (m\u00eame si la valeur \u0394 affiche une couleur)."
+    }
   }
 }
 

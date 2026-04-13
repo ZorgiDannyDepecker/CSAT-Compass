@@ -13,6 +13,7 @@ Architectuur:
 
 from __future__ import annotations
 
+import contextlib
 import html
 import sys
 from datetime import UTC, date, datetime
@@ -30,11 +31,23 @@ if str(_SRC) not in sys.path:
     sys.path.insert(0, str(_SRC))
 
 from csat import __version__  # noqa: E402
-from csat.config.pillars import PILLAR_REGISTRY  # noqa: E402
+from csat.config.pillars import (  # noqa: E402
+    FILTER_COLUMN,
+    HIGH_CRITICAL_PRIORITIES,
+    PILLAR_REGISTRY,
+)
 from csat.config.settings import (  # noqa: E402
+    ANALYSE_START_DATE,
+    AVG_RESPONSE_DAYS_MAX,
+    AVG_SCORE_MIN,
     CSV_FALLBACK_PATH,
     DASHBOARD_PROD_MODE,
     DB_CONN,
+    HIGH_CRITICAL_MAX,
+    HOSPITAL_RETENTION_MIN,
+    PCT_NEGATIVE_MAX,
+    PCT_POSITIVE_MIN,
+    PCT_WITH_COMMENT_MIN,
     db_available,
 )
 from csat.core.analysers.evolution_analyser import EvolutionAnalyser  # noqa: E402
@@ -93,6 +106,9 @@ _KPI_TARGET_ORDER: list[str] = [
     "hospital_retention_min",
 ]
 
+# Target voor rij 9 — Critical Priority CSAT (≥ 4,50★)
+_CRITICAL_PRIORITY_CSAT_TARGET: float = 4.5
+
 
 # ---------------------------------------------------------------------------
 # Hulpfuncties
@@ -109,6 +125,70 @@ def _last_complete_period(today: date) -> tuple[int, int]:
     if today.month == 1:
         return today.year - 1, 12
     return today.year, today.month - 1
+
+
+def _make_kc_dataframes(
+    data: DashboardData,
+    venster_modus: str,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """
+    Bereid df_vorig en df_huidig voor tegel 3 (Kerncijfers vergelijking).
+
+    Aanroeper van render_kerncijfers_vergelijking: verantwoordelijk voor correcte
+    slicing per venstermodus (spec-contract: slicing hoort in de aanroepende laag).
+
+    - _load_df() is gecached (1u) — geen extra DB-aanroep.
+    - Pilaar-filter via PILLAR_REGISTRY[data.pillar]["products"] + FILTER_COLUMN.
+    - Start-datum filter: ADR-007 (ANALYSE_START_DATE).
+    - effective_date: satisfaction_date waar beschikbaar, anders created.
+    - df_huidig beperkt tot afgeronde maanden (via kpi_recent_month_name).
+    - "volledig" → df_vorig = volledig baseline-jaar (bv. 2025).
+    - "tendens"  → df_vorig = S2 van het baseline-jaar (jul-dec 2025).
+
+    INVARIANT: deze functie wordt door zowel tegel 3 (venster-aware) als
+    KPI-Targets (vast 'volledig') aangeroepen. Bij refactoring: zorg dat
+    KPI-Targets-aanroepers altijd 'volledig' kunnen blijven gebruiken,
+    ongeacht venster-modus-uitbreidingen.
+    """
+    df = _load_df().copy()
+
+    # Pilaar-filter (product_domain via PILLAR_REGISTRY)
+    pillar_cfg = PILLAR_REGISTRY.get(data.pillar, {})
+    products_upper = [p.upper() for p in pillar_cfg.get("products", [])]
+    if products_upper:
+        df = df[df[FILTER_COLUMN].str.strip().str.upper().isin(products_upper)]
+
+    # Start-datum filter (ADR-007)
+    if ANALYSE_START_DATE:
+        df = df[pd.to_datetime(df["created"]) >= pd.Timestamp(ANALYSE_START_DATE)]
+
+    # effective_date: satisfaction_date waar beschikbaar, anders created
+    df["_eff"] = df["satisfaction_date"].where(
+        df["satisfaction_date"].notna(),
+        other=pd.to_datetime(df["created"]),
+    )
+    df["_year"] = pd.to_datetime(df["_eff"]).dt.year
+    df["_month"] = pd.to_datetime(df["_eff"]).dt.month
+
+    _bl_yr = data.current_year - 1
+    _cu_yr = data.current_year
+
+    # Bepaal laatste afgeronde maand uit kpi_recent_month_name (bv. "2026-03" → 3).
+    # Voorkomt dat lopende-maand-tickets (bv. april) in df_huidig terechtkomen.
+    _max_month = 12  # fallback
+    _recent = data.kpi_recent_month_name
+    if _recent and _recent not in ("—", ""):
+        with contextlib.suppress(IndexError, ValueError):
+            _max_month = int(_recent[5:7])
+
+    if venster_modus == "volledig":
+        df_vorig = df[df["_year"] == _bl_yr].copy()
+    else:  # tendens: S2 van het baseline-jaar (jul-dec)
+        df_vorig = df[(df["_year"] == _bl_yr) & (df["_month"] >= 7)].copy()
+
+    # df_huidig: alleen afgeronde maanden (≤ _max_month) — fix voor 81 vs 77 discrepantie
+    df_huidig = df[(df["_year"] == _cu_yr) & (df["_month"] <= _max_month)].copy()
+    return df_vorig, df_huidig
 
 
 # ---------------------------------------------------------------------------
@@ -687,12 +767,377 @@ def _render_zh_signal_section(data: DashboardData, d: dict) -> None:
         f"<button class='zh-nav-pill' onclick='goToZh()'>{_btn_label}</button>"
     )
     _stc.html(_nav_html, height=40, scrolling=False)
-    # Witregel-fix: negatieve marge compenseert Streamlit iframe-container padding
-    st.markdown("<div style='margin-top:-1.8rem'></div>", unsafe_allow_html=True)
+    # CSS: agressieve inkrimping van iframe-container én zijn parent wrapper
+    st.markdown(
+        "<style>"
+        "[data-testid='stCustomComponentV1']"
+        "{margin-bottom:-10rem!important;overflow:visible!important}"
+        "div:has(>[data-testid='stCustomComponentV1'])"
+        "{margin-bottom:-4rem!important;overflow:visible!important}"
+        "</style>",
+        unsafe_allow_html=True,
+    )
+
+
+def render_kerncijfers_vergelijking(  # noqa: C901
+    df_vorig: pd.DataFrame,
+    df_huidig: pd.DataFrame,
+    venster_modus: str,
+    lang: str,
+) -> None:
+    """
+    Tegel 3 — Samenvatting: Kerncijfers vergelijking (7 rijen, venster-aware kolomlabels).
+
+    Versie x.y · 12/04/2026 — herstructurering conform spec Prompt A:
+      uitbreiding 5→7 rijen, venster-aware kolomlabels, Δ-formatting + trend-pijl-semantiek.
+
+    Gedocumenteerde herstructurering (vóór → na):
+      VÓÓR: data.comparison_rows (5 ComparisonRow-objecten, pre-berekend door
+            DashboardExporter._build_comparison_rows). Vaste 4 kolommen (KPI / Baseline /
+            Huidig / Δ), geen mediaan, geen % neutraal, geen venster-bewuste labels,
+            geen trend-pijlen. Rendering via st.dataframe().
+      NA:   Twee gefilterde DataFrames per venster (df_vorig, df_huidig), 7 rijen live
+            berekend, alle labels via i18n, ZORGI HTML-tabelstijl, Δ-kleuren + trend-pijlen.
+
+    Args:
+        df_vorig:      Gefilterd DataFrame voor de "vorige" periode.
+                       "volledig" → volledig baseline-jaar (bv. 2025).
+                       "tendens"  → S2 van het baseline-jaar (jul-dec 2025).
+        df_huidig:     Gefilterd DataFrame voor de "huidige" periode (YTD lopend jaar).
+        venster_modus: "volledig" → kolomlabels Baseline/Huidig.
+                       "tendens"  → kolomlabels Vorige periode/Huidige periode.
+        lang:          "nl" of "fr".
+    """
+    t = load_translations(lang)
+    sk = t.get("samenvatting", {}).get("kerncijfers", {})
+    gt = t.get("gemeenschappelijk", {}).get("trend", {})
+
+    # --- Kolomlabels (venster-aware, volledig i18n) ---
+    col_kpi = sk.get("kolom_kpi", "KPI")
+    col_delta = sk.get("kolom_delta", "Δ")
+    col_trend = sk.get("kolom_trend", "Trend")
+    if venster_modus == "tendens":
+        col_vorig = sk.get("kolom_vorig_tendens", "Vorige periode")
+        col_huidig = sk.get("kolom_huidig_tendens", "Huidige periode")
+    else:  # volledig (fallback)
+        col_vorig = sk.get("kolom_vorig_volledig", "Baseline")
+        col_huidig = sk.get("kolom_huidig_volledig", "Huidig")
+
+    # --- Trend-symbolen (i18n — toekomstige localisatie mogelijk) ---
+    pijl_op = gt.get("pijl_omhoog", "▲")
+    pijl_neer = gt.get("pijl_omlaag", "▼")
+    pijl_st = gt.get("pijl_stabiel", "►")
+    lbl_pos = gt.get("label_positieve_evolutie", "Positieve evolutie")
+    lbl_neg = gt.get("label_negatieve_evolutie", "Negatieve evolutie")
+    lbl_stabiel = gt.get("label_stabiel", "Stabiel")
+
+    # --- Drempels voor "stabiel" (trend-pijl ►) ---
+    _t_score = 0.05  # absolute Δ voor score-rijen
+    _t_pct = 2.0  # ppt voor percentagerijen
+    _t_n = 2  # absolute Δ voor telrijen
+
+    # --- Belgisch decimaalformaat (komma) — zowel NL als FR ---
+    def _fmt_score(v: float) -> str:
+        return f"{v:.2f}★".replace(".", ",")
+
+    def _fmt_pct(v: float) -> str:
+        return f"{v:.1f}%".replace(".", ",")
+
+    def _delta_score(h: float, v: float) -> str:
+        d = h - v
+        return f"{'+' if d >= 0 else ''}{d:.2f}★".replace(".", ",")
+
+    def _delta_ppt(h: float, v: float) -> str:
+        d = h - v
+        return f"{'+' if d >= 0 else ''}{d:.1f} ppt".replace(".", ",")
+
+    def _delta_n(h: int, v: int) -> str:
+        d = h - v
+        return f"{'+' if d >= 0 else ''}{d}"
+
+    # --- Trend-pijl: (symbool, kleur, tooltip) ---
+    def _trend(
+        delta: float,
+        drempel: float,
+        hoger_is_beter: bool,
+        neutraal: bool = False,
+    ) -> tuple[str, str, str]:
+        """► grijs bij stabiel of neutraal; ▲/▼ groen/rood op basis van richting."""
+        if neutraal or abs(delta) < drempel:
+            return pijl_st, ZORGI_GREY_BLUE, lbl_stabiel
+        verbetering = (delta > 0) == hoger_is_beter
+        return (
+            (pijl_op, ZORGI_FUNC_POSITIVE, lbl_pos)
+            if verbetering
+            else (pijl_neer, ZORGI_RED, lbl_neg)
+        )
+
+    # --- Δ-celkleur (groen/rood/grijs) ---
+    def _dclr(delta: float, hoger_is_beter: bool) -> str:
+        if abs(delta) < 1e-9:
+            return ZORGI_GREY_BLUE
+        return ZORGI_FUNC_POSITIVE if (delta > 0) == hoger_is_beter else ZORGI_RED
+
+    # --- Gescoorde rijen (score niet NaN) — conform bestaande analyser-logica ---
+    sc_v = df_vorig[df_vorig["score"].notna()] if not df_vorig.empty else df_vorig
+    sc_h = df_huidig[df_huidig["score"].notna()] if not df_huidig.empty else df_huidig
+
+    # --- Rijbouw-helper ---
+    def _row(
+        label: str,
+        val_v: str,
+        val_h: str,
+        delta_str: str,
+        delta_val: float,
+        drempel: float,
+        hoger_is_beter: bool,
+        neutraal: bool = False,
+    ) -> dict:
+        clr_d = ZORGI_GREY_BLUE if neutraal else _dclr(delta_val, hoger_is_beter)
+        arr, clr_a, tip = _trend(delta_val, drempel, hoger_is_beter, neutraal)
+        return {
+            "label": label,
+            "vorig": val_v,
+            "huidig": val_h,
+            "delta": delta_str,
+            "delta_color": clr_d,
+            "arrow": arr,
+            "arrow_color": clr_a,
+            "tooltip": tip,
+        }
+
+    rows: list[dict] = []
+
+    # --- Periode-normalisatie voor telrijen (R1 en R7) ---
+    # R1 (Responses): jaargemiddelde x n_maanden_huidig — consistent met T6-tegel.
+    #   T6: kpi_responses_baseline_monthly_avg = baseline_total / 12 → 240/12 = 20/mnd
+    #   Tegel 3 baseline = round(20/mnd x 3) = 60  (niet 78 = werkelijk jan-mrt 2025)
+    # R7 (Hospitals): dezelfde kalendermaanden van vorig jaar — semantisch correcte vergelijking.
+    # R2-R6 (scores/percentages): volledig df_vorig — onafhankelijk van periodelengte.
+    _has_month = "_month" in df_huidig.columns and "_month" in df_vorig.columns
+    if _has_month and not df_huidig.empty:
+        _huidig_months: set[int] = set(int(m) for m in df_huidig["_month"].dropna().unique())
+        _n_months_h = len(_huidig_months)
+        _n_months_v = (
+            len(set(int(m) for m in df_vorig["_month"].dropna().unique()))
+            if not df_vorig.empty
+            else (6 if venster_modus == "tendens" else 12)
+        )
+        # R7: zelfde kalendermaanden van baseline-jaar
+        if venster_modus == "volledig":
+            df_vorig_zh = df_vorig[df_vorig["_month"].isin(_huidig_months)]
+        else:
+            _s2_first_n = set([7, 8, 9, 10, 11, 12][:_n_months_h])
+            df_vorig_zh = df_vorig[df_vorig["_month"].isin(_s2_first_n)]
+    else:
+        _n_months_h = 1
+        _n_months_v = 6 if venster_modus == "tendens" else 12
+        df_vorig_zh = df_vorig
+
+    # R1: Totaal responses — baseline = jaargemiddelde x n_maanden_huidig (match T6: 20/mnd x 3 = 60)
+    _n_v_full = len(df_vorig)
+    n_v_resp = round(_n_v_full / _n_months_v * _n_months_h) if _n_months_v > 0 else _n_v_full
+    n_h = len(df_huidig)
+    rows.append(
+        _row(
+            sk.get("rij_totaal_responses", "Totaal responses"),
+            str(n_v_resp),
+            str(n_h),
+            _delta_n(n_h, n_v_resp),
+            float(n_h - n_v_resp),
+            _t_n,
+            True,
+        )
+    )
+
+    # R2: Gem. score (hoger=beter)
+    avg_v = float(sc_v["score"].mean()) if not sc_v.empty else 0.0
+    avg_h = float(sc_h["score"].mean()) if not sc_h.empty else 0.0
+    rows.append(
+        _row(
+            sk.get("rij_gem_score", "Gem. score"),
+            _fmt_score(avg_v),
+            _fmt_score(avg_h),
+            _delta_score(avg_h, avg_v),
+            avg_h - avg_v,
+            _t_score,
+            True,
+        )
+    )
+
+    # R3: Mediaan score (hoger=beter)
+    med_v = float(sc_v["score"].median()) if not sc_v.empty else 0.0
+    med_h = float(sc_h["score"].median()) if not sc_h.empty else 0.0
+    rows.append(
+        _row(
+            sk.get("rij_mediaan_score", "Mediaan score"),
+            _fmt_score(med_v),
+            _fmt_score(med_h),
+            _delta_score(med_h, med_v),
+            med_h - med_v,
+            _t_score,
+            True,
+        )
+    )
+
+    # R4: % Positief (≥4★) — drempel staat in het i18n-label; waardecellen tonen enkel het %
+    pos_v = float((sc_v["score"] >= 4).mean() * 100) if not sc_v.empty else 0.0
+    pos_h = float((sc_h["score"] >= 4).mean() * 100) if not sc_h.empty else 0.0
+    rows.append(
+        _row(
+            sk.get("rij_positief", "% Positief (≥ 4,0★)"),
+            _fmt_pct(pos_v),
+            _fmt_pct(pos_h),
+            _delta_ppt(pos_h, pos_v),
+            pos_h - pos_v,
+            _t_pct,
+            True,
+        )
+    )
+
+    # R5: % Neutraal (3★) — altijd ► grijs; waardecellen tonen enkel het %
+    neu_v = float((sc_v["score"] == 3).mean() * 100) if not sc_v.empty else 0.0
+    neu_h = float((sc_h["score"] == 3).mean() * 100) if not sc_h.empty else 0.0
+    rows.append(
+        _row(
+            sk.get("rij_neutraal", "% Neutraal (3,0\u2605 - 4,0\u2605)"),
+            _fmt_pct(neu_v),
+            _fmt_pct(neu_h),
+            _delta_ppt(neu_h, neu_v),
+            neu_h - neu_v,
+            _t_pct,
+            True,
+            neutraal=True,
+        )
+    )
+
+    # R6: % Negatief (≤2★) — lager=beter, geïnverteerd; waardecellen tonen enkel het %
+    neg_v = float((sc_v["score"] <= 2).mean() * 100) if not sc_v.empty else 0.0
+    neg_h = float((sc_h["score"] <= 2).mean() * 100) if not sc_h.empty else 0.0
+    rows.append(
+        _row(
+            sk.get("rij_negatief", "% Negatief (< 3,0★)"),
+            _fmt_pct(neg_v),
+            _fmt_pct(neg_h),
+            _delta_ppt(neg_h, neg_v),
+            neg_h - neg_v,
+            _t_pct,
+            False,
+        )
+    )
+
+    # R7: Actieve ziekenhuizen — zelfde kalendermaanden van vorig jaar (semantisch correcte vergelijking)
+    zh_v = int(df_vorig_zh["hospital"].dropna().nunique()) if not df_vorig_zh.empty else 0
+    zh_h = int(df_huidig["hospital"].dropna().nunique()) if not df_huidig.empty else 0
+    rows.append(
+        _row(
+            sk.get("rij_actieve_ziekenhuizen", "Actieve ziekenhuizen"),
+            str(zh_v),
+            str(zh_h),
+            _delta_n(zh_h, zh_v),
+            float(zh_h - zh_v),
+            _t_n,
+            True,
+        )
+    )
+
+    # --- Dynamische titel: jaren afleiden uit de DataFrames ---
+    _bl_yr = (
+        int(df_vorig["_year"].dropna().iloc[0])
+        if "_year" in df_vorig.columns and not df_vorig.empty
+        else ""
+    )
+    _cu_yr = (
+        int(df_huidig["_year"].dropna().iloc[0])
+        if "_year" in df_huidig.columns and not df_huidig.empty
+        else ""
+    )
+    _titel_base = sk.get("titel", "Kerncijfers vergelijking")
+    if venster_modus == "tendens":
+        title = f"{_titel_base}\u00a0\u2014 S2\u00a0{_bl_yr}\u00a0vs\u00a0{_cu_yr}"
+    else:
+        title = f"{_titel_base}\u00a0\u2014 {_bl_yr}\u00a0vs\u00a0{_cu_yr}"
+    st.markdown(f"#### {title}")
+
+    _th_base = (
+        f"background:{ZORGI_DARK_BLUE};color:#ffffff;"
+        f"font-family:Poppins,Verdana,sans-serif;font-weight:800;"
+        f"padding:6px 12px;text-align:left;font-size:0.82rem;white-space:nowrap;"
+        f"overflow:hidden;text-overflow:ellipsis"
+    )
+    _td_base = (
+        "font-family:Poppins,Verdana,sans-serif;padding:5px 12px;"
+        "font-size:0.82rem;border-bottom:1px solid #e0e8f0;overflow:hidden;text-overflow:ellipsis"
+    )
+    _row_colors = ("#ffffff", ZORGI_ULTRA_LIGHT)
+
+    # Vaste kolombreedtes — identiek in beide venstermodi (Volledig én Tendens)
+    _w = {"kpi": "38%", "val": "20%", "delta": "13%", "trend": "9%"}
+
+    parts = [
+        "<table style='width:100%;border-collapse:collapse;margin-top:0.4rem;table-layout:fixed'>",
+        "<thead><tr>",
+        f"<th style='{_th_base};width:{_w['kpi']}'>{html.escape(col_kpi)}</th>",
+        f"<th style='{_th_base};width:{_w['val']}'>{html.escape(col_vorig)}</th>",
+        f"<th style='{_th_base};width:{_w['val']}'>{html.escape(col_huidig)}</th>",
+        f"<th style='{_th_base};width:{_w['delta']}'>{html.escape(col_delta)}</th>",
+        f"<th style='{_th_base};width:{_w['trend']}'>{html.escape(col_trend)}</th>",
+        "</tr></thead><tbody>",
+    ]
+
+    for i, r in enumerate(rows):
+        bg = _row_colors[i % 2]
+        _td = f"{_td_base};background:{bg}"
+        parts += [
+            "<tr>",
+            f"<td style='{_td}'>{html.escape(r['label'])}</td>",
+            f"<td style='{_td}'>{html.escape(r['vorig'])}</td>",
+            f"<td style='{_td}'>{html.escape(r['huidig'])}</td>",
+            (
+                f"<td style='{_td};color:{r['delta_color']};font-weight:600'>"
+                f"{html.escape(r['delta'])}</td>"
+            ),
+            (
+                f"<td style='{_td}'>"
+                f"<span style='color:{r['arrow_color']};font-weight:700' "
+                f"title='{html.escape(r['tooltip'])}'>{r['arrow']}</span>"
+                f"</td>"
+            ),
+            "</tr>",
+        ]
+
+    parts.append("</tbody></table>")
+    st.markdown("\n".join(parts), unsafe_allow_html=True)
+
+    # --- Mediaan-toelichting (analoog aan ppt-verklaring boven de tabel) ---
+    _med_note = sk.get("mediaan_toelichting", "")
+    if _med_note:
+        _n_sc_h = len(sc_h)
+        _n_sc_v = len(sc_v)
+        _n_ctx = (
+            f" Berekend op <strong>{_n_sc_h}</strong> gescoorde tickets (huidig) "
+            f"vs <strong>{_n_sc_v}</strong> (vorig)."
+            if lang == "nl"
+            else f" Calcul\u00e9 sur <strong>{_n_sc_h}</strong> tickets \u00e9valu\u00e9s (actuel) "
+            f"vs <strong>{_n_sc_v}</strong> (r\u00e9f\u00e9rence)."
+        )
+        st.markdown(
+            f"<div style='font-size:0.85rem;color:#5f8495;margin-top:0.5rem;"
+            f"line-height:1.55'>{_med_note}{_n_ctx}</div>",
+            unsafe_allow_html=True,
+        )
+
+    # --- Trend-toelichting (drempelwaarden en pijl-semantiek) ---
+    _trend_note = sk.get("trend_toelichting", "")
+    if _trend_note:
+        st.markdown(
+            f"<div style='font-size:0.85rem;color:#5f8495;margin-top:0.3rem;"
+            f"line-height:1.55'>{_trend_note}</div>",
+            unsafe_allow_html=True,
+        )
 
 
 def _tab_summary(data: DashboardData, t: dict, lang: str) -> None:
-    """Tab 1 — Samenvatting: 8 KPI-kaarten, mini-signaalkaart, vergelijkingstabel."""
     d = t["dashboard"]
 
     # Referentie-label: verschilt per modus → maakt deltarij mode-gevoelig
@@ -875,18 +1320,18 @@ def _tab_summary(data: DashboardData, t: dict, lang: str) -> None:
 
     st.divider()
     _render_zh_signal_section(data, d)
-    st.divider()
+    # Slanke scheidingslijn zonder Streamlit-padding (vervangt st.divider() na sectie 2)
+    st.markdown(
+        "<hr style='margin:0.4rem 0 2rem 0;border:none;border-top:1px solid #e0e8f0'>",
+        unsafe_allow_html=True,
+    )
 
-    # --- Kerncijfers vergelijkingstabel ---
-    st.markdown(f"#### {d['comparison_table_title']}")
-    evo_t = t.get("evolution", {}).get("kpi", {})
-    table_data = {
-        d["col_metric"]: [evo_t.get(r.metric, r.metric) for r in data.comparison_rows],
-        d["col_baseline"]: [r.baseline_value for r in data.comparison_rows],
-        d["col_current"]: [r.current_value for r in data.comparison_rows],
-        "Δ": [r.delta_value for r in data.comparison_rows],
-    }
-    st.dataframe(pd.DataFrame(table_data), hide_index=True, width="stretch")
+    # --- Tegel 3: Kerncijfers vergelijking (7 rijen, venster-aware kolomlabels) ---
+    # Aanroeper _tab_summary bereidt df_vorig en df_huidig via _make_kc_dataframes
+    # (spec: slicing verantwoordelijkheid van de aanroepende laag, niet van de renderfunctie).
+    venster_modus = "tendens" if data.mode == "trend" else "volledig"
+    df_t3_vorig, df_t3_huidig = _make_kc_dataframes(data, venster_modus)
+    render_kerncijfers_vergelijking(df_t3_vorig, df_t3_huidig, venster_modus, lang)
 
 
 def _tab_timeline(data: DashboardData, t: dict, lang: str) -> None:
@@ -1101,41 +1546,396 @@ def _tab_hospitals(data: DashboardData, t: dict, lang: str) -> None:
         )
 
 
-def _tab_targets(data: DashboardData, t: dict, lang: str) -> None:
-    """Tab 6 — KPI Targets: grouped bar chart + overzichtstabel + bijgestelde targets-notitie."""
+def render_kpi_targets(  # noqa: C901
+    df_huidig: pd.DataFrame,
+    df_baseline: pd.DataFrame,
+    lang: str,
+) -> None:
+    """
+    KPI-Targets tabel (9 rijen) — HTML-rendering met footnote en info-banner.
+
+    Versie x.y · 12/04/2026 — uitgebreid 7→9 rijen:
+      Incident CSAT (rij 8), Critical Priority CSAT (rij 9),
+      footnote Ziekenhuisretentie (rij 7), info-banner bijgewerkt.
+
+    Venster-aware gedrag is NIET van toepassing: KPI-Targets toont altijd
+    de volledige huidige periode vs baseline, ongeacht sidebar-instelling.
+
+    Berekening rijen 1-7 is identiek aan evolution_analyser._calc_kpi_targets
+    zodat de regressiewaarden (bv. HC-ratio 46,8% → 🔴 Kritiek) bewaard blijven.
+
+    Args:
+        df_huidig:   DataFrame volledig huidig jaar (YTD, niet venster-gefilterd).
+        df_baseline: DataFrame volledig baseline jaar.
+        lang:        "nl" of "fr".
+    """
+    t = load_translations(lang)
     d = t["dashboard"]
     kpi_names_i18n = t.get("evolution", {}).get("target_tracking", {}).get("kpi_names", {})
     status_i18n = t.get("evolution", {}).get("target_tracking", {})
+    kt = t.get("kpi_targets", {})
+
+    # --- Status-labels (i18n) ---
+    status_map: dict[str, str] = {
+        "op_schema": status_i18n.get("op_schema", "✅"),
+        "aandacht": status_i18n.get("aandacht", "⚠️"),
+        "kritiek": status_i18n.get("kritiek", "🔴"),
+    }
+    status_onbekend: str = kt.get("status_onbekend", "❓")
+    status_lage_n: str = kt.get("status_lage_n", "⚠️")
+
+    # --- Actie-teksten per KPI en status (hardcoded NL/FR — geen i18n) ---
+    _actie: dict[str, dict[str, str]] = {
+        "avg_score_min": {
+            "kritiek_nl": "Escaleer naar Service Manager",
+            "kritiek_fr": "Escalader au Service Manager",
+            "aandacht_nl": "Monitor wekelijks",
+            "aandacht_fr": "Suivi hebdomadaire",
+        },
+        "pct_positive_min": {
+            "kritiek_nl": "Analyseer negatieve feedback",
+            "kritiek_fr": "Analyser les retours négatifs",
+            "aandacht_nl": "Verhoog opvolgingsfrequentie",
+            "aandacht_fr": "Augmenter la fréquence de suivi",
+        },
+        "pct_negative_max": {
+            "kritiek_nl": "Analyseer negatieve feedback",
+            "kritiek_fr": "Analyser les retours négatifs",
+            "aandacht_nl": "Verhoog opvolgingsfrequentie",
+            "aandacht_fr": "Augmenter la fréquence de suivi",
+        },
+        "high_critical_max": {
+            "kritiek_nl": "Review open prioritaire tickets",
+            "kritiek_fr": "Réviser les tickets prioritaires ouverts",
+            "aandacht_nl": "Bewaken via weekrapport",
+            "aandacht_fr": "Surveiller via rapport hebdomadaire",
+        },
+    }
+
+    def _actie_text(kpi_key: str, status_key: str) -> str:
+        """Geef actietekst voor de gegeven KPI-sleutel en status. Leeg voor 'op_schema'."""
+        if status_key not in ("kritiek", "aandacht"):
+            return ""
+        return _actie.get(kpi_key, {}).get(f"{status_key}_{lang}", "")
+
+    # --- Status-logica (identiek aan evolution_analyser._calc_kpi_targets) ---
+    def _status_key(current: float, target: float, higher: bool) -> str:
+        if higher:
+            if current >= target:
+                return "op_schema"
+            if current >= target * 0.9:
+                return "aandacht"
+            return "kritiek"
+        else:
+            if current <= target:
+                return "op_schema"
+            if current <= target * 1.1:
+                return "aandacht"
+            return "kritiek"
+
+    # --- Berekenings-helpers (identiek aan evolution_analyser-logica) ---
+    def _avg_score(df: pd.DataFrame) -> float:
+        sc = df[df["score"].notna()]
+        return round(float(sc["score"].mean()), 2) if not sc.empty else 0.0
+
+    def _pct_scored(df: pd.DataFrame, *, lower: bool = False) -> float:
+        sc = df[df["score"].notna()]
+        if sc.empty:
+            return 0.0
+        condition = sc["score"] <= 2 if lower else sc["score"] >= 4
+        return round(float(condition.sum() / len(sc) * 100), 1)
+
+    def _resp_days(df: pd.DataFrame) -> float:
+        if df.empty:
+            return 0.0
+        created = pd.to_datetime(df["created"])
+        sat = pd.to_datetime(df["satisfaction_date"])
+        days = (sat - created).dt.days
+        valid = days.dropna()
+        valid = valid[valid >= 0]
+        return round(float(valid.mean()), 1) if not valid.empty else 0.0
+
+    def _hc_ratio(df: pd.DataFrame) -> float:
+        if df.empty:
+            return 0.0
+        total = len(df)
+        hc = int(df["priority"].isin(HIGH_CRITICAL_PRIORITIES).sum())
+        return round(hc / total * 100, 1) if total > 0 else 0.0
+
+    def _pct_comment(df: pd.DataFrame) -> float:
+        if df.empty:
+            return 0.0
+        has_comment = df["comment"].fillna("").str.strip().str.len() > 0
+        return round(has_comment.sum() / len(df) * 100, 1)
+
+    def _retention(df_h: pd.DataFrame, df_b: pd.DataFrame) -> float:
+        b_hosp = set(df_b["hospital"].dropna().unique()) if not df_b.empty else set()
+        if not b_hosp:
+            return 100.0
+        c_hosp = set(df_h["hospital"].dropna().unique()) if not df_h.empty else set()
+        disappeared = b_hosp - c_hosp
+        return round((len(b_hosp) - len(disappeared)) / len(b_hosp) * 100, 1)
+
+    # --- Format helpers (Belgisch decimaalformaat) ---
+    def _fmt(v: float) -> str:
+        return f"{v:.2f}".replace(".", ",")
+
+    def _fmt_star(v: float) -> str:
+        return f"{v:.2f}★".replace(".", ",")
+
+    # --- Rijstructuur ---
+    rows: list[dict] = []
+
+    def _add_row(
+        label: str,
+        b_val: float,
+        target: float,
+        c_val: float,
+        higher: bool,
+        fmt_fn=_fmt,  # type: ignore[assignment]
+        footnote: bool = False,
+        kpi_key: str = "",
+    ) -> None:
+        sk = _status_key(c_val, target, higher)
+        rows.append(
+            {
+                "label": label,
+                "baseline": fmt_fn(b_val),
+                "target": fmt_fn(target),
+                "realisatie": fmt_fn(c_val),
+                "status": status_map.get(sk, sk),
+                "footnote": footnote,
+                "actie": _actie_text(kpi_key, sk),
+            }
+        )
+
+    # Rij 1 — Gem. CSAT-score (hoger=beter)
+    _add_row(
+        kpi_names_i18n.get("avg_score_min", "Gem. CSAT-score"),
+        _avg_score(df_baseline),
+        AVG_SCORE_MIN,
+        _avg_score(df_huidig),
+        higher=True,
+        kpi_key="avg_score_min",
+    )
+    # Rij 2 — % Positief (hoger=beter)
+    _add_row(
+        kpi_names_i18n.get("pct_positive_min", "% Positief"),
+        _pct_scored(df_baseline),
+        PCT_POSITIVE_MIN,
+        _pct_scored(df_huidig),
+        higher=True,
+        kpi_key="pct_positive_min",
+    )
+    # Rij 3 — % Negatief (lager=beter)
+    _add_row(
+        kpi_names_i18n.get("pct_negative_max", "% Negatief"),
+        _pct_scored(df_baseline, lower=True),
+        PCT_NEGATIVE_MAX,
+        _pct_scored(df_huidig, lower=True),
+        higher=False,
+        kpi_key="pct_negative_max",
+    )
+    # Rij 4 — Gem. responstijd (lager=beter)
+    _add_row(
+        kpi_names_i18n.get("avg_response_days_max", "Gem. responstijd"),
+        _resp_days(df_baseline),
+        AVG_RESPONSE_DAYS_MAX,
+        _resp_days(df_huidig),
+        higher=False,
+    )
+    # Rij 5 — High/Critical-ratio (lager=beter)
+    _add_row(
+        kpi_names_i18n.get("high_critical_max", "High/Critical-ratio"),
+        _hc_ratio(df_baseline),
+        HIGH_CRITICAL_MAX,
+        _hc_ratio(df_huidig),
+        higher=False,
+        kpi_key="high_critical_max",
+    )
+    # Rij 6 — % Met comment (hoger=beter)
+    _add_row(
+        kpi_names_i18n.get("pct_with_comment_min", "% Met comment"),
+        _pct_comment(df_baseline),
+        PCT_WITH_COMMENT_MIN,
+        _pct_comment(df_huidig),
+        higher=True,
+    )
+    # Rij 7 — Ziekenhuisretentie (hoger=beter) — footnote ¹
+    # Baseline is altijd 100,0 (definitie: baseline behoudt 100% van zichzelf)
+    _add_row(
+        kpi_names_i18n.get("hospital_retention_min", "Ziekenhuisretentie"),
+        100.0,
+        HOSPITAL_RETENTION_MIN,
+        _retention(df_huidig, df_baseline),
+        higher=True,
+        footnote=True,
+    )
+
+    # --- Rij 8 — Incident CSAT (hoger=beter) — edge case n=0 / n<5 ---
+    _inc_target = AVG_SCORE_MIN  # >= 4,00★
+    sub_inc_h = df_huidig[df_huidig["issue_type"] == "Incident"]["score"].dropna()
+    sub_inc_b = df_baseline[df_baseline["issue_type"] == "Incident"]["score"].dropna()
+    n_inc = len(sub_inc_h)
+    b_inc = round(float(sub_inc_b.mean()), 2) if not sub_inc_b.empty else 0.0
+
+    if n_inc == 0:
+        real_inc = "n.b."
+        stat_inc = status_onbekend
+    elif n_inc < 5:
+        v_inc = round(float(sub_inc_h.mean()), 2)
+        real_inc = f"{v_inc:.2f}★ (n={n_inc})".replace(".", ",")
+        sk_inc = _status_key(v_inc, _inc_target, higher=True)
+        stat_inc = f"{status_lage_n} {status_map.get(sk_inc, sk_inc)}"
+    else:
+        v_inc = round(float(sub_inc_h.mean()), 2)
+        real_inc = _fmt_star(v_inc)
+        sk_inc = _status_key(v_inc, _inc_target, higher=True)
+        stat_inc = status_map.get(sk_inc, sk_inc)
+
+    rows.append(
+        {
+            "label": kt.get("rij_incident_csat_label", "Incident CSAT"),
+            "baseline": _fmt_star(b_inc),
+            "target": _fmt_star(_inc_target),
+            "realisatie": real_inc,
+            "status": stat_inc,
+            "footnote": False,
+            "actie": "",
+        }
+    )
+
+    # --- Rij 9 — Critical Priority CSAT (hoger=beter) — edge case n=0 / n<5 ---
+    # Gebruikt HIGH_CRITICAL_PRIORITIES uit pillars.py = ["Blocker","Critical","Major"]
+    _cp_target = _CRITICAL_PRIORITY_CSAT_TARGET  # >= 4,50★
+    sub_cp_h = df_huidig[df_huidig["priority"].isin(HIGH_CRITICAL_PRIORITIES)]["score"].dropna()
+    sub_cp_b = df_baseline[df_baseline["priority"].isin(HIGH_CRITICAL_PRIORITIES)]["score"].dropna()
+    n_cp = len(sub_cp_h)
+    b_cp = round(float(sub_cp_b.mean()), 2) if not sub_cp_b.empty else 0.0
+
+    if n_cp == 0:
+        real_cp = "n.b."
+        stat_cp = status_onbekend
+    elif n_cp < 5:
+        v_cp = round(float(sub_cp_h.mean()), 2)
+        real_cp = f"{v_cp:.2f}★ (n={n_cp})".replace(".", ",")
+        sk_cp = _status_key(v_cp, _cp_target, higher=True)
+        stat_cp = f"{status_lage_n} {status_map.get(sk_cp, sk_cp)}"
+    else:
+        v_cp = round(float(sub_cp_h.mean()), 2)
+        real_cp = _fmt_star(v_cp)
+        sk_cp = _status_key(v_cp, _cp_target, higher=True)
+        stat_cp = status_map.get(sk_cp, sk_cp)
+
+    rows.append(
+        {
+            "label": kt.get("rij_critical_priority_csat_label", "Critical Priority CSAT"),
+            "baseline": _fmt_star(b_cp),
+            "target": _fmt_star(_cp_target),
+            "realisatie": real_cp,
+            "status": stat_cp,
+            "footnote": False,
+            "actie": "",
+        }
+    )
+
+    # --- HTML-tabel ---
+    _th_base = (
+        f"background:{ZORGI_DARK_BLUE};color:#ffffff;"
+        f"font-family:Poppins,Verdana,sans-serif;font-weight:800;"
+        f"padding:6px 12px;text-align:left;font-size:0.82rem;white-space:nowrap;"
+        f"overflow:hidden;text-overflow:ellipsis"
+    )
+    _td_base = (
+        "font-family:Poppins,Verdana,sans-serif;padding:5px 12px;"
+        "font-size:0.82rem;border-bottom:1px solid #e0e8f0;overflow:hidden;text-overflow:ellipsis"
+    )
+    _row_colors = ("#ffffff", ZORGI_ULTRA_LIGHT)
+    _w = {
+        "kpi": "28%",
+        "val": "12%",
+        "target": "12%",
+        "real": "14%",
+        "status": "14%",
+        "actie": "20%",
+    }
+
+    col_kpi = d.get("col_kpi", "KPI")
+    col_baseline_h = d.get("col_baseline", "Baseline")
+    col_target_h = d.get("col_target", "Target")
+    col_realization = d.get("col_realization", "Realisatie")
+    col_status_h = d.get("col_status", "Status")
+    col_actie_h = "Action" if lang == "fr" else "Actie"
+
+    parts = [
+        "<table style='width:100%;border-collapse:collapse;margin-top:0.4rem;table-layout:fixed'>",
+        "<thead><tr>",
+        f"<th style='{_th_base};width:{_w['kpi']}'>{html.escape(col_kpi)}</th>",
+        f"<th style='{_th_base};width:{_w['val']}'>{html.escape(col_baseline_h)}</th>",
+        f"<th style='{_th_base};width:{_w['target']}'>{html.escape(col_target_h)}</th>",
+        f"<th style='{_th_base};width:{_w['real']}'>{html.escape(col_realization)}</th>",
+        f"<th style='{_th_base};width:{_w['status']}'>{html.escape(col_status_h)}</th>",
+        f"<th style='{_th_base};width:{_w['actie']}'>{html.escape(col_actie_h)}</th>",
+        "</tr></thead><tbody>",
+    ]
+
+    for i, r in enumerate(rows):
+        bg = _row_colors[i % 2]
+        _td = f"{_td_base};background:{bg}"
+        label_html = html.escape(r["label"])
+        if r["footnote"]:
+            label_html += "<sup style='color:#5f8495;font-size:0.7em;margin-left:2px'>¹</sup>"
+        parts += [
+            "<tr>",
+            f"<td style='{_td}'>{label_html}</td>",
+            f"<td style='{_td}'>{html.escape(r['baseline'])}</td>",
+            f"<td style='{_td}'>{html.escape(r['target'])}</td>",
+            f"<td style='{_td}'>{html.escape(r['realisatie'])}</td>",
+            f"<td style='{_td}'>{html.escape(r['status'])}</td>",
+            f"<td style='{_td}'>{html.escape(r.get('actie', ''))}</td>",
+            "</tr>",
+        ]
+
+    parts.append("</tbody></table>")
+    st.markdown("\n".join(parts), unsafe_allow_html=True)
+
+    # --- Footnote ¹ (Ziekenhuisretentie) ---
+    _fn_text = kt.get("footnote_ziekenhuisretentie", "")
+    if _fn_text:
+        st.markdown(
+            f"<div style='font-size:0.85em;color:#5f8495;margin-top:0.4rem;line-height:1.5'>"
+            f"<sup>¹</sup>&nbsp;{html.escape(_fn_text)}"
+            f"</div>",
+            unsafe_allow_html=True,
+        )
+
+    # --- Info-banner (bijgestelde targets) ---
+    _banner_text = kt.get("banner_bijgestelde_targets", "")
+    if _banner_text:
+        st.markdown(
+            f"<div style='background:#d7e7f3;border-radius:6px;padding:0.7rem 1rem;"
+            f"margin-top:0.8rem;color:{ZORGI_DARK_BLUE};"
+            f"font-family:Poppins,Verdana,sans-serif;font-size:0.85rem;line-height:1.5'>"
+            f"💡&nbsp;{html.escape(_banner_text)}"
+            f"</div>",
+            unsafe_allow_html=True,
+        )
+
+
+def _tab_targets(data: DashboardData, t: dict, lang: str) -> None:
+    """Tab 6 — KPI Targets: grouped bar chart + 9-rijen overzichtstabel + info-banner."""
+    d = t["dashboard"]
 
     st.markdown(f"#### {d['kpi_targets_title']}")
 
     if data.kpi_targets:
         st.plotly_chart(_chart_kpi_targets(data, t, lang), width="stretch")
 
-        # Overzichtstabel
-        status_map = {
-            "op_schema": status_i18n.get("op_schema", "✅"),
-            "aandacht": status_i18n.get("aandacht", "⚠️"),
-            "kritiek": status_i18n.get("kritiek", "🔴"),
-        }
-        ordered = {k.name: k for k in data.kpi_targets}
-        rows = []
-        for key in _KPI_TARGET_ORDER:
-            if key not in ordered:
-                continue
-            kp = ordered[key]
-            rows.append(
-                {
-                    d["col_kpi"]: kpi_names_i18n.get(kp.name, kp.name),
-                    d["col_baseline"]: f"{kp.baseline:.2f}",
-                    d["col_target"]: f"{kp.target:.2f}",
-                    d["col_realization"]: f"{kp.current:.2f}",
-                    d["col_status"]: status_map.get(kp.status, kp.status),
-                }
-            )
-        st.dataframe(pd.DataFrame(rows), hide_index=True, width="stretch")
-
-    st.info(d["adjusted_targets_note"])
+    # KPI-Targets is altijd "volledig" — venster-modus mag deze aanroep NIET beïnvloeden.
+    # Toekomstige refactoring van _make_kc_dataframes mag deze invariant niet breken.
+    # Zie ook: visuele invariant-test in acceptatiecriteria Prompt B-bis.
+    df_kpi_vorig, df_kpi_huidig = _make_kc_dataframes(data, "volledig")
+    render_kpi_targets(df_kpi_huidig, df_kpi_vorig, lang)
 
 
 # ---------------------------------------------------------------------------

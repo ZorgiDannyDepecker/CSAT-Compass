@@ -43,7 +43,7 @@ class CsvLoader(BaseLoader):
         de meest recente snapshot gebruikt wordt, ongeacht de bestandsnaam.
 
         Args:
-            pillar: Filter op product-kolom (bv. 'PHARMA') of None voor alles
+            pillar: Filter op product_domain-kolom (bv. 'PHARMA') of None voor alles
             period: Filter op created-kolom in formaat 'YYYY-MM' of None voor alles
 
         Returns:
@@ -86,7 +86,7 @@ class CsvLoader(BaseLoader):
 
         # Filters toepassen
         if pillar:
-            df = df[df["product"].str.upper() == pillar.strip().upper()]
+            df = df[df["product_domain"].str.upper() == pillar.strip().upper()]
         if period:
             df = df[df["created"].dt.to_period("M").astype(str) == period]
 
