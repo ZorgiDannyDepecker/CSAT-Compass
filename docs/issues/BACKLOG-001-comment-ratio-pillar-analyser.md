@@ -1,9 +1,9 @@
 # BACKLOG-001 — comment_ratio toevoegen aan PillarAnalyser
 
-**Status:** Gesloten — geïmplementeerd 13/04/2026  
-**Prioriteit:** Laag — geen impact op dashboard  
-**Aangemaakt:** 13/04/2026  
-**Context:** Sessie "CSAT fase 5a kerncijfers" — besloten na tokenlimiet  
+**Status:** Gesloten — geïmplementeerd 13/04/2026
+**Prioriteit:** Laag — geen impact op dashboard
+**Aangemaakt:** 13/04/2026
+**Context:** Sessie "CSAT fase 5a kerncijfers" — besloten na tokenlimiet
 
 ## Achtergrond
 
@@ -66,7 +66,7 @@ In `src/csat/core/analysers/pillar_analyser.py`, in **beide** methoden `analyse(
 
 3. In `logger.info` van `analyse()`, aan het einde toevoegen:
 
-   ```
+   ```text
    | comment {comment_ratio}%
    ```
 
