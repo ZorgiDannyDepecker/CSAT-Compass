@@ -339,6 +339,19 @@ def _render_sidebar(
             label_visibility="collapsed",
         )
         if new_lang != lang:
+            # Vertaal actief tablabel naar nieuwe taal vóór rerun (taalwissel-bestendig)
+            _tab_idx = st.session_state.get("_zorgi_tab_idx", 0)
+            _new_d = load_translations(new_lang)["dashboard"]
+            _new_labels = [
+                _new_d["tab_summary"],
+                _new_d["tab_timeline"],
+                _new_d["tab_tickets"],
+                _new_d["tab_response"],
+                _new_d["tab_hospitals"],
+                _new_d["tab_targets"],
+            ]
+            if 0 <= _tab_idx < len(_new_labels):
+                st.session_state["zorgi_tabs"] = _new_labels[_tab_idx]
             st.session_state["lang"] = new_lang
             st.rerun()
         st.divider()
@@ -1493,6 +1506,11 @@ def _tab_hospitals(data: DashboardData, t: dict, lang: str) -> None:
             hide_index=True,
             width="stretch",
         )
+        st.markdown(
+            f"<p style='font-size:0.78rem;color:#5f8495;margin-top:0.2rem'>"
+            f"{d['top5_min_tickets_note']}</p>",
+            unsafe_allow_html=True,
+        )
 
     st.divider()
 
@@ -2050,16 +2068,35 @@ def main() -> None:
         trend_window_label="",
     )
 
-    # 6 tabs
+    # 6 tabs — met key + on_change callback voor betrouwbare tab-persistentie
+    # on_change='ignore' stuurt de tabstatus NIET terug naar Python → we gebruiken een
+    # callback die bij elke tabbladwissel de index in session_state opslaat.
+    # Bij taalwissel vertaalt _render_sidebar() het label naar de nieuwe taal vóór rerun.
+    _tab_labels = [
+        d["tab_summary"],
+        d["tab_timeline"],
+        d["tab_tickets"],
+        d["tab_response"],
+        d["tab_hospitals"],
+        d["tab_targets"],
+    ]
+
+    def _save_active_tab() -> None:
+        """Bewaar actieve tab-index (taalwissel-bestendig) bij elke tabbladwissel."""
+        selected = st.session_state.get("zorgi_tabs", _tab_labels[0])
+        if selected in _tab_labels:
+            st.session_state["_zorgi_tab_idx"] = _tab_labels.index(selected)
+
+    _tab_idx = max(0, min(len(_tab_labels) - 1, st.session_state.get("_zorgi_tab_idx", 0)))
+    _default_tab = st.session_state.get("zorgi_tabs", _tab_labels[_tab_idx])
+    if _default_tab not in _tab_labels:
+        _default_tab = _tab_labels[_tab_idx]
+
     tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(
-        [
-            d["tab_summary"],
-            d["tab_timeline"],
-            d["tab_tickets"],
-            d["tab_response"],
-            d["tab_hospitals"],
-            d["tab_targets"],
-        ]
+        _tab_labels,
+        key="zorgi_tabs",
+        default=_default_tab,
+        on_change=_save_active_tab,
     )
 
     with tab1:

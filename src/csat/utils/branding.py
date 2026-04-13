@@ -1098,6 +1098,84 @@ def inject_tab_scroll_reset() -> None:
     _stc_inner.html(_js, height=1, scrolling=False)
 
 
+def inject_tab_persistence() -> None:
+    """
+    Injecteer tab-persistentie bij Streamlit-rerun (bv. taalwissel, pijlerwijziging).
+
+    Strategie — MutationObserver + localStorage (geen Python-afhankelijkheid):
+    - JS tracker: bij elke tabklik → localStorage['zorgi_tab_idx'] bijwerken
+    - JS restore: MutationObserver bewaakt de tabbalk; zodra de DOM 200ms stabiel is
+      (= Streamlit klaar met renderen), wordt de juiste tab EENMALIG geklikt
+    - Geen race condition: we klikken pas NADAT React klaar is, nooit ertijdens
+    - Absolute fallback: na 3s alsnog proberen (veiligheidsnetz voor trage renders)
+    """
+    import streamlit.components.v1 as _stc_inner
+
+    _js = """<style>html,body{margin:0;padding:0;height:1px;overflow:hidden}</style>
+<script>
+(function() {
+    var w = window.parent, d = w.document;
+    var TAB_SEL = '[data-baseweb="tab-list"] [data-baseweb="tab"]';
+    var STORAGE_KEY = 'zorgi_tab_idx';
+    var _restored = false;
+
+    /* ── Klik de juiste tab ── */
+    function doRestore(idx) {
+        if (_restored) return;
+        var tabs = d.querySelectorAll(TAB_SEL);
+        if (!tabs || !tabs[idx]) return;
+        _restored = true;
+        tabs[idx].click();
+    }
+
+    /* ── Herstel NADAT DOM stabiel is (Streamlit klaar met renderen) ── */
+    function restoreWhenStable() {
+        var idx;
+        try { idx = parseInt(w.localStorage.getItem(STORAGE_KEY) || '0', 10); } catch(e) { return; }
+        if (!idx || idx <= 0) { _restored = true; return; }
+
+        /* Zoek de tabbalk; wacht als die er nog niet is */
+        var tabList = d.querySelector('[data-baseweb="tab-list"]');
+        if (!tabList) { setTimeout(restoreWhenStable, 150); return; }
+
+        /* Bewaar tijdstip laatste DOM-wijziging in de tabbalk */
+        var lastChange = Date.now();
+        var obs = new MutationObserver(function() { lastChange = Date.now(); });
+        obs.observe(tabList, { childList: true, subtree: true, attributes: true });
+
+        /* Poll elke 100ms: als 200ms geen wijziging → Streamlit klaar → klikken */
+        (function poll() {
+            if (_restored) { obs.disconnect(); return; }
+            if (Date.now() - lastChange >= 200) {
+                obs.disconnect();
+                doRestore(idx);
+            } else {
+                setTimeout(poll, 100);
+            }
+        })();
+
+        /* Absolute fallback na 3s (trage renders) */
+        setTimeout(function() { obs.disconnect(); doRestore(idx); }, 3000);
+    }
+
+    /* ── Koppel tracker aan elk tabblad ── */
+    function attachTrackers() {
+        d.querySelectorAll(TAB_SEL).forEach(function(tab, idx) {
+            if (tab.__zorgiPersistTracked) return;
+            tab.__zorgiPersistTracked = true;
+            tab.addEventListener('click', function() {
+                try { w.localStorage.setItem(STORAGE_KEY, idx.toString()); } catch(e) {}
+            });
+        });
+    }
+
+    /* ── Start: tabbalk zoeken + restore triggeren + trackers koppelen ── */
+    setTimeout(function() { restoreWhenStable(); attachTrackers(); }, 100);
+})();
+</script>"""
+    _stc_inner.html(_js, height=1, scrolling=False)
+
+
 def inject_sidebar_toggle() -> None:
     """
     No-op — streamlit_js_eval en components.html() bevriezen beide de browser

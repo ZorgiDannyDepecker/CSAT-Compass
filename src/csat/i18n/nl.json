@@ -280,6 +280,7 @@
     "response_current_legend": "Cumulatief",
     "hospital_chart_title": "Ziekenhuisprestaties — top & bottom",
     "top5_title": "Top 5 best presterende ziekenhuizen",
+    "top5_min_tickets_note": "¹ Alleen ziekenhuizen met minimaal 5 tickets in de huidige periode worden opgenomen in de top 5 (statistisch relevant).",
     "bottom5_title": "Bottom 5 — actiegericht",
     "col_hospital": "Ziekenhuis",
     "col_score": "Score",

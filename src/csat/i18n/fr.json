@@ -280,6 +280,7 @@
     "response_current_legend": "Cumulatif",
     "hospital_chart_title": "Performances hôpitaux — top & bottom",
     "top5_title": "Top 5 meilleurs hôpitaux",
+    "top5_min_tickets_note": "¹ Seuls les hôpitaux ayant au moins 5 tickets dans la période en cours sont inclus dans le top 5 (représentativité statistique).",
     "bottom5_title": "Bottom 5 — orienté action",
     "col_hospital": "Hôpital",
     "col_score": "Score",

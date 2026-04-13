@@ -115,6 +115,7 @@ class PillarAnalyser(BaseAnalyser):
         total, scored, reactiegraad = self._calc_reactiegraad(current_df)
         avg_score = self._calc_avg_score(current_df)
         hc_count, hc_ratio = self._calc_high_critical(current_df)
+        comment_ratio = self._calc_comment_ratio(current_df)
         per_hospital = self._group_by_hospital(current_df)
 
         mom_score = self._calc_mom_trend(current_df, previous_df, metric="avg_score")
@@ -123,7 +124,7 @@ class PillarAnalyser(BaseAnalyser):
         logger.info(
             f"[PillarAnalyser:{self._pillar_key}] {period} — "
             f"{total:,} tickets | reactiegraad {reactiegraad}% (MoM {mom_reactiegraad:+.1f}%) | "
-            f"gem. score {avg_score} (MoM {mom_score:+.2f}) | H/C {hc_ratio}%"
+            f"gem. score {avg_score} (MoM {mom_score:+.2f}) | H/C {hc_ratio}% | comment {comment_ratio}%"
         )
 
         result = KpiResult(
@@ -135,6 +136,7 @@ class PillarAnalyser(BaseAnalyser):
             avg_score=avg_score,
             high_critical_count=hc_count,
             high_critical_ratio=hc_ratio,
+            comment_ratio=comment_ratio,
             hospitals=sorted(per_hospital.keys()),
             per_hospital=per_hospital,
         )
@@ -162,6 +164,7 @@ class PillarAnalyser(BaseAnalyser):
         total, scored, reactiegraad = self._calc_reactiegraad(ytd_df)
         avg_score = self._calc_avg_score(ytd_df)
         hc_count, hc_ratio = self._calc_high_critical(ytd_df)
+        comment_ratio = self._calc_comment_ratio(ytd_df)
         per_hospital = self._group_by_hospital(ytd_df)
 
         period_label = f"{year}-YTD-{up_to_month:02d}"
@@ -180,6 +183,7 @@ class PillarAnalyser(BaseAnalyser):
             avg_score=avg_score,
             high_critical_count=hc_count,
             high_critical_ratio=hc_ratio,
+            comment_ratio=comment_ratio,
             hospitals=sorted(per_hospital.keys()),
             per_hospital=per_hospital,
         )

@@ -24,6 +24,7 @@ class KpiResult:
     avg_score: float = 0.0  # gemiddelde CSAT-score (alleen gescoorde tickets)
     high_critical_count: int = 0  # absoluut aantal High/Critical-tickets
     high_critical_ratio: float = 0.0  # % High/Critical t.o.v. totaal
+    comment_ratio: float = 0.0  # % tickets met een niet-lege comment
     hospitals: list[str] = field(default_factory=list)
     per_hospital: dict = field(default_factory=dict)
 
@@ -38,6 +39,7 @@ class KpiResult:
             "avg_score": self.avg_score,
             "high_critical_count": self.high_critical_count,
             "high_critical_ratio": self.high_critical_ratio,
+            "comment_ratio": self.comment_ratio,
             "hospitals": len(self.hospitals),
         }
 
@@ -120,6 +122,18 @@ class BaseAnalyser(ABC):
         hc_count = int(df["priority"].isin(HIGH_CRITICAL_PRIORITIES).sum())
         hc_ratio = round((hc_count / total * 100), 1) if total > 0 else 0.0
         return hc_count, hc_ratio
+
+    def _calc_comment_ratio(self, df: pd.DataFrame) -> float:
+        """Bereken het percentage tickets met een niet-lege comment."""
+        total = len(df)
+        if total == 0:
+            return 0.0
+        with_comment = (
+            int((df["comment"].notna() & (df["comment"].str.strip() != "")).sum())
+            if "comment" in df.columns
+            else 0
+        )
+        return round(with_comment / total * 100, 1)
 
     def _calc_mom_trend(
         self,
