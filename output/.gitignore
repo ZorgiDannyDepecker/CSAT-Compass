@@ -1,0 +1,7 @@
+# Gegenereerde binaire bestanden — regenereerbaar via scripts/run_monthly.py
+# Markdown-rapporten (.md) worden WEL bijgehouden (tekstuele deliverables)
+*.pdf
+*.png
+*.jpg
+*.jpeg
+

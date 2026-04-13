@@ -130,7 +130,7 @@ The `/docs/` folder follows a 3-layer structure:
 - `scripts/` - CLI-entrypoints en runners
 - `src/` - Python broncode (analyse, rapportage, visualisatie)
 - `tools/` - Dev-tooling (lint.ps1)
-- `output/` - Gegenereerde rapporten en visualisaties (uitgesloten van Git)
+- `output/` - Gegenereerde rapporten (.md bijgehouden in Git; .pdf/.png uitgesloten via output/.gitignore)
 - `tests/` - Unit tests en testdata
 - `WIP/` - Work In Progress
 
