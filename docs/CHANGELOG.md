@@ -5,6 +5,440 @@ Formaat gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.0.0/).
 
 ---
 
+## [0.5.8] — 15/04/2026
+
+### Opgelost
+
+- **`src/csat/utils/branding.py:820`** (RUF001): `×` (MULTIPLICATION SIGN) vervangen door `x` in CSS-commentaar
+- **`src/dashboard/app.py:764–767`** (N806): lokale constanten `_BL_W`, `_TG_W`, `_RE_W`, `_TOTAL` hernoemd naar lowercase `_bl_w`, `_tg_w`, `_re_w`, `_total`; alle referenties bijgewerkt
+- **`src/dashboard/app.py:1926`** (RUF003): en-dash `–` vervangen door koppelteken `-` in commentaar
+- **`src/dashboard/app.py:1977–1978`** (F841): ongebruikte variabelen `col_last_date` en `col_first_date` verwijderd
+- **`src/dashboard/app.py` — `_d_sort`/`_g_sort`** (MyPy attr-defined): type hint `hc: object` → `hc: HospitalComparison`; onnodige `# type: ignore[union-attr]` comments verwijderd
+- **`src/dashboard/app.py` — df_d comprehension`** (MyPy operator):`(hc.current_score or 0.0)` gebruikt voor `float | None` arithmetiek
+- **`src/csat/core/exporters/dashboard_exporter.py:828`** (MyPy operator): `hc.current_score is not None and ...` None-guard toegevoegd bij `disengagement_risk`
+
+### Gewijzigd
+
+- **`src/dashboard/app.py` — `_tab_hospitals`** (C901): secties E (verdwenen) en F (nieuwe ziekenhuizen) geëxtraheerd naar nieuwe helper `_render_migration_tables()`; McCabe-complexiteit verlaagd van 11 naar 9
+
+GHC (automatische lint-fixes na `/git 2` + manuele fix-sessie)
+
+---
+
+## [0.5.7] — 15/04/2026
+
+### Gewijzigd
+
+- **Tabel E (Verdwenen)**: `col_tickets_cu` (2026) verwijderd — 3 kolommen: Ziekenhuis | Tickets ({bl}) | Datum
+- **Tabel F (Nieuw)**: `col_tickets_bl` (S2 2025) verwijderd — 3 kolommen: Ziekenhuis | Tickets ({cu}) | Datum
+- **Tabel E + F**: `col_widths=["55%", "20%", "25%"]` — identieke kolombreedtes voor beide tabellen
+- **`_render_sortable_table()`**: `col_widths: list[str] | None = None` parameter toegevoegd; sort-pijl vergroot (`font-size 0.7→0.95rem`, `opacity 0.6→0.85`); gesorteerde kolom krijgt lichtere achtergrond (`#003a70→#1a5faf`)
+
+CD (specificatie) + GHC (implementatie)
+
+---
+
+## [0.5.6] — 15/04/2026
+
+### Toegevoegd
+
+- **`_windowed_hospital_comparison()`** (`src/dashboard/app.py`): nieuwe helper die per-ziekenhuis scores berekent op basis van het venster (`'volledig'` = vol jaar / `'tendens'` = S2 jul-dec). Hergebruikt `_make_kc_dataframes()` voor consistente pilaar- en datumfiltering. Geeft `list[HospitalComparison]` terug.
+- **`HospitalComparison`** toegevoegd aan import uit `evolution_result`
+
+### Gewijzigd
+
+- **Tabel D (Score-evolutie) + Tabel G (Volledig overzicht)** (`_tab_hospitals`): nu venster-aware:
+  - Volledig venster → baseline = vol 2025, kolomlabels `Score 2025` / `Tickets 2025`
+  - Tendensvenster → baseline = S2 2025, kolomlabels `Score S2 2025` / `Tickets S2 2025`
+- **Tabel E (Verdwenen) + Tabel F (Nieuw)**: kolommen analoog aan elkaar — beide 4 kolommen: Ziekenhuis | Tickets ({bl}) | Tickets ({cu}) | Datum. Verdwenen toont 0 voor {cu}, Nieuw toont 0 voor {bl}
+- **`_chart_kpi_targets_h()`**: `modebar` aangepast van `{"orientation": "h"}` naar `modebar_remove=["pan2d", "autoScale2d"]` — analoog aan `_chart_hospitals()`
+
+CD (specificatie) + GHC (implementatie)
+
+---
+
+## [0.5.5] — 15/04/2026
+
+### Verwijderd
+
+- **Tab 7 — 🧪 KPI Preview** (`src/dashboard/app.py`): tijdelijk preview-tabblad verwijderd — `_PREVIEW_LABEL`, `tab7` in `st.tabs()` en het volledige `with tab7:` blok weggehaald; `_chart_kpi_targets_h()` blijft behouden (actief in tab 6)
+
+CD (specificatie) + GHC (implementatie)
+
+---
+
+## [0.5.4] — 15/04/2026
+
+### Gewijzigd
+
+- **`_tab_targets()`** (`src/dashboard/app.py`): `_chart_kpi_targets()` (verticale bar) vervangen door `_chart_kpi_targets_h()` (horizontale 3-balkjes) — lijst `render_kpi_targets()` ongewijzigd
+
+CD (specificatie) + GHC (implementatie)
+
+---
+
+## [0.5.3] — 15/04/2026
+
+### Gewijzigd
+
+- **`_chart_kpi_targets_h()`** (`src/dashboard/app.py`) — drie visuele bijsturingen:
+  - **Balkbreedte**: `0.24/0.14/0.24` → `0.28/0.16/0.28` (dikkere balken); hoogte `500→560px` om tussenruimte (~20px per KPI-groep) te bewaren
+  - **Modebar ruimte**: `margin.t` `30→50px` — meer ademruimte boven de grafiek
+  - **Legenda**: boven gecentreerd (`y=1.02, x=0.5`) — modebar rechts en legenda gecentreerd overlappen niet; één entry `"Realisatie (groen/rood)"` met Plotly `square-open` marker (kleurloos omlijnd blokje); `margin.b` terug naar `10px`
+- **`nl.json` / `fr.json`**: `legend_realization_combined` toegevoegd (NL: `"Realisatie (groen/rood)"` · FR: `"Réalisation (vert/rouge)"`)
+
+CD (specificatie) + GHC (implementatie)
+
+---
+
+## [0.5.2] — 15/04/2026
+
+### Gewijzigd
+
+- **`_chart_kpi_targets_h()`** (`src/dashboard/app.py`) — drie visuele verbeteringen:
+  - **Hoogte** 820px → 500px: de 7 KPI-elementen staan dichter bij elkaar
+  - **Legenda onderaan**: `y=1.02` (boven) → `y=-0.12` (onder, gecentreerd) — modebar boven heeft nu vrij spel, geen overlapping meer
+  - **Legenda Realisatie**: één emoji-dummy vervangen door twee aparte Scatter-dummies — groen `✅ Gehaald` / rood `❌ Niet gehaald` — kleuren consistent met balkkleur
+  - `margin` bijgesteld: `t=30` (modebar), `b=70` (ruimte voor legenda onderaan)
+- **`src/csat/i18n/nl.json`** + **`fr.json`**: `legend_target_ok` en `legend_target_nok` toegevoegd (NL: Gehaald/Niet gehaald · FR: Atteint/Non atteint)
+
+CD (specificatie) + GHC (implementatie)
+
+---
+
+## [0.5.1] — 15/04/2026
+
+### Opgelost
+
+- **`_chart_grouped_bar()`** en **`_chart_kpi_targets()`** (`src/dashboard/app.py`):
+  - Contaminatie verwijderd: Scatter-traces met `_fmt`/`target_vals`/`d["col_target"]` waren ten onrechte in beide functies terechtgekomen door een niet-unieke `replace_string_in_file`-match
+  - `_chart_grouped_bar()`: hersteld naar 2 Bar-traces (baseline + huidig) + hline 4,0★
+  - `_chart_kpi_targets()`: hersteld als verticale grouped bar met 3 Bar-traces (baseline / target outline / realisatie); `yaxis autorange=reversed` en `_fmt`-referentie verwijderd
+
+CD (specificatie) + GHC (implementatie)
+
+---
+
+## [0.5.0] — 15/04/2026
+
+### Gewijzigd
+
+- **`_chart_kpi_targets_h()`** (`src/dashboard/app.py`) — target-balk omgezet van Scatter(line-ns) naar `go.Bar`:
+  - Drie echte balken per KPI: Baseline (0.24) | Target (0.14, amber, iets smaller) | Realisatie (0.24)
+  - `barmode="overlay"` met expliciete `width` + `offset` per trace → balken zijn naadloos aansluitend, geen overlap, geen gap
+  - Target-balk toont waarde rechts via `textposition="outside"` — zelfde patroon als de andere twee
+  - `bargroupgap` en `bargap` verwijderd (niet relevant bij overlay + handmatige offsets)
+  - Legenda-dummy-scatter voor Realisatie (🟩🟥) behouden
+
+CD (specificatie) + GHC (implementatie)
+
+---
+
+## [0.4.9] — 15/04/2026
+
+### Gewijzigd
+
+- **`_chart_kpi_targets_h()`** (`src/dashboard/app.py`) — drie visuele verbeteringen:
+  - **Legenda**: onzichtbare scatter-legenda vervangen door zichtbaar groen vierkantje voor Realisatie — `itemsizing="constant"` voor consistente icoontjesgrootte (`itemwidth` weggelaten: Plotly minimum is 30, gelijk aan default)
+  - **Modebar in data-vlak**: figuur-titel verwijderd (`title=""`), top-marge teruggebracht naar 5px (`margin={"t": 5, "r": 5}`) — modebar overlapt nu het blauwe data-vlak i.p.v. de witte titelmarge; `uniformtext` verwijderd zodat target-waarden zichtbaar zijn
+  - **Balkjes aansluiten**: `bargroupgap=0.02` → `bargroupgap=0` (drie balken sluiten aan); target-balk `width=0.07` → `width=0.18` (duidelijk zichtbaar maar iets smaller dan auto ~0.24)
+- **tab7 preview-blok** (`src/dashboard/app.py`): subtitel "Baseline / Target / Realisatie" als ZORGI-gestijlde `<p>` boven de grafiek — vervangt de verwijderde figuur-titel
+
+---
+
+## [0.4.8] — 15/04/2026
+
+### Gewijzigd
+
+- **`_chart_kpi_targets_h()`** (`src/dashboard/app.py`):
+  - Modebar horizontaal gezet via `modebar={"orientation": "h"}` — knoppen in één rij bovenaan grafiek
+  - Legenda-entry Realisatie: `🟩🟥 Realisatie` (geen ruimte tussen groen en rood) via onzichtbare scatter-trace als legendadrager
+  - Target-balk (`width=0.07` → `width=0.10`): zichtbaarder maar nog duidelijk dunner dan baseline/realisatie (~43% van auto-breedte)
+
+---
+
+## [0.4.7] — 14/04/2026
+
+### Gewijzigd
+
+- **Secties A/B/C in `_tab_hospitals()`** (`src/dashboard/app.py`):
+  - `st.dataframe()` vervangen door `_render_sortable_table()` voor alle drie secties
+  - Kolomkoppen krijgen nu ZORGI donkerblauw (`#003a70`) achtergrond met witte tekst — uniform met D/E/F/G
+  - Sortering op kolomkop en CSV-export beschikbaar in alle secties
+  - Disengagement-alerts (A) en voetnoot (C) blijven buiten het iframe
+  - Expliciete `<h4>` titelstijl niet meer nodig — titel zit in iframe via `_render_sortable_table()`
+
+- **`WIP/tab5-ziekenhuizen-panelen.md`**:
+  - Rendertype A/B/C bijgewerkt van `st.dataframe()` naar `_render_sortable_table()`
+  - Vergelijkingstabel vereenvoudigd: alle 7 secties gebruiken nu hetzelfde rendertype
+
+---
+
+## [0.4.6] — 14/04/2026
+
+### Gewijzigd
+
+- **Secties A/B/C in `_tab_hospitals()`** (`src/dashboard/app.py`):
+  - Tickets-kolom: `h.tickets` (int) → `str(h.tickets)` — Streamlit aligneert strings links, integers rechts
+  - Titels: `st.markdown("#### ...")` → expliciete HTML `<h4 style='color:#003a70;...'>` — ZORGI donkerblauw, Poppins font, identiek aan de sorteerbare tabellen D/E/F/G
+
+---
+
+## [0.4.5] — 14/04/2026
+
+### Gewijzigd
+
+- **`_render_sortable_table()`** (`src/dashboard/app.py`):
+  - Titelkleur: `#0e1117` → `#003a70` — matcht nu exact de ZORGI donkerblauwe `####`-sectiestijl
+  - Tabelcellen: expliciete `text-align:left` als inline stijl op elke `<td>` — voorkomt browser-overschrijving van de CSS-klasseregel
+
+---
+
+## [0.4.4] — 14/04/2026
+
+### Toegevoegd
+
+- **`_render_sortable_table()`** (`src/dashboard/app.py`):
+  - Nieuwe module-level helperfunctie voor sorteerbare HTML-tabellen in een iframe
+  - Parameters: `df`, `title`, `delta_col`, `max_body_height`, `export_filename`, `export_label`
+  - Titel matcht visueel met `st.markdown('#### ...')` — Poppins font via Google Fonts
+  - Alle kolomkoppen: ZORGI donkerblauw (`#003a70`), witte tekst — uniforme styling
+  - Delta-kolom: positieve waarden groen, negatieve rood
+  - Exportknop: download als CSV via data-URI (werkt zonder server-roundtrip)
+  - Klikbare kolomkoppen voor sortering (toggle asc/desc)
+
+### Gewijzigd
+
+- **`_chart_hospitals()`** (`src/dashboard/app.py`):
+  - Herschreven: gebruikt nu `hospital_top10`, `hospital_bottom10`, `hospital_attention`
+  - Kleur per balk op basis van score: groen (≥ 4,0★) / amber (3,0–4,0★) / rood (< 3,0★)
+  - Hoogte dynamisch: `max(300, len(hospitals) * 30 + 80)`
+  - Disengagement-lijn label via i18n (`hospital_disengagement_label`)
+
+- **`_tab_hospitals()`** (`src/dashboard/app.py`):
+  - Volledig herschreven — verwijderd: top5/bottom5 logica (verouderd)
+  - Sectie A: Bottom 10 (< 3,0★) met disengagement-alerts
+  - Sectie B: Aandachtsaccounts (3,0★ – 4,0★)
+  - Sectie C: Top 10 (≥ 4,0★) met voetnoot min. 5 tickets
+  - Sectie D: Score-evolutie sorteerbare tabel (`_render_sortable_table`)
+  - Sectie E: Verdwenen ziekenhuizen sorteerbare tabel (📤 icoon)
+  - Sectie F: Nieuwe ziekenhuizen sorteerbare tabel (🆕 icoon) — alle headers gelijke donkerblauwe kleur (fix PNG 5)
+  - Sectie G: Volledig ziekenhuizenoverzicht sorteerbare tabel met max_body_height=520
+  - Imports uitgebreid: `base64`, `csv`, `io` toegevoegd
+
+- **Tests** (`tests/core/test_dashboard_exporter.py`):
+  - `TestBuildHospitalBottom5` hernoemd naar `TestBuildHospitalBottom10`
+  - Tests aangepast aan nieuwe `_build_hospital_bottom10()` API (geen `NegativeCase` meer)
+  - `NegativeCase` import verwijderd uit testbestand
+
+---
+
+### Gewijzigd
+
+- **Tabel D — Score-evolutie: Tendensvenster-ondersteuning** (`_tab_hospitals`, `src/dashboard/app.py`):
+  - Shifts-berekening refactored naar mode-aware aanpak: Tendensvenster gebruikt `_trend_bl_data`/`_trend_cu_data`; Volledig venster gebruikt `raw.hospital_comparison`
+  - Kolomlabels (baseline-periode) volgen nu `bl_lbl` in Tendensvenster en `_bl_lbl_raw` in Volledig venster
+- **Tabel E — Verdwenen ziekenhuizen** (`_tab_hospitals`):
+  - Icoon gewijzigd: 🔍 → 📤 (beter aanduiding van "vertrokken/niet meer aanwezig")
+  - Kolombreedtes gefixeerd met `table-layout:fixed` + `width:50%/25%/25%` → identiek aan tabel F
+- **Tabel F — Nieuwe ziekenhuizen** (`_tab_hospitals`):
+  - `table-layout:fixed` + gelijke kolombreedtes toegepast → gelijk aan tabel E
+  - `_TH_HUIDIG` styling op Tickets ({cu_lbl}) kolomhoofd toegevoegd
+- **Scheidingslijn tabel D** (`_tab_hospitals`):
+  - `margin-top` verhoogd van `-2.0rem` naar `-3.0rem`
+  - Tijdelijke rode zichtbaarlijn (3px solid red) + label toegevoegd voor positie-kalibratie
+- **`_render_sortable_table`** (`src/dashboard/app.py`):
+  - Google Fonts `<link>` voor Poppins toegevoegd in iframe-HTML → font matcht nu met Streamlit-pagina wanneer netwerk beschikbaar
+  - Titel `margin-bottom`: `8px` → `4px` (dichter bij kolomhoofden)
+
+---
+
+## [0.4.2] — 14/04/2026
+
+### Gewijzigd
+
+- **Tabellen D & G — spacing definitief hersteld** (`_tab_hospitals`, `src/dashboard/app.py`):
+  - Kalibratielijnen (A/B/C/D) verwijderd — overlapping door gestapelde negatieve marges in Streamlit
+  - Titel + knop teruggezet **binnen het iframe** via `_render_sortable_table` parameters (enige betrouwbare methode voor volledige CSS-controle)
+  - `title_html` margin-bottom: `2px` → `8px` — titel iets dichter bij kolom-headers maar met voldoende ademruimte
+  - `st.divider()` vervangen door custom `<hr style='margin-top:-2.0rem'>` → bottom-gap tabel D ↔ scheidingslijn significant verkleind
+  - Aanpasbaar via enkel één waarde: `margin-top` in de custom hr (huidig: `-2.0rem`)
+
+---
+
+## [0.4.1] — 14/04/2026
+
+### Gewijzigd
+
+- **Tabellen D & G — titel/knop terug buiten iframe** (`_tab_hospitals`, `src/dashboard/app.py`):
+  - Titel + exportknop gerenderd via externe `st.markdown(<h4>)` → zelfde Streamlit-native h4-font als 🟢 Top 10 best / 🔴 Top 10 minst
+  - `<h4 style='margin:0'>` erft Streamlit's CSS → font-family, font-size, font-weight en kleur identiek aan alle andere sectietitels
+  - Negatieve-marge-brug `margin-top:-0.75rem` ingevoegd tussen titel en iframe om iframe-top-padding te compenseren → spatie titel↔tabel gelijkgetrokken met overige tabellen
+  - `_render_sortable_table` aangeroepen zonder `title`/`export_b64`/`export_filename` params (enkel tabel in iframe)
+
+---
+
+## [0.4.0] — 14/04/2026
+
+### Gewijzigd
+
+- **Tabellen D & G layout** (`_tab_hospitals`, `src/dashboard/app.py`):
+  - Titel + exportknop verhuisd van externe `st.markdown()` naar **binnen het iframe** (`_render_sortable_table` `title`/`export_b64`/`export_filename` parameters) — gap tussen titel en lijst geëlimineerd
+  - CSS `html, body` uitgebreid met `width:100%;box-sizing:border-box` → lijst strekt nu tot rechterrand conform overige tabellen
+  - Scrollbare wrapper (`max_body_height`) krijgt `width:100%` — sluit rechtermarginafwijking bij tabel G
+  - Titel-font in iframe verhoogd naar `1.25rem` en marge teruggebracht naar `2px` — visueel identiek aan h4-titels van tabellen A/B/C/E/F
+  - Dode `styled_d` en `styled_g` (ongebruikte Styler-objecten) verwijderd
+
+---
+
+## [0.3.9] — 14/04/2026
+
+### Gewijzigd
+
+- **Exportknop D & G** (`_tab_hospitals`, `src/dashboard/app.py`):
+  - `st.download_button` + `st.columns` vervangen door `st.markdown()` flex-div met `<a href='data:text/csv;base64,...'>` — knop nu exact rechts uitgelijnd met tabelrand
+  - Titel als `<h4>` inline in dezelfde flex-div → zelfde hoogte en stijl als andere paginatitels
+  - CSS-injectie voor `stDownloadButton` verwijderd (niet meer nodig)
+  - `import base64` toegevoegd aan module-imports
+
+---
+
+## [0.3.8] — 14/04/2026
+
+### Gewijzigd
+
+- **Exportknop D & G** (`_tab_hospitals`, `src/dashboard/app.py`):
+  - Knop uiterst rechts op titelhoogte via `st.columns([7, 2])` + 0.55rem spacer voor verticale uitlijning
+  - ZORGI-stijl via CSS-injectie: donkerblauwe achtergrond, witte tekst, Poppins 0.76rem bold, `border-radius:6px`, hover = lichtblauw — bewust anders dan tabbladknoppen
+
+---
+
+## [0.3.7] — 14/04/2026
+
+### Toegevoegd
+
+- **CSV-exportknop** boven tabellen D en G (`_tab_hospitals`): `st.download_button()` met `⬇️`-label, genereert `score_evolutie_{jaar}.csv` resp. `ziekenhuizenoverzicht_{jaar}.csv`
+
+### Gewijzigd
+
+- **`_render_sortable_table()`**: nieuw optioneel parameter `max_body_height` — tabel G: scrollbare body (540px) met sticky header; tabel D: ongewijzigd (volledig zichtbaar)
+- **Kolomranden D & G**: `#ccd9e3` → `#e0e8f0` (lichter, zelfde gewicht als HTML-tabellen E/F); header transparantie `0.25` → `0.15`
+
+---
+
+## [0.3.6] — 14/04/2026
+
+### Gewijzigd
+
+- **`_render_sortable_table()`** (`_tab_hospitals`, `src/dashboard/app.py`):
+  - Alle kolomkoppen uniform `ZORGI_DARK_BLUE` (geen `ZORGI_LIGHT_BLUE` varianten voor huidig-kolommen)
+  - Verticale lijnen toegevoegd: `border-left/right` op `th` (wit, 25% opacity) en `td` (`#ccd9e3`)
+
+---
+
+## [0.3.5] — 14/04/2026
+
+### Toegevoegd
+
+- **`_render_sortable_table()` lokale helper** (`_tab_hospitals`, `src/dashboard/app.py`):
+  - JavaScript klik-om-te-sorteren op elke kolomkop (▲/▼ indicator)
+  - ZORGI dark blue headers met witte tekst (Poppins 0.82rem) — via `_stc.html()`
+  - Huidig-kolommen: lichtblauwe header + achtergrond
+  - Gekleurde Δ-tekst (groen/rood/grijs)
+  - Alle cellen links uitgelijnd
+  - Hoogte dynamisch berekend op basis van rijcount (max 620px)
+
+### Gewijzigd
+
+- **Tabellen D & G**: `st.dataframe()` vervangen door `_render_sortable_table()` — combineert ZORGI-headers met klik-sortering
+- **`pyproject.toml`**: versie bijgewerkt van 0.3.0 naar 0.3.5 (sync met CHANGELOG)
+
+---
+
+## [0.3.4] — 14/04/2026
+
+### Verwijderd
+
+- **Tabellen D & G** (`_tab_hospitals`, `src/dashboard/app.py`): filterrijen + reset-knop verwijderd op vraag Danny Depecker
+
+### Gewijzigd
+
+- **Tabellen D & G**: terug naar `st.dataframe()` voor native kolomsortering (klik op kolomkop); HTML-rendering via `.to_html()` vervangen
+- **`_style_zh_df`**: cel-styling (huidig-kolommen lichtblauw, Δ-kleuren) behouden
+
+---
+
+## [0.3.3] — 14/04/2026
+
+### Gewijzigd
+
+- **Tabellen D & G** (`_tab_hospitals`, `src/dashboard/app.py`):
+  - `st.dataframe()` vervangen door `pandas Styler.to_html()` + `st.markdown()` — kolomhoofden nu correct ZORGI dark blue (canvas-renderer negeerde `set_table_styles`)
+  - `_style_zh_df`: tabel-breedte 100%, datacellen links uitgelijnd (`td: text-align left`), huidig-kolomhoofden `ZORGI_LIGHT_BLUE` via per-kolom `set_table_styles`
+  - CSS-injectie voor AG Grid headers verwijderd (dode code)
+  - Reset-knop 🔄 toegevoegd boven beide filterrijen (`st.session_state.pop` + `st.rerun()`)
+  - Δ-selectbox: `label_visibility` niet meer collapsed → "Δ" label zichtbaar
+
+### Opgelost
+
+- Deprecation warning `use_container_width` → `width='stretch'` (vorige release)
+
+---
+
+### Toegevoegd
+
+- **`_style_zh_df()` lokale helper** (`src/dashboard/app.py`, `_tab_hospitals`):
+  - Pandas Styler met ZORGI-branded kolomhoofden (donkerblauw, Poppins 0.82rem)
+  - Lichtblauwe achtergrond (`ZORGI_ULTRA_LIGHT`) voor "huidig"-kolommen
+  - Gekleurde Δ-tekst (groen / rood / grijs) via `styler.map()`
+
+### Gewijzigd
+
+- **Tabel D — Score-evolutie** (`_tab_hospitals`): statische HTML-tabel vervangen door `st.dataframe()` met `_style_zh_df` — native kolomsortering beschikbaar
+- **Tabel G — Volledig ziekenhuizenoverzicht** (`_tab_hospitals`): zelfde refactor als Tabel D
+
+---
+
+## [0.3.1] — 13/04/2026
+
+### Toegevoegd
+
+- **`_tab_hospitals()`** — titel "Ziekenhuisscores" boven de grafiek als `####` Markdown-kop (zelfde stijl als tabel-titels)
+- **Disengagement-caption** gecombineerd met `<hr>` in één `st.markdown()`-blok voor precieze ruimtecontrole
+
+### Gewijzigd
+
+- **`_chart_hospitals()`** (`src/dashboard/app.py`):
+  - `title={"text": ""}` toegevoegd → voorkomt "undefined" Plotly.js rendering via `PLOTLY_LAYOUT["title"]`
+  - `margin={"t": 10, "b": 10}` — minimale boven/ondermarge
+  - Verticale lijn op 4,0★ verwijderd (enkel disengagement-lijn op 2,5★ behouden)
+- **Disengagement-caption** `margin-bottom` op `2rem` ingesteld voor gewenste afstand tot `<hr>`
+
+---
+
+## [0.3.0] — 13/04/2026
+
+### Toegevoegd
+
+- **`_chart_kpi_targets()` — horizontale grouped bar chart** (`src/dashboard/app.py`):
+  - Verticale bar chart vervangen door horizontale layout (`orientation="h"`)
+  - Semantische kleurlogica via `_KPI_HIGHER_IS_BETTER` dict + `_kpi_realization_color()` helper
+  - Targetlijn per KPI-rij via `fig.add_shape` (verticale stippellijn enkel over eigen rij, niet door hele grafiek)
+  - Neutrale legenda via dummy `go.Scatter` entries (geen rood/groen in legenda zichtbaar)
+  - Rijen 8 (Incident CSAT) en 9 (Critical Priority CSAT) toegevoegd via `df_huidig`/`df_baseline` DataFrames
+  - Hoogte dynamisch schalen: `max(560, n_kpis * 70)`
+- **`_PLOTLY_CONFIG`** — module-niveau constante met `modeBarButtonsToRemove`:
+  - Pan, Reset axes, Zoom box, Select (rechthoek) en Lasso verwijderd uit alle grafieken
+  - Toegepast op alle 7 `st.plotly_chart` aanroepen in `app.py`
+- **`_KPI_HIGHER_IS_BETTER`** uitgebreid met `incident_csat` en `critical_priority_csat`
+
+### Gewijzigd
+
+- **`_tab_targets()`** — `_make_kc_dataframes` éénmalig aangeroepen; DFs gedeeld met `_chart_kpi_targets()`
+- **`_chart_kpi_targets()` signatuur** uitgebreid met `df_huidig` + `df_baseline` parameters
+
+---
+
 ## [Fase 5a — Dashboard implementatie + sidebar verfijning] — 06/04/2026
 
 ### Toegevoegd

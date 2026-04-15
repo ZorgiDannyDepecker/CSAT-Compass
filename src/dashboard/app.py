@@ -13,8 +13,11 @@ Architectuur:
 
 from __future__ import annotations
 
+import base64
 import contextlib
+import csv
 import html
+import io
 import sys
 from datetime import UTC, date, datetime
 from pathlib import Path
@@ -51,7 +54,7 @@ from csat.config.settings import (  # noqa: E402
     db_available,
 )
 from csat.core.analysers.evolution_analyser import EvolutionAnalyser  # noqa: E402
-from csat.core.analysers.evolution_result import EvolutionResult  # noqa: E402
+from csat.core.analysers.evolution_result import EvolutionResult, HospitalComparison  # noqa: E402
 from csat.core.exporters.dashboard_exporter import (  # noqa: E402
     DashboardData,
     DashboardExporter,
@@ -62,6 +65,7 @@ from csat.i18n import load_translations  # noqa: E402
 from csat.utils.branding import (  # noqa: E402
     apply_plotly_theme,
     inject_css,
+    inject_iframe_resize,
     inject_sidebar_toggle,
     inject_tab_font_css,
     inject_tab_scroll_reset,
@@ -105,6 +109,32 @@ _KPI_TARGET_ORDER: list[str] = [
     "pct_with_comment_min",
     "hospital_retention_min",
 ]
+
+# Hoger = beter per KPI — gebruikt voor semantische kleur realisatie-balk (preview)
+_KPI_HIGHER_IS_BETTER: dict[str, bool] = {
+    "avg_score_min": True,
+    "pct_positive_min": True,
+    "pct_negative_max": False,
+    "avg_response_days_max": False,
+    "high_critical_max": False,
+    "pct_with_comment_min": True,
+    "hospital_retention_min": True,
+}
+
+# Tabel-hoogte constanten — gebruikt in _render_sortable_table() voor D en G
+_DF_ROW_PX: int = 34  # pixels per tabelrij (incl. padding + border)
+_DF_HEADER_PX: int = 8  # bodem-padding na de rijen
+_DF_MIN_ROWS: int = 10  # minimaal te tonen rijen in tabellen D en G
+
+# Consistente Plotly modebar-config — pan, lasso, select en autoScale verwijderd.
+# resetScale2d (home-icoon) blijft bewust aanwezig: herstelt zoom na inzoomen.
+_CHART_CONFIG: dict = {
+    "modeBarButtonsToRemove": ["pan2d", "lasso2d", "select2d", "autoScale2d"],
+    "displaylogo": False,
+}
+
+# Licht paars (afgeleide ZORGI-kleur) — gebruikt als target-balk in KPI Preview
+_ZORGI_LIGHT_PURPLE: str = "#a06b8a"  # OAZIS-kleur uit ZORGI colorway
 
 # Target voor rij 9 — Critical Priority CSAT (≥ 4,50★)
 _CRITICAL_PRIORITY_CSAT_TARGET: float = 4.5
@@ -497,6 +527,7 @@ def _chart_grouped_bar(
         return go.Figure()
     labels = [getattr(i, x_key) for i in items]
     fig = go.Figure()
+    # Baseline-trace (balk)
     fig.add_trace(
         go.Bar(
             name=baseline_label,
@@ -505,6 +536,7 @@ def _chart_grouped_bar(
             marker_color=ZORGI_GREY_BLUE,
         )
     )
+    # Huidig-trace (balk)
     fig.add_trace(
         go.Bar(
             name=current_label,
@@ -513,7 +545,13 @@ def _chart_grouped_bar(
             marker_color=ZORGI_LIGHT_BLUE,
         )
     )
-    fig.update_layout(title=title, barmode="group", yaxis={"range": [0, 5.5]})
+    fig.update_layout(
+        title=title,
+        barmode="group",
+        yaxis={"title": "", "range": [0, 5.5]},
+        xaxis={"title": ""},
+    )
+    fig.add_hline(y=4.0, line_dash="dash", line_color=ZORGI_GREY_BLUE)
     return apply_plotly_theme(fig)
 
 
@@ -559,50 +597,70 @@ def _chart_response_time(data: DashboardData, t: dict) -> go.Figure:
 
 
 def _chart_hospitals(data: DashboardData, t: dict) -> go.Figure:
-    """Horizontal grouped bar chart: baseline vs huidige score per ziekenhuis (top + bottom)."""
+    """Horizontale bar chart: score per ziekenhuis (bottom10 + attention + top10), kleur op score."""
     d = t["dashboard"]
-    top = data.hospital_top5
-    bottom = data.hospital_bottom5
-    if not top and not bottom:
+
+    # Combineer alle drie lijsten, dedupliceer op ziekenhuisnaam
+    all_zh: dict[str, float] = {}
+    for h in data.hospital_bottom10 or []:
+        all_zh[h.hospital] = h.score
+    for h in data.hospital_attention or []:
+        all_zh[h.hospital] = h.score
+    for h in data.hospital_top10 or []:
+        all_zh[h.hospital] = h.score
+
+    if not all_zh:
         return go.Figure()
 
-    # Top + bottom samenvoegen, gesorteerd op huidige score (laag → hoog)
-    top_entries = [(e.hospital, e.score, 0.0, "top") for e in top]
-    bottom_entries = [(h.hospital, h.score, h.baseline_score, "bottom") for h in bottom]
-    all_entries = sorted(top_entries + bottom_entries, key=lambda x: x[1])
+    # Sorteer op score laag → hoog
+    sorted_zh = sorted(all_zh.items(), key=lambda x: x[1])
+    hospitals = [x[0] for x in sorted_zh]
+    scores = [x[1] for x in sorted_zh]
 
-    hospitals = [e[0] for e in all_entries]
-    current_scores = [e[1] for e in all_entries]
-    colors = [ZORGI_RED if e[3] == "bottom" else ZORGI_FUNC_POSITIVE for e in all_entries]
+    # Kleur op drempelwaarden
+    def _zh_color(s: float) -> str:
+        if s >= 4.0:
+            return ZORGI_FUNC_POSITIVE
+        if s >= 3.0:
+            return "#d97706"  # amber — aandacht
+        return ZORGI_RED
+
+    colors = [_zh_color(s) for s in scores]
 
     fig = go.Figure(
         go.Bar(
             y=hospitals,
-            x=current_scores,
+            x=scores,
             orientation="h",
             marker_color=colors,
-            text=[f"{s:.2f}★" for s in current_scores],
+            text=[f"{s:.2f}★" for s in scores],
             textposition="outside",
             hovertemplate="%{y}: %{x:.2f}★<extra></extra>",
-            name=d["col_current"],
+            showlegend=False,
         )
     )
     fig.update_layout(
-        title=d["hospital_chart_title"],
-        xaxis={"title": d["timeline_score"], "range": [0, 5.5]},
+        title={"text": ""},  # Leeg — titel staat als st.markdown boven de grafiek
+        xaxis={"title": d["timeline_score"]},  # autorange — geen vaste schaal
+        yaxis={"autorange": "reversed"},  # lage score bovenaan, hoge score onderaan
+        height=max(300, len(hospitals) * 30 + 80),
+        margin={"t": 10, "b": 10, "l": 10, "r": 10},
+        modebar_remove=[
+            "pan2d",
+            "autoScale2d",
+        ],  # resetScale2d (huis-icoon) behouden voor zoom-reset
     )
     fig.add_vline(x=4.0, line_dash="dash", line_color=ZORGI_GREY_BLUE)
     fig.add_vline(
         x=2.5,
         line_dash="dash",
         line_color=ZORGI_RED,
-        annotation_text="Disengagement 2,5★",
     )
     return apply_plotly_theme(fig)
 
 
 def _chart_kpi_targets(data: DashboardData, t: dict, lang: str) -> go.Figure:
-    """Grouped bar chart: baseline / target / realisatie per KPI."""
+    """Verticale grouped bar chart (Tab 6 — KPI Targets): baseline / target / realisatie per KPI."""
     d = t["dashboard"]
     kpi_names_i18n = t.get("evolution", {}).get("target_tracking", {}).get("kpi_names", {})
     targets = {kp.name: kp for kp in data.kpi_targets}
@@ -617,9 +675,16 @@ def _chart_kpi_targets(data: DashboardData, t: dict, lang: str) -> go.Figure:
     current_vals = [targets[k].current for k in ordered]
 
     fig = go.Figure()
+    # Baseline-trace
     fig.add_trace(
-        go.Bar(name=d["col_baseline"], x=labels, y=baselines, marker_color=ZORGI_GREY_BLUE)
+        go.Bar(
+            name=d["col_baseline"],
+            x=labels,
+            y=baselines,
+            marker_color=ZORGI_GREY_BLUE,
+        )
     )
+    # Target-trace (outline balk)
     fig.add_trace(
         go.Bar(
             name=d["col_target"],
@@ -630,10 +695,171 @@ def _chart_kpi_targets(data: DashboardData, t: dict, lang: str) -> go.Figure:
             marker_line_width=2,
         )
     )
+    # Realisatie-trace
     fig.add_trace(
-        go.Bar(name=d["col_realization"], x=labels, y=current_vals, marker_color=ZORGI_LIGHT_BLUE)
+        go.Bar(
+            name=d["col_realization"],
+            x=labels,
+            y=current_vals,
+            marker_color=ZORGI_LIGHT_BLUE,
+        )
     )
-    fig.update_layout(title=d["kpi_chart_title"], barmode="group")
+    fig.update_layout(
+        title=d.get("kpi_chart_title", ""),
+        barmode="group",
+        xaxis={"title": ""},
+        yaxis={"title": "", "range": [0, 5.5]},
+        legend={
+            "orientation": "h",
+            "yanchor": "bottom",
+            "y": 1.02,
+            "xanchor": "right",
+            "x": 1,
+        },
+    )
+    return apply_plotly_theme(fig)
+
+
+def _chart_kpi_targets_h(data: DashboardData, t: dict) -> go.Figure:
+    """Horizontale bar chart: drie balken per KPI aansluitend (baseline | target | realisatie).
+
+    Balkbreedtes (y-as eenheden, categorie = 1.0):
+      Baseline = 0.24  |  Target = 0.14 (smaller)  |  Realisatie = 0.24
+    Totale groepsbreedte = 0.62 — past binnen bargap-beschikbare ruimte (~0.72).
+    Implementatie via barmode='overlay' + expliciete offset per trace:
+      alle drie balken zijn naadloos aansluitend, geen overlap.
+    Realisatie semantisch gekleurd: groen = target gehaald, rood = niet gehaald.
+    """
+    d = t["dashboard"]
+    kpi_names_i18n = t.get("evolution", {}).get("target_tracking", {}).get("kpi_names", {})
+    targets = {kp.name: kp for kp in data.kpi_targets}
+
+    ordered = [k for k in _KPI_TARGET_ORDER if k in targets]
+    if not ordered:
+        return go.Figure()
+
+    labels = [kpi_names_i18n.get(k, k) for k in ordered]
+    baselines = [targets[k].baseline for k in ordered]
+    target_vals = [targets[k].target for k in ordered]
+    current_vals = [targets[k].current for k in ordered]
+
+    # Semantische kleur per KPI: groen = target gehaald, rood = niet gehaald
+    real_colors = []
+    for k in ordered:
+        kp = targets[k]
+        higher_is_better = _KPI_HIGHER_IS_BETTER.get(k, True)
+        if higher_is_better:
+            real_colors.append(ZORGI_FUNC_POSITIVE if kp.current >= kp.target else ZORGI_RED)
+        else:
+            real_colors.append(ZORGI_FUNC_POSITIVE if kp.current <= kp.target else ZORGI_RED)
+
+    def _fmt(vals: list) -> list[str]:
+        return [f"{v:.2f}".replace(".", ",") for v in vals]
+
+    # ── Balkbreedtes en offsets (y-as eenheden) ────────────────────────────
+    # Volgorde (boven → onder): Baseline | Target | Realisatie
+    # Offset = linker rand van de balk relatief aan het categorie-middelpunt (y=int).
+    # Met autorange='reversed' verschijnt de laagste y-offset bovenaan.
+    # Breder dan v0.5.0 (0.24/0.14/0.24) — hoogte mee omhoog zodat tussenruimte bewaard blijft.
+    _bl_w: float = 0.28  # baseline breedte
+    _tg_w: float = 0.16  # target breedte — iets smaller
+    _re_w: float = 0.28  # realisatie breedte
+    _total: float = _bl_w + _tg_w + _re_w  # = 0.72
+    _bl_off: float = -(_total / 2)  # = -0.36 (linker rand baseline)
+    _tg_off: float = _bl_off + _bl_w  # = -0.08 (linker rand target)
+    _re_off: float = _tg_off + _tg_w  # = +0.08 (linker rand realisatie)
+
+    fig = go.Figure()
+
+    # ── Baseline (boven in groep) ─────────────────────────────────────────
+    fig.add_trace(
+        go.Bar(
+            name=d["col_baseline"],
+            y=labels,
+            x=baselines,
+            orientation="h",
+            marker_color=ZORGI_GREY_BLUE,
+            text=_fmt(baselines),
+            textposition="outside",
+            textfont={"size": 11},
+            width=_bl_w,
+            offset=_bl_off,
+        )
+    )
+
+    # ── Target (midden in groep, amber, iets smaller) ─────────────────────
+    fig.add_trace(
+        go.Bar(
+            name=d["col_target"],
+            y=labels,
+            x=target_vals,
+            orientation="h",
+            marker_color="#f0a500",
+            text=_fmt(target_vals),
+            textposition="outside",
+            textfont={"size": 11, "color": "#f0a500"},
+            width=_tg_w,
+            offset=_tg_off,
+        )
+    )
+
+    # ── Realisatie (onder in groep, semantisch gekleurd) ──────────────────
+    fig.add_trace(
+        go.Bar(
+            name=d["col_realization"],
+            y=labels,
+            x=current_vals,
+            orientation="h",
+            marker_color=real_colors,
+            text=_fmt(current_vals),
+            textposition="outside",
+            textfont={"size": 11},
+            showlegend=False,
+            width=_re_w,
+            offset=_re_off,
+        )
+    )
+
+    # ── Legenda-dummy Realisatie: kleurloos open blokje + gecombineerd label ─
+    # square-open = enkel omlijning, geen vulling → visueel "kleurloos/neutraal"
+    _real_label = d.get("legend_realization_combined", f"{d['col_realization']} (groen/rood)")
+    fig.add_trace(
+        go.Scatter(
+            x=[None],
+            y=[None],
+            mode="markers",
+            marker={
+                "symbol": "square-open",
+                "size": 12,
+                "line": {"color": ZORGI_GREY_BLUE, "width": 2},
+            },
+            name=_real_label,
+            showlegend=True,
+        )
+    )
+
+    fig.update_layout(
+        title="",
+        barmode="overlay",  # bars handmatig gepositioneerd via offset
+        xaxis={"title": "", "gridcolor": "#edf2f7"},
+        yaxis={"title": "", "autorange": "reversed"},
+        # Hoogte 560px: balken breder (0.72 vs 0.62) + proportioneel groter zodat
+        # de tussenruimte tussen KPI-groepen vergelijkbaar blijft (~20-22px).
+        height=560,
+        legend={
+            # Boven gecentreerd — modebar zit rechts, geen overlap met gecentreerde legenda
+            "orientation": "h",
+            "yanchor": "bottom",
+            "y": 1.02,
+            "xanchor": "center",
+            "x": 0.5,
+            "itemsizing": "constant",
+            "traceorder": "normal",
+            "indentation": 10,
+        },
+        margin={"t": 50, "b": 10, "r": 5},  # t=50: ruimte voor modebar + legenda boven
+        modebar_remove=["pan2d", "autoScale2d"],  # analoog aan _chart_hospitals()
+    )
     return apply_plotly_theme(fig)
 
 
@@ -741,55 +967,6 @@ def _render_zh_signal_section(data: DashboardData, d: dict) -> None:
         st.markdown(f"**{d['top3_best']}**")
         for zh in data.zh_top3:
             st.markdown(_zh_signal_card(zh), unsafe_allow_html=True)
-    # Nav-knop: dezelfde uitgebreide _zorgiTop() als inject_tab_scroll_reset (ancestor-walk + rAF).
-    _btn_label = d["see_tab5_btn"]
-    _tab_sel = '[data-baseweb="tab-list"] [data-baseweb="tab"]'
-    _nav_html = (
-        "<style>"
-        "body{margin:0;padding:0;background:transparent}"
-        ".zh-nav-pill{"
-        f"background:{ZORGI_DARK_BLUE};"
-        "color:#fff;border:none;border-radius:50px;"
-        "padding:0.45rem 1.2rem;font-size:0.85rem;font-weight:600;"
-        "cursor:pointer;font-family:Poppins,Verdana,sans-serif;"
-        "transition:background 0.2s ease}"
-        f".zh-nav-pill:hover{{background:{ZORGI_GREY_BLUE}}}"
-        "</style>"
-        "<script>"
-        "function _zorgiTop(){"
-        "var w=window.parent,d=w.document;"
-        "try{if(d.activeElement&&d.activeElement!==d.body)d.activeElement.blur();}catch(e){}"
-        "try{w.scrollTo({top:0,left:0,behavior:'instant'});}catch(e){try{w.scrollTo(0,0);}catch(e){}}"
-        "try{d.documentElement.scrollTop=0;}catch(e){}"
-        "try{d.body.scrollTop=0;}catch(e){}"
-        "['#root','[data-testid=\"stApp\"]','[data-testid=\"stAppViewContainer\"]',"
-        "'[data-testid=\"stAppViewMain\"]','[data-testid=\"stMainBlockContainer\"]','.main']"
-        ".forEach(function(q){try{var e=d.querySelector(q);if(e)e.scrollTop=0;}catch(e){}});"
-        "try{var tp=d.querySelector('[data-baseweb=\"tab-panel\"]');"
-        "var el=tp?tp.parentElement:null,n=0;"
-        "while(el&&el!==d.documentElement&&n++<12){el.scrollTop=0;el=el.parentElement;}"
-        "}catch(e){}}"
-        f"function goToZh(){{var t=window.parent.document.querySelectorAll('{_tab_sel}');"
-        "if(t&&t.length>4){t[4].click();"
-        "_zorgiTop();"
-        "(function raf(n){if(n<=0)return;"
-        "try{window.parent.requestAnimationFrame(function(){_zorgiTop();raf(n-1);});}catch(e){}"
-        "})(8);"
-        "[100,300,600,1000].forEach(function(ms){setTimeout(_zorgiTop,ms);})}}"
-        "</script>"
-        f"<button class='zh-nav-pill' onclick='goToZh()'>{_btn_label}</button>"
-    )
-    _stc.html(_nav_html, height=40, scrolling=False)
-    # CSS: agressieve inkrimping van iframe-container én zijn parent wrapper
-    st.markdown(
-        "<style>"
-        "[data-testid='stCustomComponentV1']"
-        "{margin-bottom:-10rem!important;overflow:visible!important}"
-        "div:has(>[data-testid='stCustomComponentV1'])"
-        "{margin-bottom:-4rem!important;overflow:visible!important}"
-        "</style>",
-        unsafe_allow_html=True,
-    )
 
 
 def render_kerncijfers_vergelijking(  # noqa: C901
@@ -1335,7 +1512,7 @@ def _tab_summary(data: DashboardData, t: dict, lang: str) -> None:
     _render_zh_signal_section(data, d)
     # Slanke scheidingslijn zonder Streamlit-padding (vervangt st.divider() na sectie 2)
     st.markdown(
-        "<hr style='margin:0.4rem 0 2rem 0;border:none;border-top:1px solid #e0e8f0'>",
+        "<hr style='margin:1.5rem 0 2rem 0;border:none;border-top:1px solid #e0e8f0'>",
         unsafe_allow_html=True,
     )
 
@@ -1354,9 +1531,9 @@ def _tab_timeline(data: DashboardData, t: dict, lang: str) -> None:
         st.info(d["no_data"])
         return
 
-    st.plotly_chart(_chart_timeline(data, t, lang), width="stretch")
+    st.plotly_chart(_chart_timeline(data, t, lang), width="stretch", config=_CHART_CONFIG)
     st.divider()
-    st.plotly_chart(_chart_period_comparison(data, t), width="stretch")
+    st.plotly_chart(_chart_period_comparison(data, t), width="stretch", config=_CHART_CONFIG)
 
 
 def _tab_tickets(data: DashboardData, t: dict, lang: str) -> None:  # noqa: C901
@@ -1436,7 +1613,7 @@ def _tab_tickets(data: DashboardData, t: dict, lang: str) -> None:  # noqa: C901
             data.baseline_label,
             data.current_label,
         )
-        st.plotly_chart(fig, width="stretch")
+        st.plotly_chart(fig, width="stretch", config=_CHART_CONFIG)
 
         if data.trivial_pct_negative > 10 and data.trivial_avg_score > 0:
             st.warning(
@@ -1477,91 +1654,509 @@ def _tab_response(data: DashboardData, t: dict, lang: str) -> None:
         st.info(d["no_data"])
 
 
-def _tab_hospitals(data: DashboardData, t: dict, lang: str) -> None:
-    """Tab 5 — Ziekenhuizen: bar chart + top-5 tabel + bottom-5 tabel met oorzaakkolom."""
-    d = t["dashboard"]
-    evo_t = t.get("evolution", {}).get("theme", {})
+def _render_sortable_table(
+    df: pd.DataFrame,
+    title: str,
+    *,
+    delta_col: str | None = None,
+    max_body_height: int = 460,
+    min_body_height: int = 0,
+    export_filename: str = "export.csv",
+    export_label: str = "📤 Export CSV",
+    footer_text: str = "",
+    col_widths: list[str] | None = None,  # bv. ["55%", "20%", "25%"] — analoge kolombreedtes
+) -> None:
+    """Rendert een sorteerbare HTML-tabel in een iframe met exportknop.
 
-    # --- Horizontal bar chart ---
-    if data.hospital_top5 or data.hospital_bottom5:
-        st.plotly_chart(_chart_hospitals(data, t), width="stretch")
+    - Titel matcht visueel met st.markdown('#### ...') — Poppins, ZORGI-stijl.
+    - Alle kolomkoppen: ZORGI donkerblauw achtergrond (#003a70), witte tekst.
+    - delta_col: waarden krijgen groen/rood kleur op basis van +-teken.
+    - Klik op kolomkop → sorteren (toggle asc/desc).
+    - footer_text: optionele grijze voetnoot binnen het iframe (geen Streamlit-componentgap).
+    """
+    cols = list(df.columns)
+    n_rows = len(df)
 
-    st.divider()
+    # CSV-export (base64 data-URI)
+    buf = io.StringIO()
+    df.to_csv(buf, index=False, quoting=csv.QUOTE_ALL)
+    b64 = base64.b64encode(buf.getvalue().encode()).decode()
 
-    # --- Top-5 tabel ---
-    if data.hospital_top5:
-        st.markdown(f"#### {d['top5_title']}")
-        st.dataframe(
-            pd.DataFrame(
-                [
-                    {
-                        d["col_hospital"]: e.hospital,
-                        d["col_score"]: f"{e.score:.2f}★",
-                        d["col_tickets"]: e.tickets,
-                        d["col_learning"]: "✅ Aanbevolen werkwijzen documenteren",
-                    }
-                    for e in data.hospital_top5
-                ]
-            ),
-            hide_index=True,
-            width="stretch",
+    # Tabelkop HTML — met sorteer-indicator; optionele col_widths via style="width:..."
+    def _th(i: int, c: str) -> str:
+        w = f'style="width:{col_widths[i]}"' if col_widths and i < len(col_widths) else ""
+        return (
+            f'<th onclick="sortBy({i})" data-col="{i}" {w}>'
+            f'<span class="th-label">{html.escape(str(c))}</span>'
+            f'<span class="sort-icon" id="si{i}"></span></th>'
         )
+
+    th_html = "".join(_th(i, c) for i, c in enumerate(cols))
+
+    # Delta-kleurstijl
+    def _delta_style(val: str) -> str:
+        stripped = val.replace("\u2605", "").replace("+", "").strip()
+        try:
+            v = float(stripped.replace(",", "."))
+            if v > 0:
+                return "color:#2e7d32;font-weight:600;"
+            if v < 0:
+                return "color:#dc2b26;font-weight:600;"
+        except ValueError:
+            pass
+        return ""
+
+    # Tabelrijen HTML — inline text-align:left op elke cel (voorkomt browser-overschrijving)
+    rows_html = ""
+    for _, row in df.iterrows():
+        cells = ""
+        for c in cols:
+            val = html.escape(str(row[c]))
+            delta_s = _delta_style(str(row[c])) if (delta_col and c == delta_col) else ""
+            style = f"text-align:left;{delta_s}"
+            cells += f'<td style="{style}">{val}</td>'
+        rows_html += f"<tr>{cells}</tr>"
+
+    # Hoogte-berekening
+    # 34px per rij = 5px padding-top + 5px padding-bottom + ~13px font + 1px border ≈ 24px + marge
+    # +4px onderste padding — minimale buffer zodat iframe content niet afknipt
+    body_h = min(n_rows * 34 + 8, max_body_height)
+    footer_h = 28 * len(footer_text.split("  |  ")) if footer_text else 0
+    iframe_h = 40 + 32 + body_h + 4 + footer_h  # top-row + header + body + padding + footer
+
+    safe_title = html.escape(title)
+    safe_label = html.escape(export_label)
+    safe_footer = footer_text if footer_text else ""
+    if safe_footer:
+        _footer_lines = safe_footer.split("  |  ")
+        footer_html = "".join(
+            f"<p class='footer'>{html.escape(line)}</p>" for line in _footer_lines
+        )
+    else:
+        footer_html = ""
+
+    html_str = (
+        "<!DOCTYPE html><html><head>"
+        "<link href='https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap'"
+        " rel='stylesheet'>"
+        "<style>"
+        "body{margin:0;padding:0;background:transparent;"
+        "font-family:'Poppins','Verdana',sans-serif;}"
+        ".top-row{display:flex;justify-content:space-between;align-items:center;"
+        "margin:0 0 4px 0;gap:8px;}"
+        "h4.sec-title{margin:0;font-size:1.05rem;font-weight:600;color:#003a70;"
+        "font-family:'Poppins','Verdana',sans-serif;line-height:1.3;}"
+        ".export-btn{background:#003a70;color:#fff;border:none;padding:4px 14px;"
+        "border-radius:4px;font-size:0.78rem;cursor:pointer;"
+        "font-family:'Poppins','Verdana',sans-serif;white-space:nowrap;"
+        "text-decoration:none;display:inline-block;}"
+        ".export-btn:hover{background:#00509e;}"
+        f".scroll-wrap{{max-height:{max_body_height}px;overflow-y:auto;width:100%;"
+        "border:1px solid #d0dce8;border-radius:2px;}"
+        "table{width:100%;border-collapse:collapse;}"
+        "th{background:#003a70;color:#fff;padding:6px 8px;text-align:left;"
+        "font-size:0.82rem;font-family:'Poppins','Verdana',sans-serif;"
+        "cursor:pointer;border-right:1px solid #2a5a9c;white-space:nowrap;user-select:none;"
+        "position:sticky;top:0;z-index:1;}"
+        ".th-label{vertical-align:middle;}"
+        ".sort-icon{display:inline-block;margin-left:5px;font-size:0.75rem;"
+        "vertical-align:middle;opacity:0.85;min-width:12px;}"
+        "th.sorted-asc .sort-icon::after{content:'\\2191';}"
+        "th.sorted-desc .sort-icon::after{content:'\\2193';}"
+        "th.sorted-asc,th.sorted-desc{background:#1a5faf;}"  # lichtere achtergrond bij actieve sortering
+        "th:last-child{border-right:none;}"
+        "td{padding:5px 8px;font-size:0.82rem;text-align:left;"
+        "border-bottom:1px solid #e0e8f0;border-right:1px solid #d0dce8;}"
+        "td:last-child{border-right:none;}"
+        "tr:hover td{background:#f0f6ff;}"
+        "p.footer{font-size:0.75rem;color:#5f8495;margin:8px 0 0 0;padding:0;line-height:1.5;}"
+        "</style></head><body>"
+        f"<div class='top-row'>"
+        f"<h4 class='sec-title'>{safe_title}</h4>"
+        f"<a href='data:text/csv;base64,{b64}' download='{export_filename}'"
+        f" class='export-btn'>{safe_label}</a>"
+        "</div>"
+        "<div class='scroll-wrap'>"
+        f"<table id='t'><thead><tr>{th_html}</tr></thead>"
+        f"<tbody>{rows_html}</tbody></table>"
+        f"</div>{footer_html}"
+        "<script>"
+        "var _sd=-1,_sc=true;"
+        "function sortBy(ci){"
+        "var t=document.getElementById('t');"
+        "var tb=t.tBodies[0];"
+        "var rows=Array.from(tb.rows);"
+        "var asc=(_sd===ci)?!_sc:true;"
+        "_sd=ci;_sc=asc;"
+        "rows.sort(function(a,b){"
+        "var av=a.cells[ci].textContent.trim();"
+        "var bv=b.cells[ci].textContent.trim();"
+        "var an=parseFloat(av.replace(/[\u2605+]/g,''));"
+        "var bn=parseFloat(bv.replace(/[\u2605+]/g,''));"
+        "if(!isNaN(an)&&!isNaN(bn))return asc?an-bn:bn-an;"
+        "return asc?av.localeCompare(bv,undefined,{sensitivity:'base'}):"
+        "bv.localeCompare(av,undefined,{sensitivity:'base'});"
+        "});"
+        "rows.forEach(function(r){tb.appendChild(r);});"
+        "var ths=document.getElementById('t').querySelectorAll('th');"
+        "ths.forEach(function(th){th.classList.remove('sorted-asc','sorted-desc');});"
+        "ths[ci].classList.add(asc?'sorted-asc':'sorted-desc');}"
+        "</script></body></html>"
+    )
+
+    _stc.html(html_str, height=iframe_h, scrolling=False)
+    # Negatieve marge: compenseert het verschil tussen Python-berekende iframe_h
+    # en werkelijke content-hoogte + stVerticalBlock gap (16px).
+    # inject_iframe_resize() past de exacte hoogte achteraf aan via JS.
+    st.markdown(
+        "<div style='margin-top:-80px;height:0;overflow:hidden'></div>",
+        unsafe_allow_html=True,
+    )
+
+
+def _windowed_hospital_comparison(
+    data: DashboardData,
+    venster_modus: str,
+) -> list[HospitalComparison]:
+    """
+    Bereken per-ziekenhuis vergelijking op basis van het venster.
+
+    - 'volledig': volledig baseline-jaar (bv. 2025) vs. huidig jaar
+    - 'tendens':  S2 baseline-jaar (jul-dec 2025) vs. huidig jaar
+
+    Hergebruikt _make_kc_dataframes() voor consistente pilaar- en datumfiltering.
+    Geeft dezelfde interface terug als raw.hospital_comparison.
+    """
+    df_vorig, df_huidig = _make_kc_dataframes(data, venster_modus)
+
+    b_hospitals: set[str] = (
+        set(df_vorig["hospital"].dropna().unique()) if not df_vorig.empty else set()
+    )
+    c_hospitals: set[str] = (
+        set(df_huidig["hospital"].dropna().unique()) if not df_huidig.empty else set()
+    )
+    all_hospitals = sorted(b_hospitals | c_hospitals)
+
+    comparisons: list[HospitalComparison] = []
+    for hospital in all_hospitals:
+        b_sub = df_vorig[df_vorig["hospital"] == hospital] if not df_vorig.empty else pd.DataFrame()
+        c_sub = (
+            df_huidig[df_huidig["hospital"] == hospital] if not df_huidig.empty else pd.DataFrame()
+        )
+
+        b_scored = b_sub[b_sub["score"].notna()] if not b_sub.empty else pd.DataFrame()
+        c_scored = c_sub[c_sub["score"].notna()] if not c_sub.empty else pd.DataFrame()
+
+        b_score = float(b_scored["score"].mean()) if not b_scored.empty else 0.0
+        b_total = len(b_sub)
+        c_score: float | None = float(c_scored["score"].mean()) if not c_scored.empty else None
+        c_total = len(c_sub)
+
+        comparisons.append(
+            HospitalComparison(
+                hospital=hospital,
+                baseline_score=b_score,
+                baseline_total=b_total,
+                current_score=c_score,
+                current_total=c_total,
+            )
+        )
+    return comparisons
+
+
+def _render_migration_tables(
+    raw: EvolutionResult,
+    d: dict,
+    col_h: str,
+    col_tickets_bl: str,
+    col_tickets_cu: str,
+    col_date: str,
+    compared_to: str,
+    bl: str,
+    cu: str,
+) -> None:
+    """Rendert sectie E (verdwenen) en F (nieuwe) ziekenhuistabellen."""
+    # --- E: Verdwenen ziekenhuizen ---
+    st.markdown(
+        "<hr style='margin:0.4rem 0 0.8rem 0;border:none;border-top:1px solid #e0e8f0'>",
+        unsafe_allow_html=True,
+    )
+    disappeared_title = d.get("hospital_disappeared_title", "Verdwenen ziekenhuizen")
+    n_dis = len(raw.hospitals_disappeared)
+    if raw.hospitals_disappeared:
+        df_e = pd.DataFrame(
+            [
+                {
+                    col_h: hm.hospital,
+                    col_tickets_bl: hm.total_tickets,
+                    col_date: hm.anchor_date or "\u2014",
+                }
+                for hm in raw.hospitals_disappeared
+            ]
+        )
+        _render_sortable_table(
+            df_e,
+            title=f"\U0001f4e4 {disappeared_title} ({n_dis}) {compared_to} {bl}",
+            export_filename=f"verdwenen-{cu}.csv",
+            col_widths=["55%", "20%", "25%"],
+        )
+    else:
+        st.markdown(f"#### \U0001f4e4 {disappeared_title}")
+        st.info(d.get("hospital_no_disappeared", "Geen verdwenen ziekenhuizen."))
+
+    # --- F: Nieuwe ziekenhuizen ---
+    st.markdown(
+        "<hr style='margin:0.4rem 0 0.8rem 0;border:none;border-top:1px solid #e0e8f0'>",
+        unsafe_allow_html=True,
+    )
+    new_title = d.get("hospital_new_title", "Nieuwe ziekenhuizen")
+    n_new = len(raw.hospitals_new)
+    if raw.hospitals_new:
+        df_f = pd.DataFrame(
+            [
+                {
+                    col_h: hm.hospital,
+                    col_tickets_cu: hm.total_tickets,
+                    col_date: hm.anchor_date or "\u2014",
+                }
+                for hm in raw.hospitals_new
+            ]
+        )
+        _render_sortable_table(
+            df_f,
+            title=f"\U0001f195 {new_title} ({n_new}) {compared_to} {bl}",
+            export_filename=f"nieuwe-{cu}.csv",
+            col_widths=["55%", "20%", "25%"],
+        )
+    else:
+        st.markdown(f"#### \U0001f195 {new_title}")
+        st.info(d.get("hospital_no_new", "Geen nieuwe ziekenhuizen."))
+
+
+def _tab_hospitals(data: DashboardData, t: dict, lang: str) -> None:
+    """Tab 5 — Ziekenhuizen: bar chart + bottom10/attention/top10 + evolutie/migratie tabellen."""
+    d = t["dashboard"]
+    bl = data.baseline_label  # bv. "2025"
+    cu = data.current_label  # bv. "2026"
+
+    # --- Grafiek ---
+    if data.hospital_top10 or data.hospital_bottom10 or data.hospital_attention:
         st.markdown(
-            f"<p style='font-size:0.78rem;color:#5f8495;margin-top:0.2rem'>"
-            f"{d['top5_min_tickets_note']}</p>",
+            f"<h4 style='font-size:1.3rem;font-weight:700;color:#003a70;"
+            f"font-family:Poppins,Verdana,sans-serif;line-height:1.3;margin:0 0 4px 0'>"
+            f"{d['hospital_chart_title']}</h4>",
             unsafe_allow_html=True,
         )
+        st.plotly_chart(_chart_hospitals(data, t), width="stretch")
+    st.markdown(
+        f"<p style='font-size:0.78rem;color:#5f8495;margin-top:-1.2rem;margin-bottom:2.5rem'>"
+        f"<span style='color:{ZORGI_RED};font-weight:700'>- - -</span> "
+        f"{d.get('hospital_disengagement_caption', '')}</p>",
+        unsafe_allow_html=True,
+    )
 
-    st.divider()
+    st.markdown(
+        "<hr style='margin:0 0 0.8rem 0;border:none;border-top:1px solid #e0e8f0'>",
+        unsafe_allow_html=True,
+    )
 
-    # --- Bottom-5 tabel + disengagement-alerts ---
-    if data.hospital_bottom5:
-        st.markdown(f"#### {d['bottom5_title']}")
-        st.dataframe(
+    # --- A: Bottom 10 (< 3,0★) ---
+    if data.hospital_bottom10:
+        # Disengagement-alerts als footer_text binnen de iframe (geen Streamlit-gap)
+        _dis_lines = [
+            f"⚠️ {d['disengagement_alert'].format(hospital=h.hospital, score=f'{h.score:.2f}', tickets=h.tickets)}"
+            for h in data.hospital_bottom10
+            if h.disengagement_risk
+        ]
+        _dis_footer = "  |  ".join(_dis_lines) if _dis_lines else ""
+        _render_sortable_table(
             pd.DataFrame(
                 [
                     {
                         d["col_hospital"]: h.hospital,
                         d["col_score"]: f"{h.score:.2f}★",
-                        d["col_tickets"]: h.tickets,
-                        d["col_complaint"]: evo_t.get(h.cause, h.cause) if h.cause else "—",
+                        d["col_tickets"]: str(h.tickets),
                     }
-                    for h in data.hospital_bottom5
+                    for h in data.hospital_bottom10
                 ]
             ),
-            hide_index=True,
-            width="stretch",
+            title=f"🔴 {d['hospital_bottom10_title']}",
+            export_filename=f"bottom10-{cu}.csv",
+            footer_text=_dis_footer,
         )
+    else:
+        st.info(d["no_data"])
 
-        # Disengagement-alerts
-        for h in data.hospital_bottom5:
-            if h.disengagement_risk:
-                st.error(
-                    d["disengagement_alert"].format(
-                        hospital=h.hospital,
-                        score=f"{h.score:.2f}",
-                        tickets=h.tickets,
-                    )
-                )
+    st.markdown(
+        "<hr style='margin:0.4rem 0 0.8rem 0;border:none;border-top:1px solid #e0e8f0'>",
+        unsafe_allow_html=True,
+    )
 
-    # --- Aandachtsaccounts sectie ---
-    if data.zh_attention_list:
-        st.divider()
-        st.markdown(f"#### {d['kpi_attention_accounts_title']}")
-        st.dataframe(
+    # --- B: Aandachtsaccounts (3,0★ - 4,0★) ---
+    if data.hospital_attention:
+        _render_sortable_table(
             pd.DataFrame(
                 [
                     {
-                        d["col_hospital"]: zh.hospital,
-                        d["col_score"]: f"{zh.score:.2f}★",
-                        d["col_tickets"]: zh.tickets,
+                        d["col_hospital"]: h.hospital,
+                        d["col_score"]: f"{h.score:.2f}★",
+                        d["col_tickets"]: str(h.tickets),
                     }
-                    for zh in data.zh_attention_list
+                    for h in data.hospital_attention
                 ]
             ),
-            hide_index=True,
-            width="stretch",
+            title=f"🟡 {d['hospital_attention_title']}",
+            export_filename=f"attention-{cu}.csv",
         )
+    else:
+        st.info(d["hospital_no_attention"])
+
+    st.markdown(
+        "<hr style='margin:1.5rem 0 0.8rem 0;border:none;border-top:1px solid #e0e8f0'>",
+        unsafe_allow_html=True,
+    )
+
+    # --- C: Top 10 (≥ 4,0★) ---
+    if data.hospital_top10:
+        _render_sortable_table(
+            pd.DataFrame(
+                [
+                    {
+                        d["col_hospital"]: h.hospital,
+                        d["col_score"]: f"{h.score:.2f}★",
+                        d["col_tickets"]: str(h.tickets),
+                    }
+                    for h in data.hospital_top10
+                ]
+            ),
+            title=f"🟢 {d['hospital_top10_title']}",
+            export_filename=f"top10-{cu}.csv",
+            footer_text=d["hospital_top10_footnote"],
+        )
+    else:
+        st.info(d["no_data"])
+
+    # --- Geavanceerde tabellen (vereisen data.raw) ---
+    if not data.raw:
+        return
+
+    raw = data.raw
+    compared_to = d.get("compared_to_full", "t.o.v. volledig")
+    col_h = d["col_hospital"]
+    col_date = d.get("col_date", "Datum")  # generiek label voor E/F
+
+    # Venster-aware ziekenhuisvergelijking (D + G)
+    # Tendensvenster: S2 baseline-jaar als referentie i.p.v. volledig jaar
+    _zh_venster = "tendens" if data.mode == "trend" else "volledig"
+    _bl_label = f"S2 {data.current_year - 1}" if data.mode == "trend" else bl
+    _hosp_comp = _windowed_hospital_comparison(data, _zh_venster)
+
+    # Kolomlabels met jaar (venster-afhankelijk voor D + G)
+    col_score_bl = f"Score {_bl_label}"
+    col_tickets_bl = f"Tickets {_bl_label}"
+    col_score_cu = f"Score {cu}"
+    col_tickets_cu = f"Tickets {cu}"
+    col_delta = "\u0394"  # Δ
+
+    # --- D: Score-evolutie (grootste verschuivingen) ---
+    st.markdown(
+        "<hr style='margin:0.4rem 0 0.8rem 0;border:none;border-top:1px solid #e0e8f0'>",
+        unsafe_allow_html=True,
+    )
+    shifts_title = d.get("hospital_shifts_title", "Score-evolutie: grootste verschuivingen")
+    hosp_both = [h for h in _hosp_comp if h.current_score is not None]
+    if hosp_both:
+
+        def _d_sort(hc: HospitalComparison) -> tuple:
+            delta = (hc.current_score or 0.0) - hc.baseline_score
+            return (
+                -abs(delta),
+                -(hc.current_score or 0.0),
+                -hc.current_total,
+                -hc.baseline_score,
+            )
+
+        hosp_d = sorted(hosp_both, key=_d_sort)
+        df_d = pd.DataFrame(
+            [
+                {
+                    col_h: hc.hospital,
+                    col_score_bl: f"{hc.baseline_score:.2f}\u2605",
+                    col_tickets_bl: hc.baseline_total,
+                    col_score_cu: f"{hc.current_score or 0.0:.2f}\u2605",
+                    col_tickets_cu: hc.current_total,
+                    col_delta: (
+                        f"+{(hc.current_score or 0.0) - hc.baseline_score:.2f}"
+                        if (hc.current_score or 0.0) - hc.baseline_score >= 0
+                        else f"{(hc.current_score or 0.0) - hc.baseline_score:.2f}"
+                    ),
+                }
+                for hc in hosp_d
+            ]
+        )
+        _render_sortable_table(
+            df_d,
+            title=f"\U0001f4ca {shifts_title}",
+            delta_col=col_delta,
+            export_filename=f"score-evolutie-{cu}.csv",
+        )
+    else:
+        st.markdown(f"#### \U0001f4ca {shifts_title}")
+        st.info(d.get("hospital_no_shifts", "Geen voldoende data voor verschuivingsanalyse."))
+
+    # --- E + F: Verdwenen en nieuwe ziekenhuizen ---
+    _render_migration_tables(
+        raw, d, col_h, col_tickets_bl, col_tickets_cu, col_date, compared_to, bl, cu
+    )
+
+    # --- G: Volledig ziekenhuizenoverzicht ---
+    st.markdown(
+        "<hr style='margin:0.4rem 0 0.8rem 0;border:none;border-top:1px solid #e0e8f0'>",
+        unsafe_allow_html=True,
+    )
+    full_title = d.get("hospital_full_title", "Volledig ziekenhuizenoverzicht")
+    n_full = len(_hosp_comp)
+
+    def _g_sort(hc: HospitalComparison) -> tuple:
+        cs = hc.current_score if hc.current_score is not None else -999.0
+        return (
+            -cs,
+            -hc.current_total,
+            -hc.baseline_score,
+            -hc.baseline_total,
+        )
+
+    hosp_g = sorted(_hosp_comp, key=_g_sort)
+    df_g = pd.DataFrame(
+        [
+            {
+                col_h: hc.hospital,
+                col_score_bl: f"{hc.baseline_score:.2f}\u2605",
+                col_tickets_bl: hc.baseline_total,
+                col_score_cu: (
+                    f"{hc.current_score:.2f}\u2605" if hc.current_score is not None else "\u2014"
+                ),
+                col_tickets_cu: hc.current_total,
+                col_delta: (
+                    f"+{hc.current_score - hc.baseline_score:.2f}"
+                    if hc.current_score is not None and hc.current_score - hc.baseline_score >= 0
+                    else (
+                        f"{hc.current_score - hc.baseline_score:.2f}"
+                        if hc.current_score is not None
+                        else "\u2014"
+                    )
+                ),
+            }
+            for hc in hosp_g
+        ]
+    )
+    _render_sortable_table(
+        df_g,
+        title=f"\U0001f4cb {full_title} ({n_full})",
+        delta_col=col_delta,
+        max_body_height=600,
+        export_filename=f"ziekenhuizen-volledig-{cu}.csv",
+    )
 
 
 def render_kpi_targets(  # noqa: C901
@@ -1947,7 +2542,7 @@ def _tab_targets(data: DashboardData, t: dict, lang: str) -> None:
     st.markdown(f"#### {d['kpi_targets_title']}")
 
     if data.kpi_targets:
-        st.plotly_chart(_chart_kpi_targets(data, t, lang), width="stretch")
+        st.plotly_chart(_chart_kpi_targets_h(data, t), width="stretch")
 
     # KPI-Targets is altijd "volledig" — venster-modus mag deze aanroep NIET beïnvloeden.
     # Toekomstige refactoring van _make_kc_dataframes mag deze invariant niet breken.
@@ -2068,10 +2663,7 @@ def main() -> None:
         trend_window_label="",
     )
 
-    # 6 tabs — met key + on_change callback voor betrouwbare tab-persistentie
-    # on_change='ignore' stuurt de tabstatus NIET terug naar Python → we gebruiken een
-    # callback die bij elke tabbladwissel de index in session_state opslaat.
-    # Bij taalwissel vertaalt _render_sidebar() het label naar de nieuwe taal vóór rerun.
+    # 6 tabs
     _tab_labels = [
         d["tab_summary"],
         d["tab_timeline"],
@@ -2117,6 +2709,7 @@ def main() -> None:
 
     # Scroll-reset bij tabbladwissel: altijd naar boven bij activeren nieuw tabblad
     inject_tab_scroll_reset()
+    inject_iframe_resize()
 
     # Sidebar-toggle knop injecteren (NA alle content — blokkeert rendering niet)
     inject_sidebar_toggle()

@@ -11,7 +11,7 @@ Gebruik:
 
 from __future__ import annotations
 
-from collections import Counter, defaultdict
+from collections import defaultdict
 from dataclasses import dataclass, field
 
 from csat.config.pillars import PILLAR_REGISTRY
@@ -21,7 +21,6 @@ from csat.core.analysers.evolution_result import (
     IssueTypeComparison,
     KpiTarget,
     MonthlyDataPoint,
-    NegativeCase,
     PriorityComparison,
     ResponseTimeInsight,
     ResponseTimeRow,
@@ -150,8 +149,9 @@ class DashboardData:
     current_correlation: float | None = None
 
     # --- Ziekenhuizen (Tab 5) ---
-    hospital_top5: list[ZhSignalEntry] = field(default_factory=list)
-    hospital_bottom5: list[HospitalWithCause] = field(default_factory=list)
+    hospital_top10: list[ZhSignalEntry] = field(default_factory=list)
+    hospital_bottom10: list[ZhSignalEntry] = field(default_factory=list)
+    hospital_attention: list[ZhSignalEntry] = field(default_factory=list)
 
     # --- KPI Targets (Tab 6) ---
     kpi_targets: list[KpiTarget] = field(default_factory=list)
@@ -177,6 +177,7 @@ class DashboardExporter:
     _STREAK_THRESHOLD: float = 4.0
     _CRITICAL_SCORE_THRESHOLD: float = 3.0  # was: 2.5
     _ATTENTION_SCORE_THRESHOLD: float = 4.0  # nieuw: 3.0 ≤ score < 4.0
+    _TOP_MIN_TICKETS: int = 5  # minimum tickets voor top-10 (statistisch relevant)
     _SCORE_TARGET_KEYS: frozenset[str] = frozenset(
         {"avg_score_min", "pct_positive_min", "pct_negative_max"}
     )
@@ -264,14 +265,14 @@ class DashboardExporter:
             baseline_corr = result.response_time_insight.baseline_correlation_score
             current_corr = result.response_time_insight.correlation_score
 
-        # Hospital bottom-5 met oorzaakkolom en disengagement-flag
-        hospital_bottom5 = cls._build_hospital_bottom5(
-            result.hospital_bottom5,
-            result.negative_cases,
-        )
+        # Hospital bottom-10 als ZhSignalEntry (≥ 1 ticket, slechtste score eerst)
+        hospital_bottom10 = cls._build_hospital_bottom10(result.hospital_comparison)
 
-        # Hospital top-5 voor Tab 5
-        hospital_top5_full = cls._build_hospital_top5_full(result.hospital_top5)
+        # Hospital top-10 voor Tab 5 (min. _TOP_MIN_TICKETS tickets)
+        hospital_top10 = cls._build_hospital_top10(result.hospital_comparison)
+
+        # Hospital aandachtslijst (3,0★ ≤ score < 4,0★) voor Tab 5
+        hospital_attention = cls._build_hospital_attention(result.hospital_comparison)
 
         return DashboardData(
             mode=mode,
@@ -331,8 +332,9 @@ class DashboardExporter:
             baseline_correlation=baseline_corr,
             current_correlation=current_corr,
             # Ziekenhuizen
-            hospital_top5=hospital_top5_full,
-            hospital_bottom5=hospital_bottom5,
+            hospital_top10=hospital_top10,
+            hospital_bottom10=hospital_bottom10,
+            hospital_attention=hospital_attention,
             # KPI Targets
             kpi_targets=result.kpi_targets,
             # Raw
@@ -773,67 +775,85 @@ class DashboardExporter:
     # ------------------------------------------------------------------
 
     @staticmethod
-    def _build_hospital_top5_full(
-        hospital_top5: list[HospitalComparison],
+    def _build_hospital_top10(
+        hospital_comparison: list[HospitalComparison],
     ) -> list[ZhSignalEntry]:
-        """Bouw de volledige top-5-lijst voor Tab 5.
+        """Bouw de top-10-lijst voor Tab 5 (min. _TOP_MIN_TICKETS tickets).
 
         Sortering: hoogste score eerst; bij gelijke score meer tickets eerst.
         """
+        filtered = [
+            h
+            for h in hospital_comparison
+            if h.current_score is not None and h.current_total >= DashboardExporter._TOP_MIN_TICKETS
+        ]
         sorted_top = sorted(
-            hospital_top5,
+            filtered,
             key=lambda h: (-(h.current_score or 0.0), -h.current_total, h.hospital),
         )
         return [
             ZhSignalEntry(
                 hospital=h.hospital,
-                score=h.current_score if h.current_score is not None else 0.0,
+                score=h.current_score,  # type: ignore[arg-type]
                 tickets=h.current_total,
             )
-            for h in sorted_top
-            if h.current_score is not None
+            for h in sorted_top[:10]
         ]
 
-    @staticmethod
-    def _build_hospital_bottom5(
-        hospital_bottom5: list[HospitalComparison],
-        negative_cases: list[NegativeCase],
-    ) -> list[HospitalWithCause]:
+    @classmethod
+    def _build_hospital_bottom10(
+        cls,
+        hospital_comparisons: list[HospitalComparison],
+    ) -> list[ZhSignalEntry]:
         """
-        Bouw de bottom-5-tabel met oorzaakkolom en disengagement-flag (§9.8-C).
+        Bouw de bottom-10-lijst (slechtste score) als ZhSignalEntry.
 
-        Oorzaak = dominant negatief thema per ziekenhuis (uit negative_cases).
+        Filter: ziekenhuizen met ≥ 1 ticket in de huidige periode.
+        Sortering: oplopend current_score.
         Disengagement-risico = score < 2,5★ EN < 6 tickets.
         """
-        cause_counter: dict[str, Counter] = defaultdict(Counter)
-        for case in negative_cases:
-            if case.category and case.category != "—":
-                cause_counter[case.hospital][case.category] += 1
-
-        result = []
-        for h in sorted(
-            hospital_bottom5,
+        filtered = [
+            h for h in hospital_comparisons if h.current_score is not None and h.current_total >= 1
+        ]
+        sorted_bottom = sorted(
+            filtered,
             key=lambda h: (h.current_score or 0.0, -h.current_total, h.hospital),
-        ):
-            if h.current_score is None:
+        )
+        return [
+            ZhSignalEntry(
+                hospital=hc.hospital,
+                score=hc.current_score,  # type: ignore[arg-type]
+                tickets=hc.current_total,
+                disengagement_risk=(
+                    hc.current_score is not None
+                    and hc.current_score < cls._DISENGAGEMENT_SCORE_THRESHOLD
+                    and hc.current_total < cls._DISENGAGEMENT_TICKET_THRESHOLD
+                ),
+            )
+            for hc in sorted_bottom[:10]
+        ]
+
+    @classmethod
+    def _build_hospital_attention(
+        cls,
+        hospital_comparisons: list[HospitalComparison],
+    ) -> list[ZhSignalEntry]:
+        """Aandachtsaccounts: score tussen 3,0★ en 4,0★ (≥1 ticket huidig).
+
+        Sortering: oplopend score.
+        Geen limiet — alle aandachtsaccounts worden opgenomen.
+        Kan overlappen met bottom-10 (correct gedrag).
+        """
+        result = []
+        for hc in hospital_comparisons:
+            if hc.current_score is None or hc.current_total < 1:
                 continue
-            cause = ""
-            if cause_counter.get(h.hospital):
-                cause = cause_counter[h.hospital].most_common(1)[0][0]
-
-            disengagement = (
-                h.current_score < DashboardExporter._DISENGAGEMENT_SCORE_THRESHOLD
-                and h.current_total < DashboardExporter._DISENGAGEMENT_TICKET_THRESHOLD
-            )
-
-            result.append(
-                HospitalWithCause(
-                    hospital=h.hospital,
-                    score=h.current_score,
-                    baseline_score=h.baseline_score,
-                    tickets=h.current_total,
-                    cause=cause,
-                    disengagement_risk=disengagement,
+            if cls._CRITICAL_SCORE_THRESHOLD <= hc.current_score < cls._ATTENTION_SCORE_THRESHOLD:
+                result.append(
+                    ZhSignalEntry(
+                        hospital=hc.hospital,
+                        score=hc.current_score,  # type: ignore[arg-type]
+                        tickets=hc.current_total,
+                    )
                 )
-            )
-        return result
+        return sorted(result, key=lambda e: e.score)

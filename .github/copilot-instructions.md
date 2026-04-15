@@ -4,8 +4,8 @@ applyTo: '**/*'
 
 # CSAT-Compass - Copilot Instructions
 
-**Versie:** 3.4
-**Laatst bijgewerkt:** 08/04/2026
+**Versie:** 3.5
+**Laatst bijgewerkt:** 14/04/2026
 
 **Doel:** CSAT-Compass projectspecifieke GHC-instructies
 **Type:** Reference
@@ -105,6 +105,39 @@ The `/docs/` folder follows a 3-layer structure:
 
 - Follow `.github/instructions/md-style-guide.md` for all Markdown formatting
 - Follow `.github/instructions/code-formatting.md` for all code block formatting
+
+---
+
+## Versie- en Changelog-beheer
+
+> **Regel: GHC voert versiebeheer automatisch uit na elke codewijziging — zonder expliciete vraag.**
+
+### Wanneer updaten
+
+Na elke sessie met significante codewijzigingen (minimum: één functie/klasse aangepast):
+
+1. **`docs/CHANGELOG.md`** — voeg een nieuwe entry toe bovenaan:
+   - Formaat: `## [x.y.z] — DD/MM/YYYY`
+   - Secties: `### Toegevoegd`, `### Gewijzigd`, `### Verwijderd`, `### Opgelost`
+   - Beschrijving per gewijzigd bestand, bondig maar specifiek
+
+2. **Versienummer** — gebruik semantic versioning:
+   - **Patch** (z+1): bugfixes, stijlcorrecties, kleine refactors
+   - **Minor** (y+1, z=0): nieuwe features, nieuwe functies/methoden
+   - **Major** (x+1, y=0, z=0): brekende wijzigingen, architectuurwijzigingen
+
+### Wat NIET telt als significante wijziging
+
+- Alleen commentaar of docstrings gewijzigd
+- Whitespace/opmaak zonder gedragswijziging
+- Eenmalige debug-code (tijdelijk toegevoegd én verwijderd in dezelfde sessie)
+
+### Reminder-gedrag
+
+- Als GHC een codewijziging uitvoert zonder CHANGELOG bij te werken → **vermeld dit expliciet**
+  aan het einde van het antwoord met:
+  > 📝 **Versieherinnering:** CHANGELOG.md nog niet bijgewerkt — typ `/git` of vraag expliciet om een versie-entry.
+- Bij `/git` Flow 1 of Flow 3 (commit): altijd nagaan of CHANGELOG up-to-date is vóór de commit
 
 ---
 
@@ -302,3 +335,4 @@ When the user types `/cve` as the entire message, immediately execute this seque
 | 3.2 | 25/03/2026 | /git hernoemd naar /git | Danny Depecker |
 | 3.3 | 27/03/2026 | /git Flow 1 + Flow 3: CVE-herinnering toegevoegd als stap 6 na succesvolle commit | Danny Depecker |
 | 3.4 | 08/04/2026 | /pytest toegevoegd (3 flows: tests only / tests+lint / tests+lint+commit) | Danny Depecker |
+| 3.5 | 14/04/2026 | Versie- en Changelog-beheer sectie toegevoegd — automatische CHANGELOG-update na elke codewijziging | Danny Depecker |

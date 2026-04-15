@@ -15,7 +15,6 @@ from csat.core.analysers.evolution_result import (
     HospitalComparison,
     KpiTarget,
     MonthlyDataPoint,
-    NegativeCase,
     PriorityComparison,
 )
 from csat.core.exporters.dashboard_exporter import (
@@ -623,7 +622,7 @@ class TestTrivialStats:
 # ---------------------------------------------------------------------------
 
 
-class TestBuildHospitalBottom5:
+class TestBuildHospitalBottom10:
     def _make_hc(self, name: str, score: float, total: int) -> HospitalComparison:
         return HospitalComparison(
             hospital=name,
@@ -633,37 +632,26 @@ class TestBuildHospitalBottom5:
             current_total=total,
         )
 
-    def _make_case(self, hospital: str, category: str) -> NegativeCase:
-        return NegativeCase(
-            ticket_id="SD-001",
-            hospital=hospital,
-            issue_type="Bug",
-            score=2,
-            response_days=5.0,
-            category=category,
-            comment="Test",
-        )
-
-    def test_dominant_cause_derived_from_cases(self):
-        """Oorzaak = meest voorkomende categorie per ziekenhuis."""
-        bottom = [self._make_hc("LIEGE", 2.0, 3)]
-        cases = [
-            self._make_case("LIEGE", "responstijd"),
-            self._make_case("LIEGE", "responstijd"),
-            self._make_case("LIEGE", "communicatie"),
+    def test_returns_bottom_sorted_ascending(self):
+        """Bottom-10 wordt gesorteerd op oplopende score."""
+        comparisons = [
+            self._make_hc("A", 4.0, 10),
+            self._make_hc("B", 2.0, 5),
+            self._make_hc("C", 3.0, 8),
         ]
-        result = DashboardExporter._build_hospital_bottom5(bottom, cases)
-        assert len(result) == 1
-        assert result[0].cause == "responstijd"
+        result = DashboardExporter._build_hospital_bottom10(comparisons)
+        assert result[0].hospital == "B"
+        assert result[1].hospital == "C"
+        assert result[2].hospital == "A"
 
     def test_disengagement_risk_flag(self):
         """Disengagement = score < 2.5 EN tickets < 6."""
-        bottom = [
+        comparisons = [
             self._make_hc("A", 2.0, 2),  # risk=True
             self._make_hc("B", 2.0, 10),  # risk=False (>= 6 tickets)
             self._make_hc("C", 2.5, 3),  # risk=False (score >= 2.5)
         ]
-        result = DashboardExporter._build_hospital_bottom5(bottom, [])
+        result = DashboardExporter._build_hospital_bottom10(comparisons)
         a = next(r for r in result if r.hospital == "A")
         b = next(r for r in result if r.hospital == "B")
         c = next(r for r in result if r.hospital == "C")
@@ -673,22 +661,22 @@ class TestBuildHospitalBottom5:
 
     def test_skips_none_score(self):
         """Ziekenhuizen zonder current_score worden overgeslagen."""
-        bottom = [
+        comparisons = [
             HospitalComparison("A", 3.0, 5, None, 0),
             self._make_hc("B", 2.0, 5),
         ]
-        result = DashboardExporter._build_hospital_bottom5(bottom, [])
+        result = DashboardExporter._build_hospital_bottom10(comparisons)
         assert all(r.hospital != "A" for r in result)
 
-    def test_no_cases_empty_cause(self):
-        """Zonder negative_cases is de oorzaak een lege string."""
-        bottom = [self._make_hc("GENT", 2.5, 8)]
-        result = DashboardExporter._build_hospital_bottom5(bottom, [])
-        assert result[0].cause == ""
+    def test_no_disengagement_when_absent(self):
+        """Ziekenhuis met score >= 2.5 of tickets >= 6 heeft geen disengagement_risk."""
+        comparisons = [self._make_hc("GENT", 3.5, 8)]
+        result = DashboardExporter._build_hospital_bottom10(comparisons)
+        assert result[0].disengagement_risk is False
 
     def test_empty_inputs(self):
         """Lege bottom-lijst geeft lege output."""
-        assert DashboardExporter._build_hospital_bottom5([], []) == []
+        assert DashboardExporter._build_hospital_bottom10([]) == []
 
 
 # ---------------------------------------------------------------------------
