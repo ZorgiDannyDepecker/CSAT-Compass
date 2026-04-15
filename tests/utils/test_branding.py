@@ -468,3 +468,80 @@ class TestBrandGuard:
         assert COLORS["red"] not in PLOTLY_LAYOUT["colorway"], (
             "PLOTLY_LAYOUT.colorway bevat rood — in strijd met kleurreservering"
         )
+
+
+# ------------------------------------------------------------------
+# B7 — inject_tab_persistence() en inject_iframe_resize()
+# ------------------------------------------------------------------
+
+
+class TestInjectStreamlitComponents:
+    """Tests voor inject_tab_persistence() en inject_iframe_resize() via mock."""
+
+    def test_inject_tab_persistence_roept_html_aan(self) -> None:
+        """inject_tab_persistence() roept streamlit.components.v1.html() éénmaal aan."""
+        with patch("streamlit.components.v1.html") as mock_html:
+            from csat.utils.branding import inject_tab_persistence
+
+            inject_tab_persistence()
+            mock_html.assert_called_once()
+
+    def test_inject_tab_persistence_height_is_1(self) -> None:
+        """inject_tab_persistence() roept html() aan met height=1."""
+        with patch("streamlit.components.v1.html") as mock_html:
+            from csat.utils.branding import inject_tab_persistence
+
+            inject_tab_persistence()
+            assert mock_html.call_args.kwargs["height"] == 1
+
+    def test_inject_tab_persistence_js_bevat_storage_key(self) -> None:
+        """De geïnjecteerde JS bevat de localStorage-sleutel 'zorgi_tab_idx'."""
+        with patch("streamlit.components.v1.html") as mock_html:
+            from csat.utils.branding import inject_tab_persistence
+
+            inject_tab_persistence()
+            js_html: str = mock_html.call_args.args[0]
+            assert "zorgi_tab_idx" in js_html
+
+    def test_inject_tab_persistence_js_bevat_mutationobserver(self) -> None:
+        """De geïnjecteerde JS gebruikt MutationObserver voor stabiele restore."""
+        with patch("streamlit.components.v1.html") as mock_html:
+            from csat.utils.branding import inject_tab_persistence
+
+            inject_tab_persistence()
+            js_html: str = mock_html.call_args.args[0]
+            assert "MutationObserver" in js_html
+
+    def test_inject_iframe_resize_roept_html_aan(self) -> None:
+        """inject_iframe_resize() roept streamlit.components.v1.html() éénmaal aan."""
+        with patch("streamlit.components.v1.html") as mock_html:
+            from csat.utils.branding import inject_iframe_resize
+
+            inject_iframe_resize()
+            mock_html.assert_called_once()
+
+    def test_inject_iframe_resize_height_is_1(self) -> None:
+        """inject_iframe_resize() roept html() aan met height=1."""
+        with patch("streamlit.components.v1.html") as mock_html:
+            from csat.utils.branding import inject_iframe_resize
+
+            inject_iframe_resize()
+            assert mock_html.call_args.kwargs["height"] == 1
+
+    def test_inject_iframe_resize_js_bevat_bounding_rect(self) -> None:
+        """De geïnjecteerde JS meet hoogte via getBoundingClientRect."""
+        with patch("streamlit.components.v1.html") as mock_html:
+            from csat.utils.branding import inject_iframe_resize
+
+            inject_iframe_resize()
+            js_html: str = mock_html.call_args.args[0]
+            assert "getBoundingClientRect" in js_html
+
+    def test_inject_iframe_resize_js_bevat_scroll_wrap(self) -> None:
+        """De geïnjecteerde JS zoekt de .scroll-wrap container."""
+        with patch("streamlit.components.v1.html") as mock_html:
+            from csat.utils.branding import inject_iframe_resize
+
+            inject_iframe_resize()
+            js_html: str = mock_html.call_args.args[0]
+            assert "scroll-wrap" in js_html

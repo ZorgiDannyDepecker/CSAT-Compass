@@ -704,3 +704,93 @@ class TestPreparePeriodGroups:
         data = DashboardExporter.prepare(pharma_result)
         for g in data.period_groups:
             assert g.avg_score >= 0.0
+
+
+# ---------------------------------------------------------------------------
+# Tests — _build_hospital_attention
+# ---------------------------------------------------------------------------
+
+
+class TestBuildHospitalAttention:
+    """Tests voor DashboardExporter._build_hospital_attention() — lijn 852 coverage."""
+
+    def _make_hc(self, name: str, score: float | None, total: int) -> HospitalComparison:
+        return HospitalComparison(
+            hospital=name,
+            baseline_score=3.5,
+            baseline_total=5,
+            current_score=score,
+            current_total=total,
+        )
+
+    def test_bevat_scores_tussen_3_en_4(self):
+        """Accounts met score >= 3.0 en < 4.0 worden opgenomen."""
+        comparisons = [
+            self._make_hc("A", 3.5, 10),  # aandacht ✓
+            self._make_hc("B", 2.9, 5),  # kritiek — buiten range
+            self._make_hc("C", 4.0, 8),  # top — buiten range
+            self._make_hc("D", 3.0, 3),  # grenswaarde ondergrens ✓
+        ]
+        result = DashboardExporter._build_hospital_attention(comparisons)
+        hospitals = [e.hospital for e in result]
+        assert "A" in hospitals
+        assert "D" in hospitals
+        assert "B" not in hospitals
+        assert "C" not in hospitals
+
+    def test_gesorteerd_op_score_oplopend(self):
+        """Aandachtslijst wordt gesorteerd op oplopende score."""
+        comparisons = [
+            self._make_hc("A", 3.8, 5),
+            self._make_hc("B", 3.2, 5),
+            self._make_hc("C", 3.5, 5),
+        ]
+        result = DashboardExporter._build_hospital_attention(comparisons)
+        scores = [e.score for e in result]
+        assert scores == sorted(scores)
+
+    def test_slaat_none_score_over(self):
+        """Ziekenhuizen met score=None worden overgeslagen."""
+        comparisons = [
+            HospitalComparison("A", 3.0, 5, None, 3),
+            self._make_hc("B", 3.5, 3),
+        ]
+        result = DashboardExporter._build_hospital_attention(comparisons)
+        assert all(e.hospital != "A" for e in result)
+
+    def test_slaat_nul_tickets_over(self):
+        """Ziekenhuizen met 0 tickets worden overgeslagen."""
+        comparisons = [
+            self._make_hc("A", 3.5, 0),
+            self._make_hc("B", 3.5, 3),
+        ]
+        result = DashboardExporter._build_hospital_attention(comparisons)
+        assert all(e.hospital != "A" for e in result)
+
+    def test_lege_input_geeft_lege_lijst(self):
+        """Lege input geeft lege lijst terug."""
+        assert DashboardExporter._build_hospital_attention([]) == []
+
+    def test_geen_aandachtsaccounts_buiten_range(self):
+        """Geeft lege lijst als alle scores buiten 3.0-4.0 liggen."""
+        comparisons = [
+            self._make_hc("A", 2.0, 5),
+            self._make_hc("B", 4.5, 5),
+        ]
+        assert DashboardExporter._build_hospital_attention(comparisons) == []
+
+    def test_score_en_tickets_correct_overgenomen(self):
+        """Score en tickets worden correct overgezet naar ZhSignalEntry."""
+        comparisons = [self._make_hc("UZ Gent", 3.7, 12)]
+        result = DashboardExporter._build_hospital_attention(comparisons)
+        assert len(result) == 1
+        assert result[0].hospital == "UZ Gent"
+        assert result[0].score == 3.7
+        assert result[0].tickets == 12
+
+    def test_geen_limiet_op_aantal_entries(self):
+        """Alle aandachtsaccounts worden opgenomen — geen max limiet."""
+        comparisons = [self._make_hc(f"ZH{i}", 3.0 + i * 0.05, 5) for i in range(15)]
+        result = DashboardExporter._build_hospital_attention(comparisons)
+        # Alle 15 scores zijn >= 3.0; die met score >= 4.0 vallen buiten range
+        assert len(result) == sum(1 for i in range(15) if 3.0 <= (3.0 + i * 0.05) < 4.0)

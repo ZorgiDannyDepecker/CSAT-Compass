@@ -5,6 +5,27 @@ Formaat gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.0.0/).
 
 ---
 
+## [0.5.9] — 15/04/2026
+
+### Toegevoegd
+
+- **`tests/core/test_dashboard_exporter.py`** — `TestBuildHospitalAttention` (8 tests): volledige dekking van `_build_hospital_attention()` incl. scores in 3.0–4.0 range, sortering, None-score, nul-tickets, lege input, geen limiet
+- **`tests/utils/test_branding.py`** — `TestInjectStreamlitComponents` (8 tests): `inject_tab_persistence()` + `inject_iframe_resize()` gedekt via `patch("streamlit.components.v1.html")`; validatie van height=1, localStorage-sleutel, MutationObserver, getBoundingClientRect, scroll-wrap
+
+### Opgelost
+
+- **`tests/core/test_dashboard_exporter.py:775`** (RUF002): en-dash `–` → koppelteken `-` in docstring
+
+### Gewijzigd
+
+- Coverage `src/csat/utils/branding.py`: 92,21% → **100%** (6 regels gedekt: 1126–1190, 1204–1265)
+- Coverage `src/csat/core/exporters/dashboard_exporter.py`: 99,66% → **100%** (lijn 852 gedekt)
+- **Totale coverage: 100%** — 2.373 statements, 0 gemist — 837 tests
+
+GHC (coverage-analyse + test-generatie)
+
+---
+
 ## [0.5.8] — 15/04/2026
 
 ### Opgelost
