@@ -5,6 +5,343 @@ Formaat gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.0.0/).
 
 ---
 
+## [0.5.38] — 16/04/2026
+
+### Gewijzigd
+
+- **`src/dashboard/app.py`** + **`tools/_patch_app.py`** — `render_tab_dev_tickets()`: voetnoot `margin-top`: `-0.9rem` → `-0.6rem`
+
+GHC (Fase 5a — voetnoot spacing)
+
+---
+
+## [0.5.37] — 16/04/2026
+
+### Gewijzigd
+
+- **`src/dashboard/app.py`** + **`tools/_patch_app.py`** — `render_tab_dev_tickets()`: scheidingslijn (`<hr>`) toegevoegd tussen grafiek en detailtabel; tabeltitel `margin-bottom`: `1.0rem` → `0.1rem`; voetnoot `margin-top`: `-0.8rem` → `-0.9rem`
+
+GHC (Fase 5a — scheidingslijn + spacing)
+
+---
+
+## [0.5.36] — 16/04/2026
+
+### Gewijzigd
+
+- **`src/dashboard/app.py`** + **`tools/_patch_app.py`** — `render_tab_dev_tickets()`: tabeltitel `margin-bottom`: `-1.0rem` → `+1.0rem`; voetnoot `margin-top`: `-1.0rem` → `-0.8rem`
+
+GHC (Fase 5a — titel/voetnoot spacing bijgestuurd)
+
+---
+
+## [0.5.35] — 16/04/2026
+
+### Gewijzigd
+
+- **`src/dashboard/app.py`** + **`tools/_patch_app.py`** — `render_tab_dev_tickets()`: tabeltitel dichter bij tabel (`margin-bottom:-1.0rem`); voetnoot `margin-top`: `-0.6rem` → `-1.0rem`
+
+GHC (Fase 5a — titel + voetnoot spacing)
+
+---
+
+## [0.5.34] — 16/04/2026
+
+### Gewijzigd
+
+- **`src/dashboard/app.py`** — `_render_sortable_table()`: parameter `show_title=True` toegevoegd; bij `False` wordt titel weggelaten uit iframe (enkel Export CSV-knop) + hoogte-berekening aangepast (`top_row_h` conditioneel)
+- **`src/dashboard/app.py`** + **`tools/_patch_app.py`** — `render_tab_dev_tickets()`: tabelttitel via `st.markdown("####...")` (24px Source Sans, #1A1A1A — identiek aan PNG 13/14); `show_title=False` in `_render_sortable_table`; voetnoot `margin-top:-0.6rem` (dichter bij tabel)
+
+GHC (Fase 5a — tabelkop gelijkgesteld aan ####-headings + voetnoot dichter bij tabel)
+
+---
+
+## [0.5.33] — 16/04/2026
+
+### Gewijzigd
+
+- **`src/dashboard/app.py`** + **`tools/_patch_app.py`** — `render_tab_dev_tickets()`: voetnoot Δ Negatief: `—` vervangen door `,`
+
+GHC (Fase 5a — voetnoot interpunctie)
+
+---
+
+## [0.5.32] — 16/04/2026
+
+### Gewijzigd
+
+- **`src/dashboard/app.py`** + **`tools/_patch_app.py`** — `render_tab_dev_tickets()`: voetnoot op 2 regels gesplitst (`<br>`) en `margin-top:0` zodat de tekst aansluit aan de tabel
+
+GHC (Fase 5a — voetnoot 2 regels + aansluitend aan tabel)
+
+---
+
+## [0.5.31] — 16/04/2026
+
+### Gewijzigd
+
+- **`src/dashboard/app.py`** + **`tools/_patch_app.py`** — `render_tab_dev_tickets()`: kolomnaam `% Neg.` → `% Negatief`; voetnoot toegevoegd onder detailtabel met uitleg over **% Negatief** en **Δ Negatief** (vette kolomnamen, grijze toelichting)
+
+GHC (Fase 5a — kolomnaam voluit + voetnoot detailtabel)
+
+---
+
+## [0.5.30] — 16/04/2026
+
+### Gewijzigd
+
+- **`src/dashboard/app.py`** + **`tools/_patch_app.py`** — `render_tab_dev_tickets()`: detailtabel omgezet naar `_render_sortable_table()` — identiek aan Ziekenhuizen-tab (sorteerbare kolomkoppen, donkerblauwe header, Export CSV-knop, Δ Score semantisch groen/rood gekleurd)
+
+GHC (Fase 5a — detailtabel via _render_sortable_table analoog Ziekenhuizen-tab)
+
+---
+
+## [0.5.29] — 16/04/2026
+
+### Gewijzigd
+
+- **`src/dashboard/app.py`** + **`tools/_patch_app.py`** — `render_tab_dev_tickets()`: detailtabel omgezet van `st.dataframe()` naar gestylede HTML-tabel analoog aan Ziekenhuizen-tab — donkerblauwe header (`ZORGI_DARK_BLUE`), afwisselende rijkleuren (`ZORGI_ULTRA_LIGHT`), Δ Score en Δ Negatief semantisch gekleurd (groen/rood)
+
+GHC (Fase 5a — detailtabel gestylede HTML-tabel)
+
+---
+
+## [0.5.28] — 16/04/2026
+
+### Gewijzigd
+
+- **`tools/_patch_app.py`** + **`src/dashboard/app.py`** — `_build_issue_type_chart()`: `_bar_w`: `0.40` → `0.35`; `legend.y`: `1.02` → `1.05`
+
+GHC (Fase 5a — balken 0.35 + legenda y=1.05)
+
+---
+
+## [0.5.27] — 16/04/2026
+
+### Gewijzigd
+
+- **`tools/_patch_app.py`** + **`src/dashboard/app.py`** — `_build_issue_type_chart()`: `_bar_w`: `0.44` → `0.40`; `legend.y`: `1.0` → `1.02`; `margin.t`: `35px` → `50px` — legenda staat nu duidelijk boven het datapaneel zonder overlap
+
+GHC (Fase 5a — legenda boven datapaneel fix + balken iets kleiner)
+
+---
+
+## [0.5.26] — 16/04/2026
+
+### Gewijzigd
+
+- **`tools/_patch_app.py`** + **`src/dashboard/app.py`** — `_build_issue_type_chart()`: legenda terug buiten datapaneel (`y=1.0`, `margin.t=35px`); rijhoogte vergroot `48px` → `72px` per item voor meer tussenruimte tussen Y-as labels
+
+GHC (Fase 5a — legenda buiten datavlak + meer ruimte tussen Y-nodes)
+
+---
+
+## [0.5.25] — 16/04/2026
+
+### Gewijzigd
+
+- **`tools/_patch_app.py`** + **`src/dashboard/app.py`** — `_build_issue_type_chart()`: `_bar_w`: `0.36` → `0.44` (dikkere balken); `legend.y`: `1.0` → `0.8` (legenda binnen datavlak op 80% hoogte); `margin.t`: `30px` → `10px`
+
+GHC (Fase 5a — dikkere balken + legenda y=0.8)
+
+---
+
+## [0.5.24] — 16/04/2026
+
+### Gewijzigd
+
+- **`tools/_patch_app.py`** + **`src/dashboard/app.py`** — `_build_issue_type_chart()`: legenda sluit nu naadloos aan op datapaneel — `legend.y`: `1.02` → `1.0` (`yanchor=bottom` zodat onderkant legenda = bovenkant datapaneel); `margin.t`: `50px` → `30px`
+
+GHC (Fase 5a — legenda aansluiting datapaneel)
+
+---
+
+## [0.5.23] — 16/04/2026
+
+### Opgelost
+
+- **`src/dashboard/app.py`** — `with tab_dev`: `_load_df()` (alle pijlers) vervangen door pijler-gefilterde df via `PILLAR_REGISTRY[selected_pillar]["products"]` + `FILTER_COLUMN` — ticketaantallen in de DEV-grafiek toonden eerder alle ZORGI-data i.p.v. enkel de geselecteerde pijler
+- **`tools/_patch_app.py`** — `NEW_WITH` string bijgewerkt conform bovenstaande fix
+
+### Teruggedraaid
+
+- **`src/dashboard/app.py`** + **`tools/_patch_app.py`** — v0.5.22 (modebar top-aansluiting) teruggedraaid: `margin.t` terug naar `50px`, legenda terug naar `y=1.02` boven
+
+GHC (Fase 5a — pillar-filter DEV-tab + revert v0.5.22)
+
+---
+
+## [0.5.22] — 16/04/2026
+
+### Gewijzigd
+
+- **`tools/_patch_app.py`** + **`src/dashboard/app.py`** — `_build_issue_type_chart()`: modebar sluit nu ook aan aan de bovenkant van het datapaneel — `margin.t`: `50px` → `5px`; legenda verplaatst van boven (`y=1.02`) naar onder de grafiek (`y=-0.15, yanchor=top`); `margin.b`: `10px` → `60px` (ruimte voor legenda onderaan)
+
+GHC (Fase 5a — modebar top-aansluiting datapaneel)
+
+---
+
+## [0.5.21] — 16/04/2026
+
+### Gewijzigd
+
+- **`tools/_patch_app.py`** + **`src/dashboard/app.py`** — 3 grafiekparameters:
+  - `x_max` offset: `+0.10` → `+0.20`
+  - `margin.t`: `30px` → `25px`
+  - `margin-bottom` div: `-5.0rem` → `-1.0rem`
+
+GHC (Fase 5a — grafiek fine-tuning)
+
+---
+
+## [0.5.20] — 16/04/2026
+
+### Gewijzigd
+
+- **`tools/_patch_app.py`** + **`src/dashboard/app.py`** — `x_max` offset: `+0.30` → `+0.10`
+
+GHC (Fase 5a — grafiek fine-tuning)
+
+---
+
+## [0.5.19] — 16/04/2026
+
+### Gewijzigd
+
+- **`tools/_patch_app.py`** + **`src/dashboard/app.py`** — 3 grafiekparameters:
+  - `margin.t`: `45px` → `30px`
+  - `x_max` offset: `+1.2` → `+0.30`
+  - `margin-bottom` div: `-3.5rem` → `-5.0rem`
+
+GHC (Fase 5a — grafiek fine-tuning)
+
+---
+
+## [0.5.18] — 16/04/2026
+
+### Gewijzigd
+
+- **`tools/_patch_app.py`** + **`src/dashboard/app.py`** — 4 grafiekparameters:
+  - `COLOR_2025`: `#C5D0D8` → `#A7B4C1`
+  - `legend.y` / `margin.t`: `1.06` / `50px` → `1.06` / `45px`
+  - `margin-bottom` div: `-2.5rem` → `-3.5rem`
+  - `x_max` offset: `+0.60` → `+1.2`
+
+GHC (Fase 5a — grafiek fine-tuning)
+
+---
+
+## [0.5.17] — 16/04/2026
+
+### Gewijzigd
+
+- **`pyproject.toml`** — versie `0.5.0` → `0.5.16` (dashboard toonde oude versie uit package metadata)
+- **`tools/_patch_app.py`** + **`src/dashboard/app.py`** — grafiek 5 parameters gewijzigd:
+  - `legend.y`: `1.0` → `1.06` + `margin.t`: `40` → `50` (legenda vrij van data)
+  - `margin-bottom` div: `-1.5rem` → `-2.5rem` (grafiek dichter bij titel)
+  - `_bar_w`: `0.28` → `0.36` (dikkere balkjes)
+  - Ticketaantal: `f"{n}t"` → `f"{n} t"` (spatie voor de t)
+  - `x_max` offset: `+0.45` → `+0.60` (meer schaalruimte rechts)
+
+### Onderzocht
+
+- **Task-tickets**: 4 tickets totaal, alle 4 met `satisfaction_date` in 2025. In 2026: **0 tickets aangemaakt, 0 gescoord**. Task-balk correct afwezig in YTD.
+
+GHC (Fase 5a — versiefix + grafiekparameters + Task-verificatie)
+
+---
+
+## [0.5.16] — 16/04/2026
+
+### Gewijzigd
+
+- **`src/dashboard/app.py`** — `_build_issue_type_chart()`: (1) 2025-balk lichtgrijs `#C5D0D8`; (2) score aan einde van balk via `textposition="outside"`; (3) titel dichter bij grafiek via `margin-bottom:-1.5rem`; (4) legenda `y=1.0` bottom = top datasectie; (5) `margin.r=0, t=40` modebar aansluitend rechts/boven datasectie; (6) ticketaantal wit binnenin via `add_annotation` (`yshift=±8`)
+- **`src/csat/core/calculations.py`** — `calc_issue_type_comparison()`: count op totale tickets incl. ongescoorde (Task zichtbaar)
+- **`tools/_patch_app.py`** — nieuw hulpscript voor veilige patch van app.py (vervangt PowerShell string-manipulatie)
+
+GHC (Fase 5a — grafiek definitieve layoutcorrecties + patch-script)
+
+---
+
+## [0.5.15] — 16/04/2026
+
+### Gewijzigd
+
+- **`src/csat/core/calculations.py`** — `calc_issue_type_comparison()`: count op totaal tickets (i.p.v. gescoorde); types met tickets maar zonder score (bv. Task) zijn nu zichtbaar met `—`
+- **`src/dashboard/app.py`** — `_build_issue_type_chart()`: 2025-balk omgezet naar wit/omlijnd (`rgba(255,255,255,0.15)` + `marker_line_color=ZORGI_GREY_BLUE`); legenda naar `y=1.04`, `margin.t=65`
+- **`src/dashboard/app.py`** — `render_tab_dev_tickets()`: negatieve marge (`margin-bottom:-1.5rem`) tussen sectietitel en grafiek
+
+GHC (Fase 5a — grafiek p2/p3/P6/NEW7 correcties)
+
+---
+
+## [0.5.14] — 16/04/2026
+
+### Gewijzigd
+
+- **`src/dashboard/app.py`** — Volledig herstel na bestandscorruptie (git restore c4898e0) + heropbouw alle Fase 5a wijzigingen
+- **`src/dashboard/app.py`** — `_build_issue_type_chart()` definitieve versie: Plotly overlay-modus, alfabetisch gesorteerd, ticket count in balk (`Xt`), auto-scale x-as op werkelijke data, legenda `y=1.0`, `margin.r=5`, types zonder gescoorde data uitgefilterd
+- **`src/dashboard/app.py`** — `render_tab_dev_tickets()`: hero-metrics strip (4 tiles) + grafiek (`st.plotly_chart`) + sorteerbare tabel met CSV-exportknop
+- **`src/csat/core/calculations.py`** — `calc_issue_type_comparison()`: `count_prev`/`count_curr` kolommen toegevoegd; filter op types zonder gescoorde data (Bug/Task zonder satisfaction_date worden niet getoond)
+
+GHC (Fase 5a herstel + layoutcorrecties definitief)
+
+---
+
+## [0.5.13] — 16/04/2026
+
+### Gewijzigd
+
+- **`src/dashboard/app.py`** — `_build_issue_type_chart()`: 4 layoutcorrecties — (1) Y-as alfabetisch gesorteerd, (2) legenda hoger boven datavlak (`y=1.04`, `margin.t=70`), (3) modebar sluit aan op rechterrand datavlak (`r=5`), (4) X-as start bij 2.5★ i.p.v. 0 voor betere schaling
+
+GHC (Fase 5a — grafiek issue type layoutcorrecties)
+
+---
+
+## [0.5.12] — 16/04/2026
+
+### Gewijzigd
+
+- **`src/dashboard/app.py`** — `_build_issue_type_chart()`: matplotlib vervangen door Plotly — analoog aan `_chart_kpi_targets_h` (overlay-modus, gecentreerde legenda bovenaan, `apply_plotly_theme`, Plotly modebar); YTD-bar groen/rood per-bar via `marker_color` list; legenda-dummies voor groen/rood YTD
+- **`src/dashboard/app.py`** — `render_tab_dev_tickets()`: `st.pyplot` + `plt.close` vervangen door `st.plotly_chart(..., config=_CHART_CONFIG)`; `matplotlib.pyplot`-import verwijderd
+
+GHC (Fase 5a — grafiek issue type omgezet naar Plotly/ZORGI-stijl)
+
+---
+
+## [0.5.11] — 16/04/2026
+
+### Gewijzigd
+
+- **`src/dashboard/app.py`** — `_build_issue_type_chart()`: horizontale bar chart omgezet naar KPI Target-stijl — lichtblauwe achtergrond (`#D7E7F3`), waarde-annotaties per bar, YTD-bar groen/rood op basis van evolutie t.o.v. 2025, legenda met 3 items
+- **`src/dashboard/app.py`** — `_render_issue_table()` verwijderd, vervangen door sorteerbare `st.dataframe` met `column_config` (numerieke sortering), sectietitel + CSV-exportknop via `st.download_button`
+- **`src/dashboard/app.py`** — alle resterende `use_container_width=True/False` vervangen door `width='stretch'/'content'` (Streamlit deprecatie, volledig opgeschoond)
+
+GHC (Fase 5a stap 2c + use_container_width sweep)
+
+---
+
+## [0.5.10] — 16/04/2026
+
+### Toegevoegd
+
+- **`src/csat/core/calculations.py`** — nieuw bestand: `calc_hero_metrics_tickets()` (9 sleutels incl. `high_critical_margin`) + `calc_issue_type_comparison()` (vergelijkingstabel per issue type, vorig vs huidig jaar)
+- **`src/dashboard/app.py`** — DEV-tabblad "DEV Tickets & Prioriteit" (Fase 5a stap 0–2b):
+  - Stub-tabblad (stap 0): leeg DEV-tabblad naast bestaand "Tickets & Prioriteit"
+  - Hero-metrics strip (stap 1): 4 `st.metric()` tiles — meest voorkomend type, laagst scorend type, grootste prioritaire groep, % High/Critical met margewaarde
+  - Issue type vergelijking (stap 2): horizontale grouped bar chart (`matplotlib`) + gestileerde HTML-tabel met gekleurde Δ-kolommen
+  - `_build_issue_type_chart()`: horizontale barh-grafiek, dynamische hoogte, gestippelde referentielijn
+  - `_render_issue_table()`: lokale HTML-tabel met ZORGI-stijl (donkerblauwe header, afwisselende rijkleuren, semantische Δ-kleuren)
+
+### Gewijzigd
+
+- **`src/dashboard/app.py`** — `_tab_labels` uitgebreid van 6 naar 7 tabs; taalwissel-code (`_render_sidebar`) gesynchroniseerd
+- **`src/dashboard/app.py`** — `st.dataframe(use_container_width=True)` → `width="stretch"` in DEV-tabblad (Streamlit deprecatie)
+
+GHC (Fase 5a implementatie stap 0–2b)
+
+---
+
 ## [0.5.9] — 15/04/2026
 
 ### Toegevoegd
