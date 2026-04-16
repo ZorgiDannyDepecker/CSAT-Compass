@@ -601,18 +601,24 @@ class EvolutionAnalyser:
             ]
 
             b_days: float | None = None
+            b_count: int = 0
             if not b_sub.empty and b_sub["satisfaction_date"].notna().any():
                 b_days = self._calc_avg_response_days(b_sub)
+                b_count = int(b_sub["satisfaction_date"].notna().sum())
 
             c_days: float | None = None
+            c_count: int = 0
             if not c_sub.empty and c_sub["satisfaction_date"].notna().any():
                 c_days = self._calc_avg_response_days(c_sub)
+                c_count = int(c_sub["satisfaction_date"].notna().sum())
 
             if b_days is not None or c_days is not None:
                 result[score_level] = ResponseTimeRow(
                     score_level=score_level,
                     baseline_days=b_days,
                     current_days=c_days,
+                    baseline_count=b_count,
+                    current_count=c_count,
                 )
         return result
 

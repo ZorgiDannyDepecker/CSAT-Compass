@@ -21,6 +21,7 @@ from csat.core.analysers.evolution_result import (
     IssueTypeComparison,
     KpiTarget,
     MonthlyDataPoint,
+    NegativeCase,
     PriorityComparison,
     ResponseTimeInsight,
     ResponseTimeRow,
@@ -147,6 +148,7 @@ class DashboardData:
     response_time_insight: ResponseTimeInsight | None = None
     baseline_correlation: float | None = None
     current_correlation: float | None = None
+    negative_cases: list[NegativeCase] = field(default_factory=list)
 
     # --- Ziekenhuizen (Tab 5) ---
     hospital_top10: list[ZhSignalEntry] = field(default_factory=list)

@@ -99,6 +99,8 @@ class ResponseTimeRow:
     score_level: int  # 1-5
     baseline_days: float | None  # None als geen data beschikbaar
     current_days: float | None  # None als geen data beschikbaar
+    baseline_count: int = 0  # aantal tickets met satisfaction_date (baseline)
+    current_count: int = 0  # aantal tickets met satisfaction_date (huidig)
 
 
 # ---------------------------------------------------------------------------

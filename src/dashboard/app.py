@@ -26,7 +26,6 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 import streamlit.components.v1 as _stc
-from plotly.subplots import make_subplots
 
 # Zorg dat src/ op het Python-pad staat bij directe streamlit-run
 _SRC = Path(__file__).resolve().parent.parent
@@ -398,63 +397,87 @@ def _chart_timeline(data: DashboardData, t: dict, lang: str) -> go.Figure:
     """
     Combo-grafiek: maandelijkse score (lijn + gekleurde punten) + ticketvolume (bar).
 
+    Visuele elementen (ontwerp "Best of Four" v4 — 15/04/2026):
+    ① Kleurgecodeerde bars: ZORGI_LIGHT_BLUE (≥ KPI) / lichtroze (< KPI)
+    ② Score-lijn gegarandeerd op voorgrond:
+       - Bars op yaxis="y"  (go.Figure hoofdlaag = BOTTOM)
+       - Score op yaxis="y2" (go.Figure overplot-laag = TOP — altijd boven hoofdlaag)
+       - yaxis  (main,     rechts) = volumeas
+       - yaxis2 (overplot, links)  = scoreas
+    ③ KPI-drempellijn + gewogen jaar-gemiddelde vorig jaar (via add_shape yref="y2")
+    ④ Ticketaantallen als tekstlabel binnenin elke bar (onderkant; auto-fallback = boven de bar)
+    ⑤ Jaar-scheidingslijn bij multi-jaar data
+    ⑥ Numerieke maandlabels "MM/JJ" (01/25), horizontaal
+    ⑦ Score-as 1 decimaal; legenda bovenaan gecentreerd; margin compact
+
     In Tendensvenster-modus: extra rolvoortschrijdend 3-maands gemiddelde.
     """
+    # Lokale kleurconstanten — score-gebaseerde kleurcodering
+    green_dot = "#4caf50"  # dot: score ≥ AVG_SCORE_MIN
+    pink_bar = "#f5c6c5"  # bar: score < AVG_SCORE_MIN (lichtroze)
+
     d = t["dashboard"]
     tl = data.timeline
     if not tl:
         return go.Figure()
 
     periods = [p.period for p in tl]
-    x_labels = [period_label(p, lang=lang) for p in periods]
     scores = [p.avg_score for p in tl]
     volumes = [p.total_tickets for p in tl]
 
-    # Fasegebaseerde puntkleur
-    point_colors = []
-    for p in tl:
-        year, month = parse_period(p.period)
-        if year <= _BASELINE_YEAR:
-            point_colors.append(
-                _PHASE_POINT_COLOR["S1"] if month <= 6 else _PHASE_POINT_COLOR["S2"]
-            )
-        else:
-            point_colors.append(_PHASE_POINT_COLOR["Q"])
+    # ⑥ Numerieke maandlabels: "01/25", "02/25", ..., "01/26"
+    x_labels = [f"{parse_period(p)[1]:02d}/{str(parse_period(p)[0])[2:]}" for p in periods]
 
-    fig = make_subplots(specs=[[{"secondary_y": True}]])
+    # ① Kleurgecodeerde bars op basis van gemiddelde score
+    bar_colors = [ZORGI_LIGHT_BLUE if s >= AVG_SCORE_MIN else pink_bar for s in scores]
 
-    # Volume-bars (secondary y-as)
+    # ② Kleurgecodeerde dots op basis van score
+    dot_colors = [green_dot if s >= AVG_SCORE_MIN else ZORGI_RED for s in scores]
+
+    fig = go.Figure()
+
+    # ① Volume-bars op yaxis="y" (go.Figure hoofdlaag = BOTTOM → achtergrond)
+    # Ticketaantallen als tekstlabel binnenin de bar; auto-fallback = boven de bar
     fig.add_trace(
         go.Bar(
             x=x_labels,
             y=volumes,
             name=d["timeline_volume"],
-            marker_color=ZORGI_ULTRA_LIGHT,
+            marker_color=bar_colors,
             marker_line_color=ZORGI_GREY_BLUE,
-            marker_line_width=1,
-            opacity=0.6,
-        ),
-        secondary_y=True,
+            marker_line_width=0.5,
+            opacity=0.45,
+            yaxis="y",
+            text=[str(v) for v in volumes],
+            textposition="auto",
+            insidetextanchor="start",
+            textfont={"size": 10, "color": "#1a1a1a"},
+            textangle=0,
+            constraintext="none",
+        )
     )
 
-    # Score-lijn met gekleurde punten
+    # ② Score-lijn op yaxis2 (overplot-laag → TOP, altijd boven de bars)
     fig.add_trace(
         go.Scatter(
             x=x_labels,
             y=scores,
-            mode="lines+markers",
+            mode="lines+markers+text",
             name=d["timeline_score"],
-            line={"color": ZORGI_DARK_BLUE, "width": 2},
+            line={"color": ZORGI_DARK_BLUE, "width": 2.5},
             marker={
-                "color": point_colors,
-                "size": 10,
-                "line": {"color": ZORGI_DARK_BLUE, "width": 1},
+                "color": dot_colors,
+                "size": 11,
+                "line": {"color": "#ffffff", "width": 2},
             },
-        ),
-        secondary_y=False,
+            text=[f"{s:.2f}".replace(".", ",") for s in scores],
+            textposition="top center",
+            textfont={"size": 8, "color": ZORGI_DARK_BLUE},
+            yaxis="y2",
+        )
     )
 
-    # Tendensvenster: rolvoortschrijdend gemiddelde
+    # Tendensvenster: rolvoortschrijdend 3-maands gemiddelde (ook op overplot-as)
     if data.mode == "trend":
         rolling = pd.Series(scores).rolling(3, min_periods=1).mean().round(2).tolist()
         fig.add_trace(
@@ -464,54 +487,372 @@ def _chart_timeline(data: DashboardData, t: dict, lang: str) -> go.Figure:
                 mode="lines",
                 name=d["rolling_avg"],
                 line={"color": ZORGI_PURPLE, "width": 2, "dash": "dot"},
-            ),
-            secondary_y=False,
+                yaxis="y2",
+            )
         )
 
-    fig.update_yaxes(title_text=d["timeline_score"], secondary_y=False, range=[0, 5.5])
-    fig.update_yaxes(title_text=d["timeline_volume"], secondary_y=True)
-    fig.update_layout(title=d["timeline_title"], barmode="overlay", legend={"orientation": "h"})
+    # ③ KPI-drempellijn — add_shape met yref="y2" (score-as)
+    fig.add_shape(
+        type="line",
+        x0=0,
+        x1=1,
+        xref="paper",
+        y0=AVG_SCORE_MIN,
+        y1=AVG_SCORE_MIN,
+        yref="y2",
+        line={"dash": "dash", "color": ZORGI_RED, "width": 1.2},
+        opacity=0.8,
+    )
+    fig.add_annotation(
+        x=0.99,
+        y=AVG_SCORE_MIN,
+        xref="paper",
+        yref="y2",
+        text=f"KPI min. {AVG_SCORE_MIN:.1f}\u2605",
+        showarrow=False,
+        xanchor="right",
+        yanchor="bottom",
+        font={"size": 10, "color": ZORGI_RED},
+    )
+
+    # ③ Gewogen jaar-gemiddelde vorig jaar — ook yref="y2"
+    vorig_jaar = data.current_year - 1
+    bl_entries = [p for p in tl if parse_period(p.period)[0] == vorig_jaar and p.total_tickets > 0]
+    if bl_entries:
+        _total_v = sum(p.total_tickets for p in bl_entries)
+        gem_vorig = round(sum(p.avg_score * p.total_tickets for p in bl_entries) / _total_v, 2)
+        gem_str = str(gem_vorig).replace(".", ",")
+        fig.add_shape(
+            type="line",
+            x0=0,
+            x1=1,
+            xref="paper",
+            y0=gem_vorig,
+            y1=gem_vorig,
+            yref="y2",
+            line={"dash": "dot", "color": ZORGI_GREY_BLUE, "width": 1.0},
+            opacity=0.7,
+        )
+        fig.add_annotation(
+            x=0.99,
+            y=gem_vorig,
+            xref="paper",
+            yref="y2",
+            text=f"Gem. {vorig_jaar}: {gem_str}\u2605",
+            showarrow=False,
+            xanchor="right",
+            yanchor="top",
+            font={"size": 10, "color": ZORGI_GREY_BLUE},
+        )
+
+    # ⑤ Jaar-scheidingslijn bij multi-jaar data
+    years_in_data = sorted({parse_period(p)[0] for p in periods})
+    if len(years_in_data) > 1:
+        for yr in years_in_data[1:]:
+            jan_lbl = f"01/{str(yr)[2:]}"
+            if jan_lbl in x_labels:
+                jan_idx = x_labels.index(jan_lbl)
+                fig.add_shape(
+                    type="line",
+                    xref="x",
+                    yref="paper",
+                    x0=jan_idx - 0.5,
+                    x1=jan_idx - 0.5,
+                    y0=0,
+                    y1=1,
+                    line={"color": ZORGI_GREY_BLUE, "width": 1.0, "dash": "dot"},
+                    opacity=0.5,
+                )
+
+    fig.update_layout(
+        title="",
+        barmode="overlay",
+        xaxis={"tickangle": 0},
+        yaxis={
+            "title": d["timeline_volume"],
+            "side": "right",
+            "showgrid": False,
+        },
+        yaxis2={
+            "title": d["timeline_score"],
+            "overlaying": "y",
+            "side": "left",
+            "range": [0, 5.5],
+            "tickformat": ".1f",
+        },
+        legend={
+            "orientation": "h",
+            "yanchor": "bottom",
+            "y": 1.02,
+            "xanchor": "center",
+            "x": 0.5,
+            "itemsizing": "constant",
+            "traceorder": "normal",
+        },
+        margin={"t": 55, "b": 10, "r": 15},
+        modebar_remove=["pan2d", "autoScale2d"],
+    )
     return apply_plotly_theme(fig)
 
 
-def _chart_period_comparison(data: DashboardData, t: dict) -> go.Figure:
-    """Vergelijkingsbalk: gemiddelde score per periode-groep (H1/H2/Q1 enz.)."""
-    d = t["dashboard"]
-    groups = data.period_groups
-    if not groups:
+def _chart_period_comparison(data: DashboardData, t: dict, lang: str = "nl") -> go.Figure:  # noqa: C901
+    """
+    Verticale bar chart: gewogen gemiddelde score per periode-blok.
+
+    Blokindeling (automatisch op basis van data.timeline):
+    - H1 2025: jan-jun 2025  (alleen zichtbaar in Volledig venster)
+    - H2 2025: jul-dec 2025  (beide vensters)
+    - Q1 2026, Q2 2026, ... : kwartalen lopend jaar (beide vensters)
+
+    Kleuren: H1=ZORGI_RED (crisisperiode), H2='#27ae60' (herstel),
+             Q1 2026=ZORGI_PURPLE (groei), overige kwartalen=ZORGI_LIGHT_BLUE.
+    Stijl conform _chart_timeline: geen Plotly-titel, KPI-drempellijn,
+    legenda boven gecentreerd, apply_plotly_theme.
+    """
+    tl = data.timeline
+    if not tl:
         return go.Figure()
 
-    labels = [g.label for g in groups]
-    scores = [g.avg_score for g in groups]
-    totals = [g.total for g in groups]
+    # Maandafkortingen (tweetalig)
+    mr_nl: dict[str, tuple[str, str]] = {
+        "H1": ("Jan", "Jun"),
+        "H2": ("Jul", "Dec"),
+        "Q1": ("Jan", "Mrt"),
+        "Q2": ("Apr", "Jun"),
+        "Q3": ("Jul", "Sep"),
+        "Q4": ("Okt", "Dec"),
+    }
+    mr_fr: dict[str, tuple[str, str]] = {
+        "H1": ("Jan", "Juin"),
+        "H2": ("Juil", "D\u00e9c"),
+        "Q1": ("Jan", "Mars"),
+        "Q2": ("Avr", "Juin"),
+        "Q3": ("Juil", "Sep"),
+        "Q4": ("Oct", "D\u00e9c"),
+    }
+    month_range = mr_fr if lang == "fr" else mr_nl
 
-    # Kleur per periode (S1=rood, S2=groen, Q=paars)
-    colors = []
-    for lbl in labels:
-        if lbl.startswith("S1"):
-            colors.append(_PHASE_POINT_COLOR["S1"])
-        elif lbl.startswith("S2"):
-            colors.append(_PHASE_POINT_COLOR["S2"])
-        else:
-            colors.append(_PHASE_POINT_COLOR["Q"])
+    def _block_key(yr: int, mo: int) -> str:
+        if yr == 2025:
+            return "H1 2025" if mo <= 6 else "H2 2025"
+        return f"Q{(mo - 1) // 3 + 1} {yr}"
+
+    def _block_x_label(bk: str) -> str:
+        code = bk.split(" ")[0]
+        m_a, m_b = month_range.get(code, ("", ""))
+        return f"{bk}<br>({m_a}\u2013{m_b})" if m_a else bk
+
+    def _block_sort_key(bk: str) -> tuple[int, int]:
+        code, yr_s = bk.split(" ")
+        yr = int(yr_s)
+        if code == "H1":
+            return (yr, 1)
+        if code == "H2":
+            return (yr, 7)
+        return (yr, (int(code[1]) - 1) * 3 + 1)
+
+    # Gewogen gemiddelde per kwartaalblok
+    block_data: dict[str, dict] = {}
+    for p in tl:
+        yr, mo = parse_period(p.period)
+        bk = _block_key(yr, mo)
+        if bk not in block_data:
+            block_data[bk] = {"sum_s": 0.0, "sum_t": 0}
+        block_data[bk]["sum_s"] += p.avg_score * p.total_tickets
+        block_data[bk]["sum_t"] += p.total_tickets
+
+    if not block_data:
+        return go.Figure()
+
+    sorted_blocks = sorted(block_data, key=_block_sort_key)
+    bar_x = [_block_x_label(bk) for bk in sorted_blocks]
+    bar_y = [
+        round(block_data[bk]["sum_s"] / block_data[bk]["sum_t"], 2)
+        if block_data[bk]["sum_t"] > 0
+        else 0.0
+        for bk in sorted_blocks
+    ]
+    bar_vols = [block_data[bk]["sum_t"] for bk in sorted_blocks]
+
+    block_color: dict[str, str] = {
+        "H1 2025": "#f4a7a3",  # lichtroze  — crisisperiode (baseline)
+        "H2 2025": "#9aa5b4",  # lichtgrijs — herstelperiode
+        "Q1 2026": ZORGI_DARK_BLUE,  # donkerblauw — groeiperiode (lopend jaar)
+    }
+    bar_colors = [block_color.get(bk, ZORGI_DARK_BLUE) for bk in sorted_blocks]
+    bar_text = [
+        f"{s:.2f}\u2605".replace(".", ",") + f"<br>({v} tickets)"
+        for s, v in zip(bar_y, bar_vols, strict=False)
+    ]
 
     fig = go.Figure(
         go.Bar(
-            x=labels,
-            y=scores,
-            marker_color=colors,
-            text=[f"{s:.2f}★<br>({tot} tickets)" for s, tot in zip(scores, totals, strict=False)],
+            x=bar_x,
+            y=bar_y,
+            marker_color=bar_colors,
+            marker_line_width=0,
+            opacity=0.78,
+            text=bar_text,
             textposition="outside",
-            hovertemplate="%{x}: %{y:.2f}★<extra></extra>",
+            hovertemplate="%{x}: %{y:.2f}\u2605<extra></extra>",
+            showlegend=False,
         )
     )
+
+    # KPI-drempellijn
+    fig.add_shape(
+        type="line",
+        x0=0,
+        x1=1,
+        xref="paper",
+        y0=AVG_SCORE_MIN,
+        y1=AVG_SCORE_MIN,
+        yref="y",
+        line={"dash": "dash", "color": ZORGI_RED, "width": 1.2},
+        opacity=0.8,
+    )
+    fig.add_annotation(
+        x=0.99,
+        y=AVG_SCORE_MIN,
+        xref="paper",
+        yref="y",
+        text=f"KPI min. {AVG_SCORE_MIN:.1f}\u2605",
+        showarrow=False,
+        xanchor="right",
+        yanchor="bottom",
+        font={"size": 10, "color": ZORGI_RED},
+    )
+
     fig.update_layout(
-        title=d["period_comparison_title"],
-        yaxis={"title": d["timeline_score"], "range": [0, 5.5]},
+        title="",
+        xaxis={"showgrid": False, "tickangle": 0},
+        yaxis={
+            "range": [0, 5.5],
+            "ticksuffix": "\u2605",
+            "tickformat": ".1f",
+            "gridcolor": "#edf2f7",
+        },
+        legend={
+            "orientation": "h",
+            "yanchor": "bottom",
+            "y": 1.02,
+            "xanchor": "center",
+            "x": 0.5,
+            "itemsizing": "constant",
+            "traceorder": "normal",
+        },
+        margin={"t": 45, "b": 10, "r": 15},
     )
-    fig.add_hline(
-        y=4.0, line_dash="dash", line_color=ZORGI_GREY_BLUE, annotation_text="Target 4,0★"
+
+    return apply_plotly_theme(fig)
+
+
+def _chart_rolling_avg(data: DashboardData, t: dict, lang: str = "nl") -> go.Figure:
+    """
+    Lijn-grafiek: maandelijkse score (gestippeld) + rolvoortschrijdend 3-maands
+    gemiddelde (vol, met fill).
+
+    Gebruikt data.timeline (reeds gefilterd op actief venster):
+    - Volledig venster: jan 2025 t/m heden
+    - Tendensvenster:  jul 2025 t/m heden
+
+    Rolling avg: mean(scores[max(0, i-2):i+1]), min_periods=1.
+    Stijl conform _chart_timeline: KPI-drempellijn, legenda boven gecentreerd,
+    apply_plotly_theme — ZONDER ingebouwde Plotly-titel.
+    """
+    d = t["dashboard"]
+    tl = data.timeline
+    if len(tl) < 2:
+        return go.Figure()
+
+    x_labels = [
+        f"{parse_period(p.period)[1]:02d}/{str(parse_period(p.period)[0])[-2:]}" for p in tl
+    ]
+    scores = [p.avg_score for p in tl]
+    rolling = pd.Series(scores).rolling(3, min_periods=1).mean().round(2).tolist()
+
+    fig = go.Figure()
+
+    # Dataset 1 — Maandscore (gestippeld, lichtblauw, opacity=0.6)
+    fig.add_trace(
+        go.Scatter(
+            x=x_labels,
+            y=scores,
+            mode="lines+markers",
+            name=d.get("monthly_score", "Maandscore"),
+            line={"color": ZORGI_LIGHT_BLUE, "width": 1.5, "dash": "dot"},
+            marker={"size": 5, "color": ZORGI_LIGHT_BLUE},
+            opacity=0.6,
+        )
     )
+
+    # Dataset 2 — 3-maands gemiddelde (vol, donkerblauw, fill naar 0)
+    fig.add_trace(
+        go.Scatter(
+            x=x_labels,
+            y=rolling,
+            mode="lines+markers+text",
+            name=d.get("rolling_avg", "3-maands gemiddelde"),
+            line={"color": ZORGI_DARK_BLUE, "width": 2.5},
+            marker={"size": 6, "color": ZORGI_DARK_BLUE},
+            fill="tozeroy",
+            fillcolor="rgba(0,58,112,0.06)",
+            text=[f"{v:.2f}".replace(".", ",") for v in rolling],
+            textposition="top center",
+            textfont={"size": 8, "color": ZORGI_DARK_BLUE},
+        )
+    )
+
+    # KPI-drempellijn
+    fig.add_shape(
+        type="line",
+        x0=0,
+        x1=1,
+        xref="paper",
+        y0=AVG_SCORE_MIN,
+        y1=AVG_SCORE_MIN,
+        yref="y",
+        line={"dash": "dash", "color": ZORGI_RED, "width": 1.2},
+        opacity=0.8,
+    )
+    fig.add_annotation(
+        x=0.99,
+        y=AVG_SCORE_MIN,
+        xref="paper",
+        yref="y",
+        text=f"KPI min. {AVG_SCORE_MIN:.1f}\u2605",
+        showarrow=False,
+        xanchor="right",
+        yanchor="bottom",
+        font={"size": 10, "color": ZORGI_RED},
+    )
+
+    # Dynamische y-as range
+    _all_vals = [v for v in scores + rolling if v > 0]
+    _y_min = max(0.0, min(_all_vals) - 0.3) if _all_vals else 0.0
+    _y_max = min(5.5, max(_all_vals) + 0.3) if _all_vals else 5.5
+
+    fig.update_layout(
+        title="",
+        xaxis={"tickangle": 0, "showgrid": False},
+        yaxis={
+            "range": [_y_min, _y_max],
+            "ticksuffix": "\u2605",
+            "tickformat": ".1f",
+            "gridcolor": "#edf2f7",
+        },
+        legend={
+            "orientation": "h",
+            "yanchor": "bottom",
+            "y": 1.02,
+            "xanchor": "center",
+            "x": 0.5,
+            "itemsizing": "constant",
+            "traceorder": "normal",
+        },
+        margin={"t": 45, "b": 10, "r": 15},
+    )
+
     return apply_plotly_theme(fig)
 
 
@@ -555,26 +896,57 @@ def _chart_grouped_bar(
     return apply_plotly_theme(fig)
 
 
-def _chart_response_time(data: DashboardData, t: dict) -> go.Figure:
-    """Lijn-grafiek: gemiddelde responstijd per score-niveau (baseline gestippeld vs huidig)."""
+def _chart_response_time(data: DashboardData, t: dict, lang: str = "nl") -> go.Figure:
+    """Lijn-grafiek: gemiddelde responstijd per score-niveau (baseline gestippeld vs huidig).
+
+    Titel wordt buiten de grafiek als st.markdown h4 geplaatst (conform _tab_timeline stijl).
+    As-labels zijn i18n'd via response_yaxis_title / response_xaxis_title.
+
+    Datareeksen:
+    - '2025 (baseline)' = gemiddelde responstijd per score-niveau over het volledige
+      jaar 2025 (jan-dec), uitsluitend tickets met een satisfaction_date.
+    - 'Cumulatief'      = gemiddelde responstijd per score-niveau over de volledige
+      analyseperiode (jan 2025 - heden, cumulatief), uitsluitend tickets met een
+      satisfaction_date. Dit is de lopende periode in data.response_time_by_score.
+    """
     d = t["dashboard"]
     rt = data.response_time_by_score
     if not rt:
         return go.Figure()
 
     levels = sorted(rt.keys())
-    x = [f"{lv}★" for lv in levels]
+    x = [f"{lv}\u2605" for lv in levels]
     baseline_days = [rt[lv].baseline_days for lv in levels]
     current_days = [rt[lv].current_days for lv in levels]
+    baseline_counts = [rt[lv].baseline_count for lv in levels]
+    current_counts = [rt[lv].current_count for lv in levels]
+
+    # Labelformaat: "7,2d (34 t)"  — lege string bij None
+    def _lbl(v: float | None, n: int) -> str:
+        if v is None:
+            return ""
+        days_str = f"{v:.1f}d".replace(".", ",")
+        return f"{days_str} ({n} t)" if n > 0 else days_str
+
+    baseline_labels = [_lbl(v, n) for v, n in zip(baseline_days, baseline_counts, strict=False)]
+    current_labels = [_lbl(v, n) for v, n in zip(current_days, current_counts, strict=False)]
+
+    _lbl_grey = ZORGI_GREY_BLUE
+    _lbl_blue = ZORGI_DARK_BLUE
+    _tf = {"size": 10, "family": "Poppins, Verdana, sans-serif"}
 
     fig = go.Figure()
     fig.add_trace(
         go.Scatter(
             x=x,
             y=baseline_days,
-            mode="lines+markers",
+            mode="lines+markers+text",
             name=d["response_2025_legend"],
             line={"color": ZORGI_GREY_BLUE, "dash": "dot"},
+            marker={"size": 7},
+            text=baseline_labels,
+            textposition="top center",
+            textfont={**_tf, "color": _lbl_grey},
             connectgaps=True,
         )
     )
@@ -582,16 +954,30 @@ def _chart_response_time(data: DashboardData, t: dict) -> go.Figure:
         go.Scatter(
             x=x,
             y=current_days,
-            mode="lines+markers",
+            mode="lines+markers+text",
             name=d["response_current_legend"],
             line={"color": ZORGI_DARK_BLUE},
+            marker={"size": 7},
+            text=current_labels,
+            textposition="middle right",
+            textfont={**_tf, "color": _lbl_blue},
             connectgaps=True,
         )
     )
     fig.update_layout(
-        title=d["response_chart_title"],
-        yaxis_title="Dagen",
-        xaxis_title="Score-niveau",
+        title="",
+        yaxis_title=d.get("response_yaxis_title", "Dagen"),
+        xaxis_title=d.get("response_xaxis_title", "Score-niveau"),
+        legend={
+            "orientation": "h",
+            "yanchor": "bottom",
+            "y": 1.02,
+            "xanchor": "center",
+            "x": 0.5,
+            "itemsizing": "constant",
+            "traceorder": "normal",
+        },
+        margin={"t": 55, "b": 30, "r": 90},
     )
     return apply_plotly_theme(fig)
 
@@ -1525,15 +1911,20 @@ def _tab_summary(data: DashboardData, t: dict, lang: str) -> None:
 
 
 def _tab_timeline(data: DashboardData, t: dict, lang: str) -> None:
-    """Tab 2 — Tijdlijn: combo-grafiek + vergelijkingsbalk."""
+    """Tab 2 — Tijdlijn: combo-grafiek + blokkenverlijking + rolling avg."""
     d = t["dashboard"]
     if not data.timeline:
         st.info(d["no_data"])
         return
 
+    st.markdown(f"#### {d['timeline_title']}")
     st.plotly_chart(_chart_timeline(data, t, lang), width="stretch", config=_CHART_CONFIG)
     st.divider()
-    st.plotly_chart(_chart_period_comparison(data, t), width="stretch", config=_CHART_CONFIG)
+    st.markdown(f"#### {d['period_comparison_title']}")
+    st.plotly_chart(_chart_period_comparison(data, t, lang), width="stretch", config=_CHART_CONFIG)
+    st.divider()
+    st.markdown(f"#### {d.get('rolling_avg_title', 'Voortschrijdend gemiddelde (3 maanden)')}")
+    st.plotly_chart(_chart_rolling_avg(data, t, lang), width="stretch", config=_CHART_CONFIG)
 
 
 def _tab_tickets(data: DashboardData, t: dict, lang: str) -> None:  # noqa: C901
@@ -1625,10 +2016,41 @@ def _tab_tickets(data: DashboardData, t: dict, lang: str) -> None:  # noqa: C901
 
 
 def _tab_response(data: DashboardData, t: dict, lang: str) -> None:
-    """Tab 4 — Responstijd: correlatie-panel + lijn-grafiek per score-niveau."""
+    """Tab 4 — Responstijd: statistieken + correlatie-panel + lijn-grafiek per score-niveau."""
     d = t["dashboard"]
 
-    # --- Correlatie-ommekeer panel ---
+    # --- Sectie 1: Statistieken responstijd (gem., mediaan, pos. vs neg.) ---
+    rt_insight = data.response_time_insight
+    if rt_insight and rt_insight.avg_days is not None:
+        st.markdown(f"#### {d.get('response_stats_title', 'Statistieken responstijd')}")
+        col_a, col_b, col_c, col_d = st.columns(4)
+        col_a.metric(
+            label=d.get("response_avg_days", "Gem. responstijd"),
+            value=f"{rt_insight.avg_days:.1f}d".replace(".", ","),
+            delta=None,
+        )
+        col_b.metric(
+            label=d.get("response_median_days", "Mediaan"),
+            value=f"{rt_insight.median_days:.1f}d".replace(".", ",")
+            if rt_insight.median_days is not None
+            else "—",
+        )
+        col_c.metric(
+            label=d.get("response_positive_avg", "Gem. bij positief (\u2265\u00a04\u2605)"),
+            value=f"{rt_insight.avg_positive_days:.1f}d".replace(".", ",")
+            if rt_insight.avg_positive_days is not None
+            else "—",
+        )
+        col_d.metric(
+            label=d.get("response_negative_avg", "Gem. bij negatief (\u2264\u00a02\u2605)"),
+            value=f"{rt_insight.avg_negative_days:.1f}d".replace(".", ",")
+            if rt_insight.avg_negative_days is not None
+            else "—",
+            delta_color="inverse",
+        )
+        st.divider()
+
+    # --- Sectie 2: Correlatie-ommekeer panel ---
     st.markdown(f"#### {d['correlation_panel_title']}")
     col1, col2, col3 = st.columns(3)
 
@@ -1647,11 +2069,40 @@ def _tab_response(data: DashboardData, t: dict, lang: str) -> None:
 
     st.divider()
 
-    # --- Lijn-grafiek responstijd per score-niveau ---
+    # --- Sectie 3: Lijn-grafiek responstijd per score-niveau ---
+    st.markdown(f"#### {d.get('response_chart_title', 'Gem. responstijd per score-niveau')}")
     if data.response_time_by_score:
         st.plotly_chart(_chart_response_time(data, t), width="stretch")
     else:
         st.info(d["no_data"])
+
+    # --- Sectie 4: Negatieve cases met hoge responstijd ---
+    neg_cases = [c for c in (data.negative_cases or []) if c.response_days is not None]
+    neg_cases_sorted = sorted(neg_cases, key=lambda c: -(c.response_days or 0))[:10]
+    if neg_cases_sorted:
+        st.divider()
+        st.markdown(
+            f"#### {d.get('response_negative_cases_title', 'Negatieve cases — hoge responstijd')}"
+        )
+        _render_sortable_table(
+            pd.DataFrame(
+                [
+                    {
+                        d.get("response_col_ticket", "Ticket"): c.ticket_id,
+                        d.get("response_col_hospital", "Ziekenhuis"): c.hospital,
+                        d.get("response_col_score", "Score"): f"{c.score}\u2605",
+                        d.get("response_col_days", "Dagen"): f"{c.response_days:.1f}d".replace(
+                            ".", ","
+                        ),
+                        d.get("response_col_category", "Thema"): c.category,
+                    }
+                    for c in neg_cases_sorted
+                ]
+            ),
+            title=d.get("response_negative_cases_title", "Negatieve cases — hoge responstijd"),
+            export_filename=f"negative-cases-response-{data.current_label}.csv",
+            col_widths=["15%", "30%", "10%", "12%", "33%"],
+        )
 
 
 def _render_sortable_table(
