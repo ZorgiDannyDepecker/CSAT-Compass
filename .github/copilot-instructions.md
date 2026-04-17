@@ -235,7 +235,8 @@ Wait for the user's answer (1, 2 or 3), then execute the matching flow below.
 1. **Stage** alle wijzigingen: `git add -A`
 2. **Analyseer** de diff: `git --no-pager diff --staged --stat`
 3. **Genereer** een beschrijvende commit message op basis van de diff:
-   - Eerste regel: `type: korte samenvatting` (max 72 tekens)
+   - Eerste regel: `type(vX.Y.Z): korte samenvatting` (max 72 tekens)
+   - Het versienummer wordt altijd opgenomen — lees het uit `docs/CHANGELOG.md` (bovenste entry)
    - Types: `feat` / `fix` / `docs` / `refactor` / `chore`
    - Bullet-lijst met de belangrijkste wijzigingen per categorie
 4. **Commit:** `git commit -m "..."`

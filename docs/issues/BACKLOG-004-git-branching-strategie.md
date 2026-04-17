@@ -21,7 +21,7 @@ conflicten bij parallelle ontwikkeling binnen het team.
 
 Een minimale maar formele **branch-strategie** die past bij een klein team (4 personen):
 
-```
+```text
 master          ← stabiel, alleen via PR of hotfix
   └── develop   ← integratiebranch, dagelijkse werkbasis
         └── feature/YYYY-MM-beschrijving   ← per feature/taak
