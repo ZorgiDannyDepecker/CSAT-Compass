@@ -5,6 +5,58 @@ Formaat gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.0.0/).
 
 ---
 
+## [0.5.45] — 17/04/2026
+
+### Opgelost
+
+- **`pyproject.toml`** — versienummer bijgewerkt van `0.5.38` naar `0.5.45` (was niet gesynchroniseerd met CHANGELOG); `pyproject.toml` is de single source of truth — de topbalk leest de versie automatisch via `importlib.metadata` of fallback-read van dit bestand
+- **`src/csat/utils/branding.py`** — tab-kindelementen `font-size` verlaagd van `1.1rem` naar `1rem` in `STREAMLIT_CSS`; hierdoor matcht de initiële CSS al de eindwaarde en treedt er geen visuele krimp meer op bij paginaopstart (FOSC)
+- **`src/dashboard/app.py`** — `inject_tab_font_css(st)` aanroep verwijderd uit `main()`; deze late CSS-override was de directe oorzaak van het krimpen van de tabknoppen binnen een seconde na laden
+
+### Structurele werkafspraak
+
+> `pyproject.toml` versie = hoogste CHANGELOG entry. Bij elke `/git`-flow wordt dit automatisch gecontroleerd.
+
+---
+
+## [0.5.44] — 17/04/2026
+
+### Gewijzigd
+
+- **`src/dashboard/app.py`** — DEV-tabblad naar productie gezet:
+  - `render_tab_dev_tickets()` hernoemd naar `render_tab_tickets_prioriteit()`
+  - "DEV Tickets & Prioriteit" verwijderd uit `_tab_labels`; tab-tuple ingekort van 7 naar 6 variabelen
+  - `tab3` (`_tab_tickets` / oude implementatie) omgeleid naar `render_tab_tickets_prioriteit()` met volledige parameteroverdracht (`mode`, `baseline_year`, `current_year`, `current_month`, `trend_start_month`)
+  - Originele `_tab_tickets()` blijft beschikbaar als stille backup (niet verwijderd)
+
+---
+
+## [0.5.43] — 17/04/2026
+
+### Gewijzigd
+
+- **`src/dashboard/app.py`** — Sectietitel "Feedbackthema's — actiegericht" in `render_tab_dev_tickets()` aangepast naar hetzelfde `<h4>`-stijlpatroon als de andere sectietitels op de pagina (font-size 24px, font-weight 700, color #1A1A1A, Source Sans); tevens FR-vertaling "Thèmes de feedback — orientés action" toegevoegd; `margin-top:-1rem` spacer toegevoegd
+
+---
+
+## [0.5.42] — 17/04/2026
+
+### Toegevoegd
+
+- **`src/csat/core/insights/insights_generator.py`** — `_generate_feedback_themes()` toegevoegd: detecteert negatieve feedbackthema's via keyword matching op `comment` (score ≤ 2); hergebruikt `THEME_KEYWORDS` en `THEME_ACTION_HINTS` uit `evolution_analyser`; retourneert max 4 thema's als lijst van dicts (`naam`, `beschrijving`, `pct`), gesorteerd op percentage
+- **`src/dashboard/app.py`** — Blok 3 "Feedbackthema's — actiegericht" toegevoegd in `render_tab_dev_tickets()` na de prioriteit insight-box; lichtblauwe themakaartjes met naam in donkerblauw en beschrijving in grijs; `st.divider()` als scheiding; caption bij lege lijst
+
+---
+
+## [0.5.41] — 17/04/2026
+
+### Toegevoegd
+
+- **`src/csat/core/insights/insights_generator.py`** — `_generate_priority_insight()` toegevoegd: genereert inzichttekst voor de prioriteit insight-box; identificeert prioriteit met laagste score_curr; lange tekst bij >10% negatief, korte monitoringstekst anders; kwartaalnotatie Q/T per taal
+- **`src/dashboard/app.py`** — oranje insight-box voor prioriteit tabel toegevoegd in `render_tab_dev_tickets()`; visueel identiek aan de issue type insight-box (stap 3); roept `_ig._generate_priority_insight(df_prio)` aan
+
+---
+
 ## [0.5.40] — 17/04/2026
 
 ### Toegevoegd

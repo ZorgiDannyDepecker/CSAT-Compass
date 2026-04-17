@@ -66,7 +66,6 @@ from csat.utils.branding import (  # noqa: E402
     inject_css,
     inject_iframe_resize,
     inject_sidebar_toggle,
-    inject_tab_font_css,
     inject_tab_scroll_reset,
     render_topbar,
 )
@@ -3291,7 +3290,50 @@ def _build_priority_chart(df_comparison, prev_label: str = "2025"):
     return apply_plotly_theme(fig)
 
 
-def render_tab_dev_tickets(
+def _render_feedback_themas(themas: list, lang: str) -> None:
+    """Rendert feedbackthema's als lichtblauwe kaartjes, of een caption bij lege lijst."""
+
+    def _ls(nl: str, fr: str) -> str:
+        return fr if lang == "fr" else nl
+
+    if themas:
+        for thema in themas:
+            if isinstance(thema, dict):
+                naam = thema.get("naam") or thema.get("name", "\u2014")
+                beschrijving = thema.get("beschrijving") or thema.get("description", "")
+            elif hasattr(thema, "naam"):
+                naam = str(thema.naam)
+                beschrijving = str(getattr(thema, "beschrijving", ""))
+            elif hasattr(thema, "name"):
+                naam = str(thema.name)
+                beschrijving = str(getattr(thema, "description", str(thema)))
+            else:
+                naam = str(thema)
+                beschrijving = ""
+
+            st.markdown(
+                f'<div style="border-left:3px solid #609FCE;'
+                f"background:#E8F4FB;border-radius:0 8px 8px 0;"
+                f'padding:8px 14px;margin-bottom:8px;">'
+                f'<strong style="color:#003A70;">{naam}</strong>'
+                + (
+                    f'<br><span style="font-size:13px;color:#5F8495;">{beschrijving}</span>'
+                    if beschrijving
+                    else ""
+                )
+                + "</div>",
+                unsafe_allow_html=True,
+            )
+    else:
+        st.caption(
+            _ls(
+                "Geen feedbackthema\u2019s beschikbaar voor deze periode.",
+                "Aucun th\u00e8me de feedback disponible pour cette p\u00e9riode.",
+            )
+        )
+
+
+def render_tab_tickets_prioriteit(
     df: pd.DataFrame,
     lang: str,
     mode: str = "full",
@@ -3541,6 +3583,33 @@ def render_tab_dev_tickets(
         + "</div>",
         unsafe_allow_html=True,
     )
+    # Insight-box prioriteit — zelfde stijl als issue type
+    _insight_prio = _ig._generate_priority_insight(df_prio)
+    st.markdown(
+        f'<div style="background:#FEF5E7;border:1px solid rgba(230,126,34,0.3);'
+        f'border-radius:8px;padding:10px 14px;margin-top:8px;font-size:13px;">'
+        f'<strong style="color:#E67E22;">⚠ </strong>{_insight_prio}'
+        f"</div>",
+        unsafe_allow_html=True,
+    )
+
+    st.divider()
+
+    # ── Blok 3: Feedbackthema's ───────────────────────────────────────────
+    _thema_titel_nl = "🎯 Feedbackthema\u2019s \u2014 actiegericht"
+    _thema_titel_fr = "🎯 Th\u00e8mes de feedback \u2014 orient\u00e9s action"
+    st.markdown(
+        f"<h4 style='margin:0 0 0 0;font-size:24px;font-weight:700;color:#1A1A1A;"
+        f'font-family:"Source Sans","Source Sans Pro","Source Sans 3",sans-serif;'
+        f"line-height:1.3;'>"
+        f"{_ls(_thema_titel_nl, _thema_titel_fr)}</h4>",
+        unsafe_allow_html=True,
+    )
+    st.markdown("<div style='margin-top:-1rem'></div>", unsafe_allow_html=True)
+
+    _themas = _ig._generate_feedback_themes(df)
+    _render_feedback_themas(_themas, lang)
+
     st.markdown(
         "<div style='border-top:1px solid #D0DAE3;margin-top:2.0rem;'></div>",
         unsafe_allow_html=True,
@@ -3667,7 +3736,6 @@ def main() -> None:
         d["tab_response"],
         d["tab_hospitals"],
         d["tab_targets"],
-        "DEV Tickets & Prioriteit",
     ]
 
     def _save_active_tab() -> None:
@@ -3681,7 +3749,7 @@ def main() -> None:
     if _default_tab not in _tab_labels:
         _default_tab = _tab_labels[_tab_idx]
 
-    tab1, tab2, tab3, tab4, tab5, tab6, tab_dev = st.tabs(
+    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(
         _tab_labels,
         key="zorgi_tabs",
         default=_default_tab,
@@ -3693,20 +3761,12 @@ def main() -> None:
     with tab2:
         _tab_timeline(data, t, lang)
     with tab3:
-        _tab_tickets(data, t, lang)
-    with tab4:
-        _tab_response(data, t, lang)
-    with tab5:
-        _tab_hospitals(data, t, lang)
-    with tab6:
-        _tab_targets(data, t, lang)
-    with tab_dev:
         _df_dev = _load_df()
         _dev_products = PILLAR_REGISTRY.get(selected_pillar, {}).get("products", [])
         _df_dev = _df_dev[_df_dev[FILTER_COLUMN].isin(_dev_products)]
         _dev_mode = "trend" if data.mode == "trend" else "full"
         _dev_trend_start = int(_TREND_WINDOW_START[5:7])  # "2025-07-01" → 7
-        render_tab_dev_tickets(
+        render_tab_tickets_prioriteit(
             _df_dev,
             lang,
             mode=_dev_mode,
@@ -3715,9 +3775,12 @@ def main() -> None:
             current_month=last_month,
             trend_start_month=_dev_trend_start,
         )
-
-    # Tab-font CSS NA tabs injecteren (wint cascade van Streamlit emotion-CSS)
-    inject_tab_font_css(st)
+    with tab4:
+        _tab_response(data, t, lang)
+    with tab5:
+        _tab_hospitals(data, t, lang)
+    with tab6:
+        _tab_targets(data, t, lang)
 
     # Scroll-reset bij tabbladwissel: altijd naar boven bij activeren nieuw tabblad
     inject_tab_scroll_reset()

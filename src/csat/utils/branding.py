@@ -413,7 +413,7 @@ STREAMLIT_CSS: str = f"""
     [role="tab"] *,
     button[role="tab"] *,
     [data-baseweb="tab-list"] button * {{
-        font-size: 1.1rem !important;
+        font-size: 1rem !important;
         font-weight: 600 !important;
         color: {ZORGI_WHITE} !important;
         background-color: transparent !important;

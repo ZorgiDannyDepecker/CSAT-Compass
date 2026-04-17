@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import random
 from dataclasses import dataclass, field
+from datetime import UTC
 
 from csat.core.analysers.evolution_result import EvolutionResult
 
@@ -1409,3 +1410,110 @@ class InsightsGenerator:
             f"{lowest_type} blijft laagst scorend ({lowest_score:.2f}★). Verdere monitoring aanbevolen.",
             f"{lowest_type} reste le score le plus bas ({lowest_score:.2f}★). Monitoring recommandé.",
         )
+
+    def _generate_priority_insight(self, df_comparison) -> str:
+        """Genereert de inzichttekst voor de prioriteit insight-box.
+
+        Identificeert de prioriteit met de combinatie van
+        laagste score_curr EN hoogste pct_neg_curr.
+        Retourneert altijd str, nooit None.
+        """
+        import math
+        from datetime import datetime
+
+        # Fallback bij lege data
+        valid = df_comparison.dropna(subset=["score_curr", "pct_neg_curr"])
+        if valid.empty:
+            return self._ls(
+                "Geen prioriteitsdata beschikbaar voor deze periode.",
+                "Aucune donnée de priorité disponible pour cette période.",
+            )
+
+        # Probleem-prioriteit: prioriteit met laagste score_curr
+        probleem_row = valid.loc[valid["score_curr"].idxmin()]
+        prio = probleem_row["priority"]
+        score = probleem_row["score_curr"]
+        neg = probleem_row["pct_neg_curr"]
+
+        # Periode-string
+        now = datetime.now(tz=UTC).date()
+        kwartaal = (now.month - 1) // 3 + 1
+        periode_nl = f"Q{kwartaal} {now.year}"
+        periode_fr = f"T{kwartaal} {now.year}"
+
+        neg_hoog = not math.isnan(neg) and neg > 10.0
+
+        if neg_hoog:
+            return self._ls(
+                f"{prio}-tickets: laagste score ({score:.2f}★) én hoogste negatief% "
+                f"({neg:.1f}%) in {periode_nl}. Lage prioriteit in het systeem → "
+                f"minder aandacht → klant gefrustreerd. Steekproef kwaliteitsreview vereist.",
+                f"Tickets {prio} : score le plus bas ({score:.2f}★) et pourcentage négatif "
+                f"le plus élevé ({neg:.1f}%) en {periode_fr}. Faible priorité dans le "
+                f"système → moins d'attention → client frustré. "
+                f"Revue qualité par échantillon requise.",
+            )
+        return self._ls(
+            f"{prio}-tickets scoren het laagst ({score:.2f}★) in {periode_nl}. "
+            f"Verdere monitoring aanbevolen.",
+            f"Les tickets {prio} ont le score le plus bas ({score:.2f}★) en {periode_fr}. "
+            f"Monitoring supplémentaire recommandé.",
+        )
+
+    def _generate_feedback_themes(self, df) -> list[dict]:
+        """Detecteert negatieve feedbackthema's via keyword matching op het comment-veld.
+
+        Analyseert enkel negatieve tickets (score <= 2).
+        Retourneert een lijst van dicts met 'naam' en 'beschrijving'.
+        Lege lijst als geen thema's gevonden of geen negatieve tickets.
+        """
+        import re
+
+        from csat.core.analysers.evolution_analyser import THEME_ACTION_HINTS, THEME_KEYWORDS
+
+        # Themanamen per taal
+        _theme_labels_nl = {
+            "responstijd": "Responstijd",
+            "onvolledig": "Onvolledige oplossing",
+            "communicatie": "Communicatie",
+            "urgentie": "Urgentieherkenning",
+            "automatisering": "Automatisering",
+        }
+        _theme_labels_fr = {
+            "responstijd": "Temps de réponse",
+            "onvolledig": "Solution incomplète",
+            "communicatie": "Communication",
+            "urgentie": "Reconnaissance de l'urgence",
+            "automatisering": "Automatisation",
+        }
+
+        # Negatieve tickets filteren
+        if df is None or df.empty or "score" not in df.columns:
+            return []
+        neg = df[df["score"].notna() & (df["score"] <= 2)]
+        if neg.empty or "comment" not in df.columns:
+            return []
+
+        n = len(neg)
+        results = []
+        for theme_key, keywords in THEME_KEYWORDS.items():
+            pattern = "|".join(re.escape(kw) for kw in keywords)
+            hits = neg["comment"].fillna("").str.lower().str.contains(pattern, regex=True)
+            pct = round(hits.sum() / n * 100, 1)
+            if pct > 0:
+                labels_nl = _theme_labels_nl
+                labels_fr = _theme_labels_fr
+                naam = self._ls(
+                    labels_nl.get(theme_key, theme_key),
+                    labels_fr.get(theme_key, theme_key),
+                )
+                actie = THEME_ACTION_HINTS.get(theme_key, "")
+                beschrijving = self._ls(
+                    f"{pct:.0f}% van negatieve tickets — {actie}",
+                    f"{pct:.0f}% des tickets négatifs — {actie}",
+                )
+                results.append({"naam": naam, "beschrijving": beschrijving, "pct": pct})
+
+        # Sorteer op percentage (hoogste eerst), max 4 thema's
+        results.sort(key=lambda x: x["pct"], reverse=True)
+        return results[:4]
