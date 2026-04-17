@@ -1,7 +1,7 @@
 # 📓 CSAT-Compass - Project Journal
 
-**Versie:** 2.4
-**Laatst bijgewerkt:** 10/04/2026
+**Versie:** 2.5
+**Laatst bijgewerkt:** 17/04/2026
 
 **Doel:** Chronologisch logboek van beslissingen, bevindingen en voortgang  
 **Type:** Reference  
@@ -32,6 +32,7 @@
 - [2026-04-01 — Visualisatie-verfijning + output-structuur](#2026-04-01--visualisatie-verfijning--output-structuur)
 - [2026-04-06 — Fase 5a Dashboard implementatie + sidebar verfijning](#2026-04-06--fase-5a-dashboard-implementatie--sidebar-verfijning)
 - [2026-04-10 — Fase 5b sprint 1: vaste tabbalk + layout-verfijning](#2026-04-10--fase-5b-sprint-1-vaste-tabbalk--layout-verfijning)
+- [2026-04-17 — Versiebeheer & Git-praktijken versterkt (Prioriteit 1)](#2026-04-17--versiebeheer--git-praktijken-versterkt-prioriteit-1)
 - [Versiehistorie](#versiehistorie)
 
 ---
@@ -533,6 +534,35 @@ zie `WIP/handover-fase5b-signaalkaart.md`
 
 ---
 
+## 2026-04-17 — Versiebeheer & Git-praktijken versterkt (Prioriteit 1)
+
+### Aanleiding
+
+Analyse van de Git-workflow wees op drie structurele hiaten: single-branch workflow,
+ontbrekende Git-tags bij versie-mijlpalen, en geen branch protection op `master`.
+
+### Uitgevoerde acties
+
+- **`.github/pull_request_template.md`** aangemaakt — type-checkboxes, checklist (tests/lint/CHANGELOG/PII/screenshots), refs-veld voor BACKLOG/ISSUE-nummers
+- **Annotated tags** aangemaakt en gepusht: `v0.5.0` (commit `c4898e0`) + `v0.5.38` (commit `b281bcd`) — koppeling CHANGELOG ↔ Git-history hersteld
+- **Branch protection `master`** geconfigureerd via GitHub Settings:
+  - PR verplicht vóór merge
+  - 1 approval vereist + stale reviews automatisch dismissed
+  - Status check `Python 3.13 — Tests` (GitHub Actions) verplicht
+- **`BACKLOG-004-git-branching-strategie.md`** aangemaakt — develop-branch, squash-strategie, chore-conventie en rollback-procedure als Prioriteit 2
+
+### Beslissingen
+
+- Prioriteit 2 (branching strategie, develop-branch, squash) bewust uitgesteld naar backlog — solo-workflow loopt stabiel, uitbreiding pas zinvol bij actieve teamsamenwerking
+- Tag-naamgeving: `v{major}.{minor}.{patch}` voor releases, `safety/{YYYY-MM-DD}-{beschrijving}` voor veiligheids-snapshots
+
+### Resultaat
+
+Versiebeheer-maturiteit van het project significant verhoogd: merge-controle actief,
+release-history traceerbaar, PR-discipline geborgd voor toekomstige samenwerking.
+
+---
+
 ## Versiehistorie
 
 | Versie | Datum | Wijzigingen | Auteur               |
@@ -552,6 +582,7 @@ zie `WIP/handover-fase5b-signaalkaart.md`
 | 2.2 | 01/04/2026 | Visualisatie-verfijning: subplot 3 prioriteitscompositie, i18n, output-structuur datumsubmap, lint-fixes, 61 visualiser-tests | Danny Depecker + GHC |
 | 2.3 | 06/04/2026 | Fase 5a dashboard implementatie + sidebar verfijning: pure CSS tooltip, i18n fixes, LOGO_ASSETS CI-fix, 790 tests | Danny Depecker + GHC |
 | 2.4 | 10/04/2026 | Fase 5b sprint 1: vaste tabbalk (position:fixed), sidebar-responsiviteit, layout-verfijning, 810 tests; v0.2.8 | Danny Depecker + GHC |
+| 2.5 | 17/04/2026 | Versiebeheer & Git-praktijken versterkt: PR-template, annotated tags v0.5.0+v0.5.38, branch protection master, BACKLOG-004 | Danny Depecker + GHC |
 
 ---
 *ZORGI — Danny Depecker*

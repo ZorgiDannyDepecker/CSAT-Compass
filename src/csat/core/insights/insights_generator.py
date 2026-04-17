@@ -1322,3 +1322,90 @@ class InsightsGenerator:
             return text.format(**kwargs)
         except (KeyError, IndexError):
             return text
+
+    def _generate_issue_type_insight(self, df_comparison) -> str:  # type: ignore[override]
+        """Genereert de inzichttekst voor de issue type insight-box.
+
+        Gebruikt de bestaande _ls(nl, fr) helper voor taalwisseling.
+        Retourneert altijd str, nooit None.
+        """
+        import math
+
+        # Fallback bij lege data
+        valid = df_comparison.dropna(subset=["score_curr"])
+        if valid.empty:
+            return self._ls(
+                "Geen issue type data beschikbaar voor deze periode.",
+                "Aucune donnée de type de ticket disponible pour cette période.",
+            )
+
+        # Laagst scorend type
+        lowest_row = valid.loc[valid["score_curr"].idxmin()]
+        lowest_type = lowest_row["issue_type"]
+        lowest_score = lowest_row["score_curr"]
+        lowest_neg = lowest_row["pct_neg_curr"]
+
+        # Grootste verbetering
+        valid_delta = valid.dropna(subset=["delta_score"])
+        best_delta_type = (
+            valid_delta.loc[valid_delta["delta_score"].idxmax(), "issue_type"]
+            if not valid_delta.empty
+            else None
+        )
+        best_delta = valid_delta["delta_score"].max() if not valid_delta.empty else float("nan")
+
+        # Typespecifieke aanbevelingen
+        aanbevelingen = {
+            "Incident": self._ls(
+                "Verplicht slotbericht + root cause veld als prioritaire actie.",
+                "Message de clôture obligatoire + champ cause racine comme action prioritaire.",
+            ),
+            "Request for Configuration": self._ls(
+                "Configuratieproces reviewen op doorlooptijd.",
+                "Réviser le processus de configuration sur le délai de traitement.",
+            ),
+            "Request for Improvement": self._ls(
+                "Verbeterverzoeken actief opvolgen en terugkoppelen.",
+                "Assurer un suivi actif et un retour sur les demandes d'amélioration.",
+            ),
+            "Request for Information": self._ls(
+                "Kennisbank uitbreiden om herhaalde vragen te reduceren.",
+                "Élargir la base de connaissances pour réduire les questions répétées.",
+            ),
+        }
+        aanbeveling = aanbevelingen.get(
+            lowest_type,
+            self._ls(
+                "Opvolging en kwaliteitsreview aanbevolen.",
+                "Suivi et révision qualité recommandés.",
+            ),
+        )
+
+        neg_hoog = not math.isnan(lowest_neg) and lowest_neg > 10.0
+        same_type = best_delta_type == lowest_type
+
+        if same_type and neg_hoog:
+            return self._ls(
+                f"{lowest_type}: Sterkste verbetering (+{best_delta:.2f}★) maar laagst scorend "
+                f"({lowest_score:.2f}★) en {lowest_neg:.1f}% negatief. {aanbeveling}",
+                f"{lowest_type} : Amélioration la plus forte (+{best_delta:.2f}★) mais score le plus bas "
+                f"({lowest_score:.2f}★) et {lowest_neg:.1f}% négatif. {aanbeveling}",
+            )
+        if same_type:
+            return self._ls(
+                f"{lowest_type}: Sterkste verbetering (+{best_delta:.2f}★) en laagst scorend "
+                f"({lowest_score:.2f}★). Verdere opvolging aanbevolen.",
+                f"{lowest_type} : Amélioration la plus forte (+{best_delta:.2f}★) et score le plus bas "
+                f"({lowest_score:.2f}★). Suivi recommandé.",
+            )
+        if neg_hoog:
+            return self._ls(
+                f"{lowest_type} blijft laagst scorend ({lowest_score:.2f}★) "
+                f"met {lowest_neg:.1f}% negatief. {aanbeveling}",
+                f"{lowest_type} reste le score le plus bas ({lowest_score:.2f}★) "
+                f"avec {lowest_neg:.1f}% négatif. {aanbeveling}",
+            )
+        return self._ls(
+            f"{lowest_type} blijft laagst scorend ({lowest_score:.2f}★). Verdere monitoring aanbevolen.",
+            f"{lowest_type} reste le score le plus bas ({lowest_score:.2f}★). Monitoring recommandé.",
+        )

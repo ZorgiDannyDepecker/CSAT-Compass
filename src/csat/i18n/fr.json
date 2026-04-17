@@ -277,7 +277,7 @@
     "corr_q1_body": "Schéma positif (r={r}) : tickets clôturés rapidement sans qualité → scores bas. Message de clôture + root cause requis.",
     "corr_conclusion_title": "Conclusion",
     "corr_conclusion_body": "Étendre le monitoring SLA avec des mesures de qualité. Surveiller non seulement le délai mais aussi le taux de résolution.",
-    "response_chart_title": "Dlai moyen par niveau de score",
+    "response_chart_title": "D\u00e9lai moyen par niveau de score",
     "response_yaxis_title": "Jours",
     "response_xaxis_title": "Niveau de score",
     "response_stats_title": "Statistiques de r\u00e9ponse",

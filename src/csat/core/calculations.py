@@ -236,3 +236,85 @@ def calc_issue_type_comparison(
     result = result[(result["count_prev"] > 0) | (result["count_curr"] > 0)]
     result = result.sort_values("score_curr", ascending=True, na_position="last")
     return result.reset_index(drop=True)
+
+
+def calc_priority_comparison(
+    df: pd.DataFrame,
+    mode: str = "full",
+    baseline_year: int | None = None,
+    current_year: int | None = None,
+    current_month: int | None = None,
+    trend_start_month: int = _TREND_DEFAULT_START_MONTH,
+) -> pd.DataFrame:
+    """Berekent vergelijkingstabel per prioriteit: baseline-venster vs huidig jaar YTD.
+
+    Vaste rij-volgorde: Blocker → Critical → Major → Minor → Trivial.
+    Alle 5 rijen altijd aanwezig — NaN voor ontbrekende data.
+    Kolommen: priority, score_prev, score_curr, pct_neg_curr,
+               delta_score, delta_neg, count_prev, count_curr
+    Args:
+        df:                 Volledige CSAT DataFrame.
+        mode:               "full" of "trend" -- zie module-docstring.
+        baseline_year:      Referentiejaar. Standaard: huidig jaar - 1.
+        current_year:       Huidig jaar. Standaard: huidig jaar.
+        current_month:      Laatste afgeronde maand. Standaard: vorige maand.
+        trend_start_month:  Startmaand tendens-modus. Standaard: 7 (S2 = juli).
+    """
+    priority_order = ["Blocker", "Critical", "Major", "Minor", "Trivial"]
+
+    today = _dt.now(tz=UTC).date()
+    _current_year = current_year or today.year
+    _baseline_year = baseline_year or (_current_year - 1)
+    _current_month = current_month or (today.month - 1 or 12)
+
+    df_prev, df_curr = _build_window_frames(
+        df, mode, _baseline_year, _current_year, _current_month, trend_start_month
+    )
+
+    rows = []
+    for p in priority_order:
+        dc = df_curr[df_curr["priority"] == p]
+        dp = df_prev[df_prev["priority"] == p]
+        dc_scored = dc[dc["score"].notna()]
+        dp_scored = dp[dp["score"].notna()]
+
+        score_curr = (
+            round(float(dc_scored["score"].mean()), 2) if not dc_scored.empty else float("nan")
+        )
+        score_prev = (
+            round(float(dp_scored["score"].mean()), 2) if not dp_scored.empty else float("nan")
+        )
+        pct_neg_curr = (
+            round(len(dc_scored[dc_scored["score"] <= 2]) / len(dc_scored) * 100, 1)
+            if not dc_scored.empty
+            else float("nan")
+        )
+        pct_neg_prev = (
+            round(len(dp_scored[dp_scored["score"] <= 2]) / len(dp_scored) * 100, 1)
+            if not dp_scored.empty
+            else float("nan")
+        )
+        delta_score = (
+            round(score_curr - score_prev, 2)
+            if not math.isnan(score_curr) and not math.isnan(score_prev)
+            else float("nan")
+        )
+        delta_neg = (
+            round(pct_neg_curr - pct_neg_prev, 1)
+            if not math.isnan(pct_neg_curr) and not math.isnan(pct_neg_prev)
+            else float("nan")
+        )
+        rows.append(
+            {
+                "priority": p,
+                "score_prev": score_prev,
+                "score_curr": score_curr,
+                "pct_neg_curr": pct_neg_curr,
+                "delta_score": delta_score,
+                "delta_neg": delta_neg,
+                "count_prev": len(dp),
+                "count_curr": len(dc),
+            }
+        )
+
+    return pd.DataFrame(rows)

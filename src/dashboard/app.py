@@ -283,15 +283,17 @@ def _render_sidebar(
         sub_pillars = [k for k in PILLAR_REGISTRY if k != "zorgi"]
         pillar_options = ["zorgi", *sub_pillars]
         pillar_labels = {}
+        _is_demo = not DASHBOARD_PROD_MODE
         for k in pillar_options:
-            if k == "zorgi":
-                status = "✅" if k in _ACTIVE_PILLARS else "⏳"
-                pillar_labels[k] = f"ZORGI {status}"
-            else:
-                status = "✅" if k in _ACTIVE_PILLARS else "⏳"
-                pillar_labels[k] = f"{PILLAR_REGISTRY[k]['name']} {status}"
-        # Herstel geselecteerde pijler uit session_state (bewaard bij taalwissel)
-        _saved_pillar = st.session_state.get("selected_pillar", "zorgi")
+            label_name = "ZORGI" if k == "zorgi" else PILLAR_REGISTRY[k]["name"]
+            pillar_labels[k] = label_name if k in _ACTIVE_PILLARS else f"{label_name} 🚧"
+        _demo_default = "pharma" if _is_demo else "zorgi"
+        if "selected_pillar" not in st.session_state:
+            st.session_state["selected_pillar"] = _demo_default
+        _saved_pillar = st.session_state.get("selected_pillar", _demo_default)
+        if _is_demo and _saved_pillar not in _ACTIVE_PILLARS:
+            _saved_pillar = _demo_default
+            st.session_state["selected_pillar"] = _demo_default
         _pillar_idx = pillar_options.index(_saved_pillar) if _saved_pillar in pillar_options else 0
         selected_pillar = st.radio(
             d["pillar_select"],
@@ -305,44 +307,16 @@ def _render_sidebar(
         st.divider()
 
         # --- Modus ---
-        mode_full = d["mode_full"]
-        mode_trend = d["mode_trend"]
-        _tip_full = d.get("mode_full_help", "")
-        _tip_trend = d.get("mode_trend_help", "")
-        _colon = d.get("colon", ":")
-        # HTML-escape voor veilige injectie (emoji's zijn veilig, < > & " wél escapen)
-        _label_h = html.escape(d["mode_select"])
-        _colon_h = html.escape(_colon)
-        _mf_h = html.escape(mode_full)
-        _mt_h = html.escape(mode_trend)
-        # Tip-velden bevatten developer-controlled HTML (<span style=...>) — niet escapen
-        _tipf_h = _tip_full
-        _tipt_h = _tip_trend
-        # Compacte tooltip-tekst: modusnaam + "vanaf/depuis" + vetgedrukte startmaand (2 regels, nowrap)
-        _months_i18n = t.get("months", [])
-        _trend_m_idx = int(_TREND_WINDOW_START[5:7]) - 1  # 6 → juli/juillet
-        _m_full = _months_i18n[0] if _months_i18n else "jan"
-        _m_trend = _months_i18n[_trend_m_idx] if len(_months_i18n) > _trend_m_idx else "jul"
-        _vanaf = "données depuis" if lang == "fr" else "data vanaf"
-        # Zelfde structuur als Pijler/Taal: st.markdown bold + radio collapsed.
-        # Tooltip via pure CSS hover (geen Streamlit help-parameter nodig).
-        st.markdown(
-            f'<p class="zorgi-section-label">'
-            f"<strong>{_label_h}</strong>&nbsp;"
-            f'<span class="zorgi-help-tip" tabindex="0">?'
-            f'<span class="zorgi-help-tip-content">'
-            f"<span style='display:block'>"
-            f"{_mf_h} &middot; {_vanaf} <span style='font-weight:700'>{_m_full}</span> {_BASELINE_YEAR}"
-            f"</span>"
-            f"<span style='display:block;margin-top:0.3rem'>"
-            f"{_mt_h} &middot; {_vanaf} <span style='font-weight:700'>{_m_trend}</span> {_BASELINE_YEAR}"
-            f"</span>"
-            f"</span></span></p>",
-            unsafe_allow_html=True,
-        )
+        # Dynamische datumrange-labels: "01/2025 ➡ MM/YYYY" (laatste volledige maand)
+        _last_mm = f"{last_month:02d}"
+        _last_yy = str(last_year)
+        _trend_start_mm = _TREND_WINDOW_START[5:7]
+        _trend_start_yyyy = _TREND_WINDOW_START[:4]
+        _full_start_yyyy = str(_BASELINE_YEAR)
+        mode_full = f"01/{_full_start_yyyy} ➡ {_last_mm}/{_last_yy}"
+        mode_trend = f"{_trend_start_mm}/{_trend_start_yyyy} ➡ {_last_mm}/{_last_yy}"
+        st.markdown(f"**{d['mode_select']}**")
         st.markdown("<div style='height:2rem;min-height:2rem'></div>", unsafe_allow_html=True)
-        # Herstel geselecteerde modus uit session_state (bewaard bij taalwissel)
-        # Opslag als taalvrije sleutel "full"/"trend" — onafhankelijk van vertaling
         _saved_mode_key = st.session_state.get("selected_mode_key", "full")
         _mode_idx = 1 if _saved_mode_key == "trend" else 0
         selected_mode = st.radio(
@@ -3046,7 +3020,7 @@ def _build_issue_type_chart(df_comparison, chart_title: str = "", prev_label: st
         else:
             ytd_colors.append(color_neutral)
     all_sc = [s for s in scores_prev + scores_curr if not math.isnan(s)]
-    x_max = round(max(all_sc) + 0.2, 1) if all_sc else 5.5
+    x_max = round(max(all_sc) + 0.3, 1) if all_sc else 5.5
     x_min = max(0.0, round(min(all_sc) - 0.3, 1)) if all_sc else 0.0
 
     def _score_text(v):
@@ -3111,7 +3085,7 @@ def _build_issue_type_chart(df_comparison, chart_title: str = "", prev_label: st
     ):
         if not math.isnan(vp) and cp > 0:
             fig.add_annotation(
-                x=x_min + 0.05,
+                x=x_min + 0.03,
                 y=t_name,
                 text=f"{int(cp)} t",
                 showarrow=False,
@@ -3121,7 +3095,7 @@ def _build_issue_type_chart(df_comparison, chart_title: str = "", prev_label: st
             )
         if not math.isnan(vc) and cc > 0:
             fig.add_annotation(
-                x=x_min + 0.05,
+                x=x_min + 0.03,
                 y=t_name,
                 text=f"{int(cc)} t",
                 showarrow=False,
@@ -3173,6 +3147,150 @@ def _build_issue_type_chart(df_comparison, chart_title: str = "", prev_label: st
     return apply_plotly_theme(fig)
 
 
+def _build_priority_chart(df_comparison, prev_label: str = "2025"):
+    """Horizontale Plotly grouped bar chart voor prioriteit vergelijking."""
+    import math
+
+    priority_order = ["Blocker", "Critical", "Major", "Minor", "Trivial"]
+    color_ok = ZORGI_FUNC_POSITIVE
+    color_bad = ZORGI_RED
+    color_neutral = ZORGI_DARK_BLUE
+    color_prev = "#A7B4C1"
+    _bar_w = 0.35
+
+    df_sorted = df_comparison.set_index("priority").reindex(priority_order).reset_index()
+    df_sorted = df_sorted[::-1].reset_index(drop=True)
+
+    priorities = df_sorted["priority"].tolist()
+    scores_prev = df_sorted["score_prev"].tolist()
+    scores_curr = df_sorted["score_curr"].tolist()
+    counts_prev = (
+        df_sorted["count_prev"].tolist()
+        if "count_prev" in df_sorted.columns
+        else [0] * len(priorities)
+    )
+    counts_curr = (
+        df_sorted["count_curr"].tolist()
+        if "count_curr" in df_sorted.columns
+        else [0] * len(priorities)
+    )
+    n = len(priorities)
+
+    ytd_colors = []
+    for sp, sc in zip(scores_prev, scores_curr, strict=False):
+        if not math.isnan(sc) and not math.isnan(sp):
+            ytd_colors.append(color_ok if sc >= sp else color_bad)
+        else:
+            ytd_colors.append(color_neutral)
+
+    all_sc = [s for s in scores_prev + scores_curr if not math.isnan(s)]
+    x_max = round(max(all_sc) + 0.3, 1) if all_sc else 5.5
+    x_min = max(0.0, round(min(all_sc) - 0.3, 1)) if all_sc else 0.0
+
+    def _score_text(v):
+        return f"\u00a0\u00a0{v:.2f}\u2605" if not math.isnan(v) else ""
+
+    fig = go.Figure()
+    fig.add_trace(
+        go.Bar(
+            name=prev_label,
+            y=priorities,
+            x=scores_prev,
+            orientation="h",
+            marker_color=color_prev,
+            text=[_score_text(v) for v in scores_prev],
+            textposition="outside",
+            textfont={"size": 9, "color": "#444444"},
+            width=_bar_w,
+            offset=-_bar_w,
+            hovertemplate=f"%{{y}} {prev_label}: %{{x:.2f}}\u2605<extra></extra>",
+        )
+    )
+    fig.add_trace(
+        go.Bar(
+            name="YTD",
+            y=priorities,
+            x=scores_curr,
+            orientation="h",
+            marker_color=ytd_colors,
+            text=[_score_text(v) for v in scores_curr],
+            textposition="outside",
+            textfont={"size": 9, "color": "#444444"},
+            width=_bar_w,
+            offset=0.0,
+            showlegend=False,
+            hovertemplate="%{y} YTD: %{x:.2f}\u2605<extra></extra>",
+        )
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=[None],
+            y=[None],
+            mode="markers",
+            marker={"symbol": "square", "size": 12, "color": color_ok},
+            name="YTD (verbetering)",
+        )
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=[None],
+            y=[None],
+            mode="markers",
+            marker={"symbol": "square", "size": 12, "color": color_bad},
+            name="YTD (verslechtering)",
+        )
+    )
+
+    for p_name, vp, cp, vc, cc in zip(
+        priorities, scores_prev, counts_prev, scores_curr, counts_curr, strict=False
+    ):
+        if not math.isnan(vp) and cp > 0:
+            fig.add_annotation(
+                x=x_min + 0.03,
+                y=p_name,
+                text=f"{int(cp)} t",
+                showarrow=False,
+                xanchor="left",
+                font={"size": 10, "color": "#ffffff"},
+                yshift=-10,
+            )
+        if not math.isnan(vc) and cc > 0:
+            fig.add_annotation(
+                x=x_min + 0.03,
+                y=p_name,
+                text=f"{int(cc)} t",
+                showarrow=False,
+                xanchor="left",
+                font={"size": 10, "color": "#ffffff"},
+                yshift=10,
+            )
+
+    fig.update_layout(
+        title="",
+        barmode="overlay",
+        xaxis={
+            "title": "",
+            "range": [x_min, x_max],
+            "gridcolor": "#edf2f7",
+            "ticksuffix": "\u2605",
+            "tickformat": ".1f",
+        },
+        yaxis={"title": "", "autorange": "reversed"},
+        height=max(250, n * 72 + 80),
+        legend={
+            "orientation": "h",
+            "yanchor": "bottom",
+            "y": 1.04,
+            "xanchor": "center",
+            "x": 0.5,
+            "itemsizing": "constant",
+        },
+        margin={"t": 50, "b": 10, "r": 0},
+        modebar_remove=["pan2d", "autoScale2d"],
+    )
+    return apply_plotly_theme(fig)
+
+
 def render_tab_dev_tickets(
     df: pd.DataFrame,
     lang: str,
@@ -3197,6 +3315,9 @@ def render_tab_dev_tickets(
 
     from csat.core.calculations import calc_hero_metrics_tickets, calc_issue_type_comparison
 
+    def _ls(nl: str, fr: str) -> str:
+        return fr if lang == "fr" else nl
+
     # Dynamisch label voor de referentieperiode (afhankelijk van venstermodus)
     _bl_yr = baseline_year or (datetime.now(tz=UTC).year - 1)
     _prev_label = f"S2 {_bl_yr}" if mode == "trend" else str(_bl_yr)
@@ -3215,17 +3336,17 @@ def render_tab_dev_tickets(
         delta=f"{metrics['most_common_type_pct']}% van alle tickets",
     )
     col_b.metric(
-        label="Laagst scorend type",
+        label=_ls("Laagst scorend type", "Type avec le score le plus bas"),
         value=metrics["lowest_score_type"],
-        delta=f"{metrics['lowest_score_type_value']}\u2605 \u2014 laagste",
+        delta=f"{metrics['lowest_score_type_value']}\u2605 \u2014 {_ls('laagste', 'le plus bas')}",
         delta_color="inverse",
     )
     col_c.metric(
-        label="Grootste prioritaire groep",
+        label=_ls("Grootste prioritaire groep", "Groupe prioritaire le plus grand"),
         value=metrics["largest_priority_group"],
         delta=(
             f"{metrics['largest_priority_pct']}% tickets"
-            f" \u00b7 {metrics['largest_priority_neg_pct']}% neg."
+            f" \u00b7 {metrics['largest_priority_neg_pct']}% {_ls('neg.', 'nég.')}"
         ),
     )
     kpi_ok = metrics["high_critical_ok"]
@@ -3233,16 +3354,20 @@ def render_tab_dev_tickets(
     col_d.metric(
         label="% High/Critical (KPI \u226415%)",
         value=f"{metrics['high_critical_pct']}%",
-        delta=f"{_margin}% onder target" if kpi_ok else f"{_margin}% boven target",
+        delta=_ls(
+            f"{_margin}% onder target" if kpi_ok else f"{_margin}% boven target",
+            f"{_margin}% sous l'objectif" if kpi_ok else f"{_margin}% au-dessus de l'objectif",
+        ),
         delta_color="normal" if kpi_ok else "inverse",
     )
     st.divider()
-    # Titel als externe h4 — zelfde stijl als h4.sec-title in de detailtabel
+    _cur_year = datetime.now(tz=UTC).year
+    _type_d_issue = "Type d\u2019issue"
     st.markdown(
         f"<h4 style='margin:0 0 0 0;font-size:24px;font-weight:700;color:#1A1A1A;"
         f'font-family:"Source Sans","Source Sans Pro","Source Sans 3",sans-serif;'
         f"line-height:1.3;'>"
-        f"Issue type \u2014 vergelijking {datetime.now(tz=UTC).year}</h4>",
+        f"{_ls('Issue type', _type_d_issue)} \u2014 {_ls('vergelijking', 'comparaison')} {_cur_year}</h4>",
         unsafe_allow_html=True,
     )
     st.markdown("<div style='margin-top:-1rem'></div>", unsafe_allow_html=True)
@@ -3285,31 +3410,135 @@ def render_tab_dev_tickets(
     df_tbl = pd.DataFrame(
         [
             {
-                "Type": str(r["issue_type"]),
+                _ls("Type", "Type"): str(r["issue_type"]),
                 f"Score {_prev_label}": _fstar(r["score_prev"]),
                 "Score YTD": _fstar(r["score_curr"]),
-                "% Negatief": _fpct(r["pct_neg_curr"]),
+                _ls("% Negatief", "% Négatif"): _fpct(r["pct_neg_curr"]),
                 "\u0394 Score": _fdelta_s(r["delta_score"]),
-                "\u0394 Negatief": _fdelta_n(r["delta_neg"]),
+                _ls("\u0394 Negatief", "\u0394 Négatif"): _fdelta_n(r["delta_neg"]),
             }
             for _, r in df_issue.iterrows()
         ]
     )
     _render_sortable_table(
         df_tbl,
-        title="\U0001f4cb Score per issue type \u2014 detail",
+        title=_ls(
+            "\U0001f4cb Score per issue type \u2014 detail",
+            "\U0001f4cb Score par type d\u2019issue \u2014 détail",
+        ),
         show_title=True,
         delta_col="\u0394 Score",
         export_filename="issue_type_vergelijking.csv",
         col_widths=["32%", "13%", "13%", "11%", "11%", "13%"],
     )
+    _col_neg = _ls("% Negatief", "% Négatif")
+    _col_dneg = _ls("\u0394 Negatief", "\u0394 Négatif")
     st.markdown(
         "<div style='font-size:0.80rem;color:#5f8495;margin-top:-2.5rem;line-height:1.6;"
         "padding:0.35rem 0 0.35rem 0;'>"
-        "<b style='color:#3a5a7a'>% Negatief</b>: aandeel tickets met score \u22642\u2605 in YTD<br>"
-        f"<b style='color:#3a5a7a'>\u0394 Negatief</b>: verschil t.o.v. {_prev_label} in procentpunten, "
-        "een negatieve waarde betekent verbetering (minder negatieve scores)"
-        "</div>",
+        f"<b style='color:#3a5a7a'>{_col_neg}</b>: "
+        + _ls(
+            "aandeel tickets met score \u22642\u2605 in YTD",
+            "part des tickets avec score \u22642\u2605 en cumul",
+        )
+        + "<br>"
+        f"<b style='color:#3a5a7a'>{_col_dneg}</b>: "
+        + _ls(
+            f"verschil t.o.v. {_prev_label} in procentpunten, een negatieve waarde betekent verbetering (minder negatieve scores)",
+            f"différence par rapport à {_prev_label} en points de pourcentage, une valeur négative signifie une amélioration",
+        )
+        + "</div>",
+        unsafe_allow_html=True,
+    )
+    # Insight-box issue type
+    from csat.core.insights.insights_generator import InsightsGenerator
+
+    _i18n = load_translations(lang)
+    _ig = InsightsGenerator(i18n=_i18n, lang=lang)
+    _insight_issue = _ig._generate_issue_type_insight(df_issue)
+    st.markdown(
+        f'<div style="background:#FEF5E7;border:1px solid rgba(230,126,34,0.3);'
+        f'border-radius:8px;padding:10px 14px;margin-top:8px;font-size:13px;">'
+        f'<strong style="color:#E67E22;">⚠ </strong>{_insight_issue}'
+        f"</div>",
+        unsafe_allow_html=True,
+    )
+
+    st.divider()
+
+    # ── Blok 2b: Prioriteit vergelijking ──────────────────────────────────
+    from csat.core.calculations import calc_priority_comparison
+
+    st.markdown(
+        f"<h4 style='margin:0 0 0 0;font-size:24px;font-weight:700;color:#1A1A1A;"
+        f'font-family:"Source Sans","Source Sans Pro","Source Sans 3",sans-serif;'
+        f"line-height:1.3;'>"
+        f"{_ls('Prioriteit', 'Priorité')} \u2014 {_ls('vergelijking', 'comparaison')} {datetime.now(tz=UTC).year}</h4>",
+        unsafe_allow_html=True,
+    )
+    st.markdown("<div style='margin-top:-1rem'></div>", unsafe_allow_html=True)
+    df_prio = calc_priority_comparison(
+        df,
+        mode=mode,
+        baseline_year=baseline_year,
+        current_year=current_year,
+        current_month=current_month,
+        trend_start_month=trend_start_month,
+    )
+    st.plotly_chart(
+        _build_priority_chart(df_prio, prev_label=_prev_label),
+        width="stretch",
+        config=_CHART_CONFIG,
+    )
+    st.markdown(
+        "<hr style='margin:0.4rem 0 0.8rem 0;border:none;border-top:1px solid #e0e8f0'>",
+        unsafe_allow_html=True,
+    )
+    st.markdown(
+        "<div style='margin-top:-1cm;height:0;overflow:hidden'></div>", unsafe_allow_html=True
+    )
+    _col_prio = _ls("Prioriteit", "Priorité")
+    _col_neg_p = _ls("% Negatief", "% Négatif")
+    _col_dneg_p = _ls("\u0394 Negatief", "\u0394 Négatif")
+    df_prio_tbl = pd.DataFrame(
+        [
+            {
+                _col_prio: str(r["priority"]),
+                f"Score {_prev_label}": _fstar(r["score_prev"]),
+                "Score YTD": _fstar(r["score_curr"]),
+                _col_neg_p: _fpct(r["pct_neg_curr"]),
+                "\u0394 Score": _fdelta_s(r["delta_score"]),
+                _col_dneg_p: _fdelta_n(r["delta_neg"]),
+            }
+            for _, r in df_prio.iterrows()
+        ]
+    )
+    _render_sortable_table(
+        df_prio_tbl,
+        title=_ls(
+            "\U0001f4cb Score per prioriteit \u2014 detail",
+            "\U0001f4cb Score par priorité \u2014 détail",
+        ),
+        show_title=True,
+        delta_col="\u0394 Score",
+        export_filename="prioriteit_vergelijking.csv",
+        col_widths=["28%", "14%", "13%", "11%", "11%", "13%"],
+    )
+    st.markdown(
+        "<div style='font-size:0.80rem;color:#5f8495;margin-top:-2.5rem;line-height:1.6;"
+        "padding:0.35rem 0 0.35rem 0;'>"
+        f"<b style='color:#3a5a7a'>{_col_neg_p}</b>: "
+        + _ls(
+            "aandeel tickets met score \u22642\u2605 in YTD",
+            "part des tickets avec score \u22642\u2605 en cumul",
+        )
+        + "<br>"
+        f"<b style='color:#3a5a7a'>{_col_dneg_p}</b>: "
+        + _ls(
+            f"verschil t.o.v. {_prev_label} in procentpunten, een negatieve waarde betekent verbetering (minder negatieve scores)",
+            f"différence par rapport à {_prev_label} en points de pourcentage, une valeur négative signifie une amélioration",
+        )
+        + "</div>",
         unsafe_allow_html=True,
     )
     st.markdown(
@@ -3353,7 +3582,7 @@ def main() -> None:
     if "lang" not in st.session_state:
         st.session_state["lang"] = "nl"
     if "selected_pillar" not in st.session_state:
-        st.session_state["selected_pillar"] = "zorgi"
+        st.session_state["selected_pillar"] = "pharma" if not DASHBOARD_PROD_MODE else "zorgi"
     if "selected_mode_key" not in st.session_state:
         st.session_state["selected_mode_key"] = "full"
 

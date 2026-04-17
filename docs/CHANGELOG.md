@@ -5,6 +5,18 @@ Formaat gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.0.0/).
 
 ---
 
+## [0.5.39] — 17/04/2026
+
+### Toegevoegd
+
+- **`.github/pull_request_template.md`** — nieuw PR-template met type-checkboxes, checklist (tests/lint/CHANGELOG/PII/screenshots) en refs-veld voor BACKLOG/ISSUE-nummers
+- **`docs/issues/BACKLOG-004-git-branching-strategie.md`** — backlog-item voor Git branching strategie & workflow (develop-branch, squash-strategie, chore-conventie, rollback-procedure)
+- **Git-tags** — annotated tags `v0.5.0` en `v0.5.38` aangemaakt en gepusht naar remote (koppeling CHANGELOG ↔ Git-history)
+
+GHC (Versiebeheer & Git-analyse — Prioriteit 1 implementatie)
+
+---
+
 ## [0.5.38] — 16/04/2026
 
 ### Gewijzigd
