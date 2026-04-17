@@ -5,6 +5,7 @@ Dekt:
 - _build_window_frames(): "full" en "trend" venstermodus, current_month-afkap
 - calc_hero_metrics_tickets(): hero-metrics per modus + fallback lege data
 - calc_issue_type_comparison(): vergelijkingstabel per modus + randgevallen
+- calc_priority_comparison(): vaste volgorde, NaN voor ontbrekende prio, delta
 
 Fixture: evolution_df (conftest.py) — bevat 2025 (jun+jul) en 2026 (jan+feb) data.
 """
@@ -20,6 +21,7 @@ from csat.core.calculations import (
     _build_window_frames,
     calc_hero_metrics_tickets,
     calc_issue_type_comparison,
+    calc_priority_comparison,
 )
 
 # ===========================================================================
@@ -381,3 +383,224 @@ class TestCalcIssueTypeComparison:
         bug_row = result[result["issue_type"] == "Bug"].iloc[0]
         assert bug_row["count_prev"] == 3
         assert bug_row["count_curr"] == 2
+
+
+# ===========================================================================
+# calc_hero_metrics_tickets — ontbrekende else-tak (lines 117-118)
+# ===========================================================================
+
+
+class TestCalcHeroMetricsTicketsAllScoresNaN:
+    """Dekt de else-tak waarbij df_curr niet leeg is maar alle scores NaN zijn."""
+
+    def _make_no_score_df(self) -> pd.DataFrame:
+        """DataFrame met 2026-tickets waarbij score altijd NaN is."""
+        rows = [
+            {
+                "key": "X-001",
+                "issue_type": "Bug",
+                "priority": "Minor",
+                "score": float("nan"),
+                "satisfaction_date": pd.Timestamp("2026-01-10"),
+                "created": pd.Timestamp("2026-01-05"),
+            },
+            {
+                "key": "X-002",
+                "issue_type": "Question",
+                "priority": "Trivial",
+                "score": float("nan"),
+                "satisfaction_date": pd.Timestamp("2026-01-15"),
+                "created": pd.Timestamp("2026-01-12"),
+            },
+        ]
+        return pd.DataFrame(rows)
+
+    def test_lowest_score_type_is_em_dash_bij_geen_scores(self) -> None:
+        """Als alle scores NaN zijn, is lowest_score_type '—' en lowest_score_type_value 0.0."""
+        df = self._make_no_score_df()
+        result = calc_hero_metrics_tickets(
+            df,
+            mode="full",
+            baseline_year=2025,
+            current_year=2026,
+            current_month=12,
+        )
+        assert result["lowest_score_type"] == "—"
+        assert result["lowest_score_type_value"] == 0.0
+
+    def test_overige_metrics_correct_bij_geen_scores(self) -> None:
+        """most_common_type en high_critical_pct werken ook zonder scores."""
+        df = self._make_no_score_df()
+        result = calc_hero_metrics_tickets(
+            df,
+            mode="full",
+            baseline_year=2025,
+            current_year=2026,
+            current_month=12,
+        )
+        assert result["most_common_type"] in ("Bug", "Question")
+        assert result["high_critical_pct"] == 0.0
+
+
+# ===========================================================================
+# calc_priority_comparison — volledig ongetest (lines 263-320)
+# ===========================================================================
+
+
+class TestCalcPriorityComparison:
+    """Vergelijkingstabel per prioriteit — Blocker t/m Trivial."""
+
+    def test_retourneert_altijd_5_rijen(self, evolution_df: pd.DataFrame) -> None:
+        """Altijd 5 rijen: Blocker, Critical, Major, Minor, Trivial."""
+        result = calc_priority_comparison(
+            evolution_df,
+            mode="full",
+            baseline_year=2025,
+            current_year=2026,
+            current_month=2,
+        )
+        assert len(result) == 5
+        assert list(result["priority"]) == ["Blocker", "Critical", "Major", "Minor", "Trivial"]
+
+    def test_vaste_volgorde_ongeacht_data(self, evolution_df: pd.DataFrame) -> None:
+        """Volgorde is altijd Blocker → Trivial, ongeacht welke prioriteiten aanwezig zijn."""
+        result = calc_priority_comparison(
+            evolution_df,
+            mode="trend",
+            baseline_year=2025,
+            current_year=2026,
+            current_month=2,
+            trend_start_month=7,
+        )
+        assert list(result["priority"]) == ["Blocker", "Critical", "Major", "Minor", "Trivial"]
+
+    def test_nan_voor_ontbrekende_prioriteiten(self, evolution_df: pd.DataFrame) -> None:
+        """Prioriteiten zonder data in df_curr of df_prev krijgen NaN scores."""
+        result = calc_priority_comparison(
+            evolution_df,
+            mode="full",
+            baseline_year=2025,
+            current_year=2026,
+            current_month=2,
+        )
+        # Blocker: aanwezig in baseline (EB-001), NIET in current 2026
+        blocker = result[result["priority"] == "Blocker"].iloc[0]
+        assert _isnan(blocker["score_curr"])
+        assert not _isnan(blocker["score_prev"])  # EB-001 scoort 2.0
+
+    def test_score_prev_blocker_correct(self, evolution_df: pd.DataFrame) -> None:
+        """Blocker score_prev full mode = 2.0 (alleen EB-001 in 2025)."""
+        result = calc_priority_comparison(
+            evolution_df,
+            mode="full",
+            baseline_year=2025,
+            current_year=2026,
+            current_month=2,
+        )
+        blocker = result[result["priority"] == "Blocker"].iloc[0]
+        assert blocker["score_prev"] == pytest.approx(2.0)
+
+    def test_score_curr_trivial_correct(self, evolution_df: pd.DataFrame) -> None:
+        """Trivial 2026 jan+feb: EC-001(5★) + EC-003(5★) + EC-004(4★) = gem. 4.67."""
+        result = calc_priority_comparison(
+            evolution_df,
+            mode="full",
+            baseline_year=2025,
+            current_year=2026,
+            current_month=2,
+        )
+        trivial = result[result["priority"] == "Trivial"].iloc[0]
+        assert trivial["score_curr"] == pytest.approx(round((5 + 5 + 4) / 3, 2))
+
+    def test_delta_score_nan_als_een_kant_ontbreekt(self, evolution_df: pd.DataFrame) -> None:
+        """delta_score = NaN als score_curr of score_prev NaN is."""
+        result = calc_priority_comparison(
+            evolution_df,
+            mode="full",
+            baseline_year=2025,
+            current_year=2026,
+            current_month=2,
+        )
+        blocker = result[result["priority"] == "Blocker"].iloc[0]
+        assert _isnan(blocker["delta_score"])
+
+    def test_delta_neg_nan_als_een_kant_ontbreekt(self, evolution_df: pd.DataFrame) -> None:
+        """delta_neg = NaN als pct_neg_curr of pct_neg_prev NaN is."""
+        result = calc_priority_comparison(
+            evolution_df,
+            mode="full",
+            baseline_year=2025,
+            current_year=2026,
+            current_month=2,
+        )
+        blocker = result[result["priority"] == "Blocker"].iloc[0]
+        assert _isnan(blocker["delta_neg"])
+
+    def test_count_curr_en_prev_correct(self, evolution_df: pd.DataFrame) -> None:
+        """count_prev telt alleen tickets met satisfaction_date in 2025.
+
+        Minor 2025: EB-005 (Improvement/Minor, heeft sat_date) = 1 ticket.
+        EB-006 (Bug/Minor) heeft satisfaction_date=NaT → valt buiten de filter.
+        Minor 2026: EC-002 = 1 ticket.
+        """
+        result = calc_priority_comparison(
+            evolution_df,
+            mode="full",
+            baseline_year=2025,
+            current_year=2026,
+            current_month=2,
+        )
+        # Minor 2025: alleen EB-005 (EB-006 heeft NaT → uitgesloten)
+        minor = result[result["priority"] == "Minor"].iloc[0]
+        assert minor["count_prev"] == 1
+        # Minor 2026: EC-002 = 1 ticket
+        assert minor["count_curr"] == 1
+
+    def test_trend_mode_prev_beperkt_tot_s2(self, evolution_df: pd.DataFrame) -> None:
+        """mode='trend': df_prev bevat alleen S2 2025 (jul) → Blocker afwezig."""
+        result = calc_priority_comparison(
+            evolution_df,
+            mode="trend",
+            baseline_year=2025,
+            current_year=2026,
+            current_month=2,
+            trend_start_month=7,
+        )
+        # Blocker EB-001 zit in juni 2025 → valt buiten S2 → score_prev NaN
+        blocker = result[result["priority"] == "Blocker"].iloc[0]
+        assert _isnan(blocker["score_prev"])
+
+    def test_kolommen_aanwezig(self, evolution_df: pd.DataFrame) -> None:
+        """Resultaat bevat alle verwachte kolommen."""
+        result = calc_priority_comparison(
+            evolution_df,
+            mode="full",
+            baseline_year=2025,
+            current_year=2026,
+            current_month=2,
+        )
+        verwacht = {
+            "priority",
+            "score_prev",
+            "score_curr",
+            "pct_neg_curr",
+            "delta_score",
+            "delta_neg",
+            "count_prev",
+            "count_curr",
+        }
+        assert verwacht.issubset(set(result.columns))
+
+    def test_lege_data_geeft_5_nan_rijen(self, empty_df: pd.DataFrame) -> None:
+        """Lege invoer → 5 rijen met NaN-scores en count 0."""
+        result = calc_priority_comparison(
+            empty_df,
+            mode="full",
+            baseline_year=2025,
+            current_year=2026,
+            current_month=2,
+        )
+        assert len(result) == 5
+        assert list(result["priority"]) == ["Blocker", "Critical", "Major", "Minor", "Trivial"]
+        assert all(_isnan(v) for v in result["score_curr"])
+        assert all(result["count_curr"] == 0)

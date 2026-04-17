@@ -5,6 +5,19 @@ Formaat gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.0.0/).
 
 ---
 
+## [0.5.40] — 17/04/2026
+
+### Toegevoegd
+
+- **`tests/core/test_calculations.py`** — `calc_priority_comparison` volledig getest (vaste volgorde, NaN voor ontbrekende prioriteiten, delta-berekeningen, lege data, full/trend modes); `else`-tak `calc_hero_metrics_tickets` gedekt (alle scores NaN); import uitgebreid
+- **`tests/core/test_insights_generator.py`** — `TestGenerateIssueTypeInsight` toegevoegd: alle 5 branches van `_generate_issue_type_insight` (lege df, normaal pad, neg_hoog, same_type zonder/met neg)
+
+### Gewijzigd
+
+- **`tests/core/test_calculations.py`** — module-docstring bijgewerkt; `calc_priority_comparison` geïmporteerd
+
+---
+
 ## [0.5.39] — 17/04/2026
 
 ### Toegevoegd

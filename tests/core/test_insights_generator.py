@@ -1738,3 +1738,134 @@ class TestNarrativeBranches:
         )
         bundle = insights_gen_nl.generate(result)
         assert "negatieve correlatie" in bundle.response_time_narrative
+
+
+# ---------------------------------------------------------------------------
+# 12. _generate_issue_type_insight - lines 1332-1408
+# ---------------------------------------------------------------------------
+
+
+class TestGenerateIssueTypeInsight:
+    """Tests voor _generate_issue_type_insight — alle branches."""
+
+    def _make_comparison_df(
+        self,
+        rows: list[dict],
+    ) -> pd.DataFrame:
+        """Hulp: bouw een df_comparison zoals calc_issue_type_comparison produceert."""
+        import math
+
+        import pandas as pd
+
+        cols = [
+            "issue_type",
+            "score_prev",
+            "score_curr",
+            "pct_neg_curr",
+            "delta_score",
+            "delta_neg",
+            "count_prev",
+            "count_curr",
+        ]
+        if not rows:
+            return pd.DataFrame(columns=cols)
+        df = pd.DataFrame(rows)
+        for col in cols:
+            if col not in df.columns:
+                df[col] = math.nan
+        return df[cols]
+
+    def test_lege_df_geeft_fallback(self, insights_gen_nl: InsightsGenerator) -> None:
+        """Lege df_comparison → fallback 'Geen issue type data beschikbaar'."""
+        df = self._make_comparison_df([])
+        result = insights_gen_nl._generate_issue_type_insight(df)
+        assert "Geen issue type data beschikbaar" in result
+
+    def test_normaal_pad_geen_hoge_neg_geen_same_type(
+        self, insights_gen_nl: InsightsGenerator
+    ) -> None:
+        """not same_type, not neg_hoog → standaardtekst 'verdere monitoring aanbevolen'."""
+        import math
+
+        df = self._make_comparison_df(
+            [
+                {
+                    "issue_type": "Bug",
+                    "score_curr": 3.5,
+                    "pct_neg_curr": 5.0,  # ≤ 10 → niet hoog
+                    "delta_score": 0.5,  # Bug heeft de beste delta
+                    "score_prev": 3.0,
+                },
+                {
+                    "issue_type": "Question",
+                    "score_curr": 3.0,  # laagst scorend
+                    "pct_neg_curr": 4.0,  # ≤ 10 → niet hoog
+                    "delta_score": math.nan,
+                    "score_prev": math.nan,
+                },
+            ]
+        )
+        result = insights_gen_nl._generate_issue_type_insight(df)
+        assert "Question" in result
+        assert "monitoring" in result.lower()
+
+    def test_neg_hoog_pad(self, insights_gen_nl: InsightsGenerator) -> None:
+        """not same_type, neg_hoog=True → laagst scorend type + aanbeveling."""
+        import math
+
+        df = self._make_comparison_df(
+            [
+                {
+                    "issue_type": "Bug",
+                    "score_curr": 4.0,
+                    "pct_neg_curr": 5.0,
+                    "delta_score": 0.8,  # beste delta → Bug
+                    "score_prev": 3.2,
+                },
+                {
+                    "issue_type": "Incident",
+                    "score_curr": 3.0,  # laagst scorend
+                    "pct_neg_curr": 15.0,  # > 10 → hoog
+                    "delta_score": math.nan,
+                    "score_prev": math.nan,
+                },
+            ]
+        )
+        result = insights_gen_nl._generate_issue_type_insight(df)
+        assert "Incident" in result
+        assert "15.0%" in result or "15,0%" in result or "15.0" in result
+
+    def test_same_type_zonder_hoge_neg(self, insights_gen_nl: InsightsGenerator) -> None:
+        """same_type=True, neg_hoog=False → tekst met 'sterkste verbetering' + 'laagst scorend'."""
+        df = self._make_comparison_df(
+            [
+                {
+                    "issue_type": "Bug",
+                    "score_curr": 3.0,  # laagst scorend
+                    "pct_neg_curr": 5.0,  # ≤ 10
+                    "delta_score": 1.2,  # beste delta = Bug (= laagst scorend → same_type)
+                    "score_prev": 1.8,
+                },
+            ]
+        )
+        result = insights_gen_nl._generate_issue_type_insight(df)
+        assert "Bug" in result
+        assert "Sterkste verbetering" in result or "Amélioration" in result
+
+    def test_same_type_met_hoge_neg(self, insights_gen_nl: InsightsGenerator) -> None:
+        """same_type=True, neg_hoog=True → tekst met delta, score én neg%-vermelding."""
+        df = self._make_comparison_df(
+            [
+                {
+                    "issue_type": "Bug",
+                    "score_curr": 3.0,  # laagst scorend
+                    "pct_neg_curr": 20.0,  # > 10 → hoog
+                    "delta_score": 1.5,  # beste delta = Bug → same_type
+                    "score_prev": 1.5,
+                },
+            ]
+        )
+        result = insights_gen_nl._generate_issue_type_insight(df)
+        assert "Bug" in result
+        assert "20.0%" in result or "20,0%" in result or "20.0" in result
+        assert "Sterkste verbetering" in result or "Amélioration" in result
