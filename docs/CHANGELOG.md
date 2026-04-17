@@ -5,6 +5,18 @@ Formaat gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.0.0/).
 
 ---
 
+## [0.5.46] — 17/04/2026
+
+### Toegevoegd
+
+- **`tests/core/test_insights_generator.py`** — 2 nieuwe testklassen toegevoegd:
+  - `TestGeneratePriorityInsight` (9 tests): lege df NL/FR, alle-NaN fallback, laag-neg monitoringstekst, hoog-neg lange tekst NL/FR, kwartaalnotatie Q/T, retourtype str
+  - `TestGenerateFeedbackThemes` (12 tests): None/leeg/geen-kolom, geen negatieve tickets, geen keywords, responstijd-detectie, dict-structuur, sortering, max-4-limiet, FR-naam, pct-berekening, ontbrekende comment-kolom, NaN-comments
+  - Module-docstring bijgewerkt met de nieuwe secties
+- `insights_generator.py` coverage: 90% → **100%** (regels 1420–1518 nu gedekt)
+
+---
+
 ## [0.5.45] — 17/04/2026
 
 ### Opgelost

@@ -3,10 +3,13 @@ Unit tests voor InsightsGenerator en InsightsBundle — Fase 3g.
 
 Dekt: classify_severity, generate(), executive summary, critical findings,
 positive developments, recommendations, follow-up actions, visual analysis,
-turning point analysis, randgevallen.
+turning point analysis, _generate_issue_type_insight,
+_generate_priority_insight, _generate_feedback_themes, randgevallen.
 """
 
 from __future__ import annotations
+
+from datetime import UTC
 
 import pandas as pd
 import pytest
@@ -1869,3 +1872,261 @@ class TestGenerateIssueTypeInsight:
         assert "Bug" in result
         assert "20.0%" in result or "20,0%" in result or "20.0" in result
         assert "Sterkste verbetering" in result or "Amélioration" in result
+
+
+# ---------------------------------------------------------------------------
+# 13. _generate_priority_insight
+# ---------------------------------------------------------------------------
+
+
+class TestGeneratePriorityInsight:
+    """Tests voor _generate_priority_insight — alle branches."""
+
+    def _make_prio_df(self, rows: list[dict]) -> pd.DataFrame:
+        """Hulp: bouw een df_comparison zoals calc_priority_comparison produceert."""
+        import math
+
+        cols = ["priority", "score_prev", "score_curr", "pct_neg_curr", "delta_score", "delta_neg"]
+        if not rows:
+            return pd.DataFrame(columns=cols)
+        df = pd.DataFrame(rows)
+        for col in cols:
+            if col not in df.columns:
+                df[col] = math.nan
+        return df[cols]
+
+    def test_lege_df_geeft_fallback(self, insights_gen_nl: InsightsGenerator) -> None:
+        """Lege df → fallback 'Geen prioriteitsdata beschikbaar'."""
+        df = self._make_prio_df([])
+        result = insights_gen_nl._generate_priority_insight(df)
+        assert "Geen prioriteitsdata beschikbaar" in result
+
+    def test_lege_df_fr_geeft_fallback(self, insights_gen_fr: InsightsGenerator) -> None:
+        """Lege df FR → Franstalige fallback."""
+        df = self._make_prio_df([])
+        result = insights_gen_fr._generate_priority_insight(df)
+        assert "Aucune donnée de priorité" in result
+
+    def test_alle_nan_score_geeft_fallback(self, insights_gen_nl: InsightsGenerator) -> None:
+        """Alle score_curr = NaN → dropna verwijdert alles → fallback."""
+        import math
+
+        df = self._make_prio_df(
+            [{"priority": "High", "score_curr": math.nan, "pct_neg_curr": math.nan}]
+        )
+        result = insights_gen_nl._generate_priority_insight(df)
+        assert "Geen prioriteitsdata beschikbaar" in result
+
+    def test_laag_neg_geeft_monitoringstekst(self, insights_gen_nl: InsightsGenerator) -> None:
+        """neg_hoog=False (pct ≤ 10%) → korte monitoringstekst zonder verklaring."""
+        df = self._make_prio_df(
+            [
+                {"priority": "Medium", "score_curr": 3.5, "pct_neg_curr": 5.0},
+                {"priority": "Low", "score_curr": 2.8, "pct_neg_curr": 8.0},  # laagste score
+            ]
+        )
+        result = insights_gen_nl._generate_priority_insight(df)
+        assert "Low" in result
+        assert "2.80" in result
+        assert "monitoring" in result.lower()
+        # Lange verklaringstekst mag NIET aanwezig zijn
+        assert "klant gefrustreerd" not in result
+
+    def test_hoge_neg_geeft_lange_tekst(self, insights_gen_nl: InsightsGenerator) -> None:
+        """neg_hoog=True (pct > 10%) → uitgebreide tekst met verklaring + kwaliteitsreview."""
+        df = self._make_prio_df(
+            [
+                {"priority": "High", "score_curr": 4.0, "pct_neg_curr": 5.0},
+                {"priority": "Low", "score_curr": 2.5, "pct_neg_curr": 18.0},  # laagste score
+            ]
+        )
+        result = insights_gen_nl._generate_priority_insight(df)
+        assert "Low" in result
+        assert "2.50" in result
+        assert "18.0%" in result or "18.0" in result
+        assert "kwaliteitsreview" in result.lower() or "review" in result.lower()
+        assert "klant gefrustreerd" in result
+
+    def test_hoge_neg_fr(self, insights_gen_fr: InsightsGenerator) -> None:
+        """FR + neg_hoog=True → Franstalige lange tekst met 'Revue qualité'."""
+        df = self._make_prio_df([{"priority": "Critical", "score_curr": 2.0, "pct_neg_curr": 25.0}])
+        result = insights_gen_fr._generate_priority_insight(df)
+        assert "Critical" in result
+        assert "Revue qualité" in result
+
+    def test_kwartaalnotatie_nl(self, insights_gen_nl: InsightsGenerator) -> None:
+        """Nederlandstalige kwartaalnotatie bevat 'Q' + jaar."""
+        from datetime import datetime
+
+        df = self._make_prio_df([{"priority": "High", "score_curr": 3.0, "pct_neg_curr": 5.0}])
+        result = insights_gen_nl._generate_priority_insight(df)
+        huidig_jaar = datetime.now(tz=UTC).year
+        assert "Q" in result
+        assert str(huidig_jaar) in result
+        assert "T" not in result  # FR-notatie mag niet in NL-versie
+
+    def test_kwartaalnotatie_fr(self, insights_gen_fr: InsightsGenerator) -> None:
+        """Franstalige kwartaalnotatie bevat 'T' + jaar."""
+        from datetime import datetime
+
+        df = self._make_prio_df([{"priority": "High", "score_curr": 3.0, "pct_neg_curr": 5.0}])
+        result = insights_gen_fr._generate_priority_insight(df)
+        huidig_jaar = datetime.now(tz=UTC).year
+        assert "T" in result
+        assert str(huidig_jaar) in result
+
+    def test_retourneert_altijd_str(self, insights_gen_nl: InsightsGenerator) -> None:
+        """Methode retourneert altijd str, nooit None."""
+        df = self._make_prio_df([{"priority": "Low", "score_curr": 3.2, "pct_neg_curr": 7.0}])
+        result = insights_gen_nl._generate_priority_insight(df)
+        assert isinstance(result, str)
+        assert len(result) > 0
+
+
+# ---------------------------------------------------------------------------
+# 14. _generate_feedback_themes
+# ---------------------------------------------------------------------------
+
+
+class TestGenerateFeedbackThemes:
+    """Tests voor _generate_feedback_themes — alle branches."""
+
+    def _make_df(self, rows: list[dict]) -> pd.DataFrame:
+        """Hulp: bouw een minimaal CSAT-DataFrame met score en comment."""
+        if not rows:
+            return pd.DataFrame(columns=["score", "comment"])
+        return pd.DataFrame(rows)
+
+    def test_none_df_geeft_lege_lijst(self, insights_gen_nl: InsightsGenerator) -> None:
+        """df=None → lege lijst."""
+        result = insights_gen_nl._generate_feedback_themes(None)
+        assert result == []
+
+    def test_leeg_df_geeft_lege_lijst(self, insights_gen_nl: InsightsGenerator) -> None:
+        """Leeg DataFrame → lege lijst."""
+        df = self._make_df([])
+        result = insights_gen_nl._generate_feedback_themes(df)
+        assert result == []
+
+    def test_geen_score_kolom_geeft_lege_lijst(self, insights_gen_nl: InsightsGenerator) -> None:
+        """DataFrame zonder 'score' kolom → lege lijst."""
+        df = pd.DataFrame([{"comment": "wachttijd te lang"}])
+        result = insights_gen_nl._generate_feedback_themes(df)
+        assert result == []
+
+    def test_geen_negatieve_tickets_geeft_lege_lijst(
+        self, insights_gen_nl: InsightsGenerator
+    ) -> None:
+        """Alleen positieve scores (> 2) → geen negatieve tickets → lege lijst."""
+        df = self._make_df(
+            [
+                {"score": 4.0, "comment": "wachttijd te lang"},
+                {"score": 5.0, "comment": "traag en lent"},
+            ]
+        )
+        result = insights_gen_nl._generate_feedback_themes(df)
+        assert result == []
+
+    def test_geen_matching_keywords_geeft_lege_lijst(
+        self, insights_gen_nl: InsightsGenerator
+    ) -> None:
+        """Negatief ticket zonder keywords → geen thema's → lege lijst."""
+        df = self._make_df([{"score": 1.0, "comment": "prima geregeld dankuwel"}])
+        result = insights_gen_nl._generate_feedback_themes(df)
+        assert result == []
+
+    def test_responstijd_thema_gedetecteerd(self, insights_gen_nl: InsightsGenerator) -> None:
+        """Keyword 'wachttijd' in negatief ticket → responstijd-thema aanwezig."""
+        df = self._make_df(
+            [
+                {"score": 1.0, "comment": "De wachttijd was veel te lang"},
+                {"score": 5.0, "comment": "Uitstekende service"},
+            ]
+        )
+        result = insights_gen_nl._generate_feedback_themes(df)
+        assert len(result) >= 1
+        namen = [t["naam"] for t in result]
+        assert "Responstijd" in namen
+
+    def test_resultaat_is_lijst_van_dicts(self, insights_gen_nl: InsightsGenerator) -> None:
+        """Elke entry in de lijst is een dict met 'naam', 'beschrijving' en 'pct'."""
+        df = self._make_df([{"score": 2.0, "comment": "niet opgelost en onvolledig"}])
+        result = insights_gen_nl._generate_feedback_themes(df)
+        for item in result:
+            assert isinstance(item, dict)
+            assert "naam" in item
+            assert "beschrijving" in item
+            assert "pct" in item
+            assert isinstance(item["pct"], float)
+
+    def test_gesorteerd_op_pct_aflopend(self, insights_gen_nl: InsightsGenerator) -> None:
+        """Resultaten zijn gesorteerd op pct (hoogste eerst)."""
+        df = self._make_df(
+            [
+                {"score": 1.0, "comment": "wachttijd te lang en traag"},
+                {"score": 2.0, "comment": "wachttijd wachttijd en ook niet opgelost"},
+                {"score": 1.0, "comment": "niet gecontacteerd"},
+            ]
+        )
+        result = insights_gen_nl._generate_feedback_themes(df)
+        if len(result) >= 2:
+            assert result[0]["pct"] >= result[1]["pct"]
+
+    def test_maximaal_4_themas(self, insights_gen_nl: InsightsGenerator) -> None:
+        """Nooit meer dan 4 thema's teruggeven, ook als alle 5 matchen."""
+        df = self._make_df(
+            [
+                {
+                    "score": 1.0,
+                    "comment": (
+                        "wachttijd te lang, niet opgelost, geen update, "
+                        "dringend, automatisch script"
+                    ),
+                },
+            ]
+        )
+        result = insights_gen_nl._generate_feedback_themes(df)
+        assert len(result) <= 4
+
+    def test_fr_geeft_franstalige_naam(self, insights_gen_fr: InsightsGenerator) -> None:
+        """FR-instantie → 'naam' veld bevat Franstalige themanaam."""
+        df = self._make_df([{"score": 1.0, "comment": "attente trop longue et lent"}])
+        result = insights_gen_fr._generate_feedback_themes(df)
+        assert len(result) >= 1
+        assert result[0]["naam"] == "Temps de réponse"
+
+    def test_pct_berekening_correct(self, insights_gen_nl: InsightsGenerator) -> None:
+        """2 van 4 negatieve tickets matchen → pct = 50.0."""
+        df = self._make_df(
+            [
+                {"score": 1.0, "comment": "wachttijd te lang"},
+                {"score": 2.0, "comment": "wachttijd enorm"},
+                {"score": 1.0, "comment": "geen klacht over responstijd"},
+                {"score": 2.0, "comment": "geen klacht"},
+            ]
+        )
+        result = insights_gen_nl._generate_feedback_themes(df)
+        resp = next((t for t in result if t["naam"] == "Responstijd"), None)
+        assert resp is not None
+        assert resp["pct"] == 50.0
+
+    def test_geen_comment_kolom_geeft_lege_lijst(self, insights_gen_nl: InsightsGenerator) -> None:
+        """DataFrame zonder 'comment' kolom maar met negatieve scores → lege lijst."""
+        df = pd.DataFrame([{"score": 1.0, "summary": "probleem"}])
+        result = insights_gen_nl._generate_feedback_themes(df)
+        assert result == []
+
+    def test_nan_comments_worden_genegeerd(self, insights_gen_nl: InsightsGenerator) -> None:
+        """NaN-waarden in comment → fillna('') → geen crash."""
+        import math
+
+        df = self._make_df(
+            [
+                {"score": 1.0, "comment": math.nan},
+                {"score": 2.0, "comment": None},
+                {"score": 1.0, "comment": "wachttijd"},
+            ]
+        )
+        result = insights_gen_nl._generate_feedback_themes(df)
+        # Geen crash is het primaire doel; responstijd-thema mag gevonden worden
+        assert isinstance(result, list)
