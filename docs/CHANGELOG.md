@@ -5,6 +5,28 @@ Formaat gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.0.0/).
 
 ---
 
+## [0.5.47] — 18/04/2026
+
+### Toegevoegd
+
+- **`docs/02-tactisch/fasen/fase5c-tickets-prioriteit-insights.md`** — nieuw fase-document: stap 1–7 volledig gedocumenteerd (hero-metrics, grafieken, insight-boxes, feedbackthema's, productieswap, bugfixes, testdekking)
+- **`docs/progression/week-2026-04-12-nl.md`** — weekrapport 12–18 april 2026 (retrospectief + vooruitblik)
+- **`docs/issues/resolved/`** — nieuwe submap voor afgehandelde issues
+- **`WIP/.gitkeep`** — map bewaard na leegruimen
+
+### Gewijzigd
+
+- **`docs/02-tactisch/fasen/fase5b-dashboard-ui-verfijning.md`** — status `In uitvoering` → `Afgerond`; verwijs naar Fase 5c
+
+### Verplaatst / Gearchiveerd
+
+- **`archive/WIP/20260417-fase5a-afronding/`** ← 10 WIP-bestanden (ontwerpdocumenten, promptgidsen, handovers, HTML-snapshots)
+- **`docs/issues/resolved/BACKLOG-001-*`** ← gesloten (geïmplementeerd 13/04/2026)
+- **`docs/issues/resolved/ISSUE-001-*`** ← resolved (gefixt 13/04/2026)
+- **`archive/.../ZORGI_Design_System_OLD.md`** ← duplicaat uit `docs/01-strategisch/` (golden source is `.github/docs/zorgi_design_system.md`)
+
+---
+
 ## [0.5.46] — 17/04/2026
 
 ### Toegevoegd

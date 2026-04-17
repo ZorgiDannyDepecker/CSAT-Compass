@@ -1,12 +1,12 @@
 # CSAT-Compass — Fase 5b: Dashboard UI-verfijning
 
-**Versie:** 1.0
-**Laatst bijgewerkt:** 10/04/2026
+**Versie:** 1.1
+**Laatst bijgewerkt:** 18/04/2026
 
 **Doel:** UI-verfijning van het Streamlit-dashboard — vaste tabbalk, datapanel secties, vergelijkingstabel
 **Type:** Implementatie
 **Auteur:** Danny Depecker + GHC
-**Status:** In uitvoering
+**Status:** Afgerond — opgevolgd door Fase 5c
 
 **Bestandsnaam:** fase5b-dashboard-ui-verfijning.md
 **Path:** docs/02-tactisch/fasen/
