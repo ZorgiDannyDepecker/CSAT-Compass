@@ -18,6 +18,7 @@ from csat.core.analysers.evolution_analyser import EvolutionAnalyser
 from csat.core.analysers.evolution_result import (
     EvolutionResult,
     HospitalComparison,
+    HospitalMigration,
     KpiTarget,
     MonthlyDataPoint,
     NegativeCase,
@@ -437,7 +438,12 @@ class TestCriticalFindings:
             current_hc_ratio=10.0,
             trend_is_structural=False,
             trend_breadth="gemengd",
-            hospitals_disappeared=["OLV Aalst", "AZ Groeninge"],
+            hospitals_disappeared=[
+                HospitalMigration(hospital="OLV Aalst", total_tickets=12, anchor_date="2025-06-30"),
+                HospitalMigration(
+                    hospital="AZ Groeninge", total_tickets=8, anchor_date="2025-09-30"
+                ),
+            ],
             hospital_retention_pct=50.0,
         )
         gen = InsightsGenerator(nl_translations, lang="nl", seed=1)

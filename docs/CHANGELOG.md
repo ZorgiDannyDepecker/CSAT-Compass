@@ -5,6 +5,15 @@ Formaat gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.0.0/).
 
 ---
 
+## [0.5.51] — 18/04/2026
+
+### Opgelost
+
+- **`tests/scripts/test_run_monthly.py:25`** — MyPy `arg-type`: `assert _spec is not None` toegevoegd vóór `module_from_spec()` — `spec_from_file_location` kan `None` teruggeven
+- **`tests/core/test_insights_generator.py:440`** — MyPy `list-item`: `hospitals_disappeared` gecorrigeerd van `list[str]` naar `list[HospitalMigration]`; `HospitalMigration` toegevoegd aan imports
+
+---
+
 ## [0.5.50] — 18/04/2026
 
 ### Verplaatst

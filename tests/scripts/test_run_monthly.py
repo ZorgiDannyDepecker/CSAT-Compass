@@ -22,6 +22,7 @@ _ROOT = Path(__file__).resolve().parent.parent.parent
 _MODULE_PATH = _ROOT / "scripts" / "run_monthly.py"
 
 _spec = importlib.util.spec_from_file_location("run_monthly", _MODULE_PATH)
+assert _spec is not None, f"Kan module spec niet laden: {_MODULE_PATH}"
 _mod = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(_mod)  # type: ignore[union-attr]
 
