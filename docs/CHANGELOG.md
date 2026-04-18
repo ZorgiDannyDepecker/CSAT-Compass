@@ -5,6 +5,18 @@ Formaat gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.0.0/).
 
 ---
 
+## [0.5.50] — 18/04/2026
+
+### Verplaatst
+
+- **`tools/_patch_app.py`** → **`archive/tools/_patch_app.py`** — éénmalig Fase 5a patchscript gearchiveerd; alle wijzigingen zijn volledig geïntegreerd in `app.py` (productie sinds commit `d04f14d`)
+
+### Behouden
+
+- **`tools/sync-design-system.ps1`** — correct geplaatst in `tools/`; actief en herbruikbaar synchronisatiescript voor ZORGI Design System golden source
+
+---
+
 ## [0.5.49] — 18/04/2026
 
 ### Toegevoegd
