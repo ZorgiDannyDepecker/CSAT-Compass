@@ -1,3 +1,4 @@
+---
 metadata:
   name: "Test Coverage & Gap Review"
   full_name: "Role – Task – Format"
@@ -53,3 +54,4 @@ F:
     4. Concrete aanbevelingen, geprioriteerd op risico en impact
 
     Schrijf helder, technisch correct en to-the-point.
+---
