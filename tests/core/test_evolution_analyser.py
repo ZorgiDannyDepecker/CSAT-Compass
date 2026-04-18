@@ -1480,3 +1480,160 @@ class TestFase3gThemeEvolutionExtended:
         lege = evolution_df.iloc[0:0].copy()
         themes = analyser._negative_themes(lege, lege)
         assert themes == []
+
+
+# ===========================================================================
+# _calc_negative_cases — probleemclassificatie & sortering (regels 1033-1081)
+# ===========================================================================
+class TestCalcNegativeCases:
+    """Tests voor EvolutionAnalyser._calc_negative_cases()."""
+
+    @staticmethod
+    def _df(rows):
+        defaults = {
+            "key": "SD-000",
+            "score": 1.0,
+            "created": "2026-01-01",
+            "satisfaction_date": "2026-01-05",
+            "hospital": "AZ Test",
+            "issue_type": "Bug",
+            "comment": "",
+            "product_domain": "PHARMA",
+            "priority": "Minor",
+        }
+        rijen = []
+        for r in rows:
+            rij = {**defaults, **r}
+            rij["created"] = pd.Timestamp(rij["created"])
+            rij["satisfaction_date"] = (
+                pd.Timestamp(rij["satisfaction_date"]) if rij["satisfaction_date"] else pd.NaT
+            )
+            rijen.append(rij)
+        return pd.DataFrame(rijen)
+
+    @staticmethod
+    def _ana(df):
+        return EvolutionAnalyser(df, pillar_key="pharma")
+
+    # Basis
+    def test_lege_df_geeft_lege_lijst(self, empty_df):
+        assert self._ana(empty_df)._calc_negative_cases(empty_df) == []
+
+    def test_alle_scores_positief_geeft_leeg(self):
+        df = self._df([{"score": 3.0}, {"score": 4.0}, {"score": 5.0}])
+        assert self._ana(df)._calc_negative_cases(df) == []
+
+    def test_score_nan_genegeerd(self):
+        df = self._df([{"score": None, "satisfaction_date": "2026-01-05"}])
+        assert self._ana(df)._calc_negative_cases(df) == []
+
+    # Classificatie
+    def test_responstijd_keyword(self):
+        df = self._df([{"score": 1.0, "comment": "te lang gewacht"}])
+        r = self._ana(df)._calc_negative_cases(df)
+        assert r[0].category == "responstijd"
+
+    def test_onvolledig_keyword(self):
+        df = self._df([{"score": 2.0, "comment": "nog steeds niet opgelost"}])
+        r = self._ana(df)._calc_negative_cases(df)
+        assert r[0].category == "onvolledig"
+
+    def test_eerste_match_wint(self):
+        df = self._df([{"score": 1.0, "comment": "te lang gewacht en nog steeds niet opgelost"}])
+        r = self._ana(df)._calc_negative_cases(df)
+        first_theme = next(iter(THEME_KEYWORDS))
+        assert r[0].category == first_theme
+
+    def test_geen_keyword_geeft_streep(self):
+        df = self._df([{"score": 2.0, "comment": "algemene opmerking"}])
+        r = self._ana(df)._calc_negative_cases(df)
+        assert r[0].category == "—"
+
+    def test_lege_comment_geeft_streep(self):
+        df = self._df([{"score": 1.0, "comment": ""}])
+        assert self._ana(df)._calc_negative_cases(df)[0].category == "—"
+
+    def test_case_insensitive(self):
+        df = self._df([{"score": 1.0, "comment": "TE LANG GEWACHT"}])
+        assert self._ana(df)._calc_negative_cases(df)[0].category == "responstijd"
+
+    # response_days
+    def test_response_days_correct(self):
+        df = self._df([{"score": 1.0, "created": "2026-01-01", "satisfaction_date": "2026-01-06"}])
+        assert self._ana(df)._calc_negative_cases(df)[0].response_days == 5.0
+
+    def test_response_days_none_bij_nat(self):
+        df = self._df([{"score": 2.0, "satisfaction_date": None}])
+        assert self._ana(df)._calc_negative_cases(df)[0].response_days is None
+
+    def test_response_days_none_bij_negatief_interval(self):
+        df = self._df([{"score": 1.0, "created": "2026-01-10", "satisfaction_date": "2026-01-05"}])
+        assert self._ana(df)._calc_negative_cases(df)[0].response_days is None
+
+    # Sortering
+    def test_laagste_score_eerst(self):
+        df = self._df(
+            [
+                {
+                    "key": "SD-2",
+                    "score": 2.0,
+                    "created": "2026-01-01",
+                    "satisfaction_date": "2026-01-03",
+                },
+                {
+                    "key": "SD-1",
+                    "score": 1.0,
+                    "created": "2026-01-01",
+                    "satisfaction_date": "2026-01-03",
+                },
+            ]
+        )
+        r = self._ana(df)._calc_negative_cases(df)
+        assert r[0].ticket_id == "SD-1"
+
+    def test_gelijke_score_langste_responstijd_eerst(self):
+        df = self._df(
+            [
+                {
+                    "key": "SD-A",
+                    "score": 1.0,
+                    "created": "2026-01-01",
+                    "satisfaction_date": "2026-01-04",
+                },
+                {
+                    "key": "SD-B",
+                    "score": 1.0,
+                    "created": "2026-01-01",
+                    "satisfaction_date": "2026-01-11",
+                },
+            ]
+        )
+        r = self._ana(df)._calc_negative_cases(df)
+        assert r[0].ticket_id == "SD-B"
+
+    # Velden
+    def test_velden_correct(self):
+        df = self._df(
+            [
+                {
+                    "key": "SD-999",
+                    "score": 2.0,
+                    "hospital": "UZ Gent",
+                    "issue_type": "Improvement",
+                    "comment": "traag",
+                    "created": "2026-03-01",
+                    "satisfaction_date": "2026-03-06",
+                }
+            ]
+        )
+        c = self._ana(df)._calc_negative_cases(df)[0]
+        assert c.ticket_id == "SD-999"
+        assert c.hospital == "UZ Gent"
+        assert c.score == 2
+        assert c.response_days == 5.0
+        assert c.category == "responstijd"
+
+    def test_retourtype_is_list(self):
+        df = self._df([{"score": 5.0}])
+        r = self._ana(df)._calc_negative_cases(df)
+        assert isinstance(r, list)

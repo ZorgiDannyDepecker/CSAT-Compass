@@ -5,7 +5,32 @@ Formaat gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.0.0/).
 
 ---
 
-## [0.5.47] — 18/04/2026
+## [0.5.49] — 18/04/2026
+
+### Toegevoegd
+
+- **`tests/utils/test_dashboard_app.py`** — nieuw: Streamlit smoke-tests voor `app.py`; 3 tests: `TestDashboardAppSmoke` (AppTest, auto-skip indien streamlit afwezig) + `TestAppImporteerbaar` (altijd actief via importlib mock); totaal tests: 1.003 → 1.006
+
+### Gewijzigd
+
+- **`.github/prompts/test-coverage-gap-review.md`** — v1.1 → v1.2: Stap 1b toegevoegd (PowerShell bestandsdekking-scan); Stap 5 toegevoegd (verificatie testbestanden op schijf + valkuil editor-buffer); Sectie 5 in F-formaat; projectspecifieke aandachtspunten uitgebreid met pijler-wrappers, indirecte dekking en abstracte basisklassen
+- **`pyproject.toml`** — versie `0.5.47` → `0.5.49`
+
+---
+
+## [0.5.48] — 18/04/2026
+
+### Toegevoegd
+
+- **`tests/core/test_base_analyser.py`** — nieuw: 47 unit tests voor `BaseAnalyser` en `KpiResult`; dekt `_calc_reactiegraad`, `_calc_avg_score`, `_calc_high_critical`, `_calc_comment_ratio`, `_calc_mom_trend`, `_group_by_hospital`, `to_dict()`, abstracte methoden
+- **`tests/pillars/test_pillar_analyser.py`** — nieuw: 41 unit tests voor `PillarAnalyser`; dekt initialisatie, pijlerfilter, startdatumfilter, `analyse()` (alle KPI-velden incl. `comment_ratio` + MoM), `analyse_ytd()` en randgevallen
+- **`tests/scripts/test_generate_scripts.py`** — nieuw: smoke-tests voor `generate_evolution.py`, `generate_all_evolutions.py`, `generate_matrix.py`, `export_data.py`
+- **`tests/core/test_evolution_analyser.py`** — `TestCalcNegativeCases` toegevoegd: 16 tests voor `_calc_negative_cases()` (lege input, classificatie, response_days, sortering, velden)
+
+### Gewijzigd
+
+- **`pyproject.toml`** — versie `0.5.47` → `0.5.48`
+---## [0.5.47] — 18/04/2026
 
 ### Toegevoegd
 
