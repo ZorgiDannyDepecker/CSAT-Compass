@@ -1,12 +1,12 @@
 # CSAT-Compass — Fase 5b: Dashboard UI-verfijning
 
-**Versie:** 1.1
+**Versie:** 1.2
 **Laatst bijgewerkt:** 18/04/2026
 
 **Doel:** UI-verfijning van het Streamlit-dashboard — vaste tabbalk, datapanel secties, vergelijkingstabel
 **Type:** Implementatie
 **Auteur:** Danny Depecker + GHC
-**Status:** Afgerond — opgevolgd door Fase 5c
+**Status:** ✅ Volledig afgerond — alle sprints geïmplementeerd
 
 **Bestandsnaam:** fase5b-dashboard-ui-verfijning.md
 **Path:** docs/02-tactisch/fasen/
@@ -22,14 +22,15 @@ de presentatielaag voor dagelijks gebruik door management.
 **T-shirt:** M
 **Afhankelijkheid:** Fase 5a volledig afgerond (v1.3, 810 tests, 99% coverage, commit `1437102`)
 **Teststand bij start:** 810 tests — 99% coverage — v0.2.8
+**Teststand bij afsluiting:** 1.006 tests — 100% coverage — v0.5.51
 
 De fase is opgesplitst in drie sprints:
 
 | Sprint | Inhoud | Status |
 |---|---|---|
 | Sprint 1 | Vaste tabbalk + layout-vergrendeling | ✅ Afgerond (commit `1437102`) |
-| Sprint 2 | Datapanel sectie 2 — Tijdlijn + Tickets + Responstijd | ⏳ Gepland |
-| Sprint 3 | Datapanel sectie 3 — Ziekenhuizen + KPI Targets | ⏳ Gepland |
+| Sprint 2 | Datapanel sectie 2 — Tijdlijn + Tickets + Responstijd | ✅ Afgerond |
+| Sprint 3 | Datapanel sectie 3 — Ziekenhuizen + KPI Targets | ✅ Afgerond |
 
 ---
 
@@ -37,9 +38,9 @@ De fase is opgesplitst in drie sprints:
 
 | Component | Bestand | Status |
 |---|---|---|
-| Streamlit app (layout) | `src/dashboard/app.py` | 🔄 In uitvoering |
-| ZORGI CSS (tabbalk, tegels) | `src/csat/utils/branding.py` | 🔄 In uitvoering |
-| i18n NL/FR (nieuwe labels) | `src/csat/i18n/nl.json` / `fr.json` | 🔄 In uitvoering |
+| Streamlit app (layout) | `src/dashboard/app.py` | ✅ Afgerond |
+| ZORGI CSS (tabbalk, tegels) | `src/csat/utils/branding.py` | ✅ Afgerond |
+| i18n NL/FR (nieuwe labels) | `src/csat/i18n/nl.json` / `fr.json` | ✅ Afgerond |
 | Fase-document | `docs/02-tactisch/fasen/fase5b-dashboard-ui-verfijning.md` | ✅ Dit bestand |
 
 ---
@@ -100,7 +101,7 @@ body:has([data-testid="stSidebar"][aria-expanded="false"])
 
 ---
 
-## 4. Sprint 2 — Datapanel secties 2, 3, 4 ⏳
+## 4. Sprint 2 — Datapanel secties 2, 3, 4 ✅
 
 **Scope:** Tab 2 (Tijdlijn), Tab 3 (Tickets & Prioriteit), Tab 4 (Responstijd)
 
@@ -129,7 +130,7 @@ Volgorde conform Thomas Wyckstandt-feedback (feedbackthema's eerst):
 
 ---
 
-## 5. Sprint 3 — Datapanel secties 5 en 6 ⏳
+## 5. Sprint 3 — Datapanel secties 5 en 6 ✅
 
 **Scope:** Tab 5 (Ziekenhuizen), Tab 6 (KPI Targets)
 
@@ -157,7 +158,7 @@ Volgorde conform Thomas Wyckstandt-feedback (feedbackthema's eerst):
 | CARE / CARE ADMIN / ERP4HC data | Pijleranalysers zijn stubs | Fase 5c (na Fase 4) |
 | ZORGI overall aggregatie | Vereist Fase 4 + 5c | Fase 6 |
 | PDF-export vanuit dashboard | Complexiteit | Ronde 2 |
-| Klikbare per-ZH filtering | Complexiteit | Ronde 2 |
+| Filtering per ziekenhuis | Complexiteit | Ronde 2 |
 | Tendensvenster instelbare startdatum | Complexiteit | Ronde 2 |
 
 ---
@@ -167,7 +168,7 @@ Volgorde conform Thomas Wyckstandt-feedback (feedbackthema's eerst):
 - **Streamlit `position: fixed`** — versie-afhankelijk: `wideSidePadding` (5rem) gevonden in
   `index.RuhrnD1v.js` (Streamlit 1.55). Bij update controleren op `padding-left` aanpassing.
 - **`:has()` selector** — niet ondersteund in Firefox < 121; dashboard is gericht op Chrome/Edge.
-- **Plotly-grafieken** — nog niet geïmplementeerd in sprint 2/3; tijdelijk `st.info("Coming soon")`
+- **Plotly-grafieken** — volledig geïmplementeerd in alle 6 tabbladen (Fase 5b/5c/5d afgerond).
 - **`@st.cache_data`** — alle DashboardExporter-aanroepen via cache; TTL 1u.
 
 ---
@@ -191,3 +192,6 @@ Volgorde conform Thomas Wyckstandt-feedback (feedbackthema's eerst):
 | Versie | Datum | Wijzigingen | Auteur |
 |---|---|---|---|
 | 1.0 | 10/04/2026 | Initiële versie — sprint 1 afgerond (vaste tabbalk); sprint 2+3 gepland | Danny Depecker + GHC |
+| 1.1 | 18/04/2026 | Status Afgerond — opgevolgd door Fase 5c | Danny Depecker + GHC |
+| 1.2 | 18/04/2026 | Status volledig afgerond — sprint 2+3 geïmplementeerd; teststand bij afsluiting toegevoegd; Fase 5d Plotly geïntegreerd | Danny Depecker + GHC |
+| 1.3 | 19/04/2026 | §6: "Klikbare per-ZH filtering" hernoemd naar "Filtering per ziekenhuis"; §7: verouderde Plotly Coming-soon-regel gecorrigeerd | Danny Depecker + GHC |

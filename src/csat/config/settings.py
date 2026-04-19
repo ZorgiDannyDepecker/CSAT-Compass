@@ -30,7 +30,7 @@ DB_CONN = (
 # --- Paden ---
 CSV_FALLBACK_PATH = Path(os.getenv("CSAT_CSV_FALLBACK_PATH", str(BASE_DIR / "data" / "fallback")))
 OUTPUT_PATH = Path(os.getenv("CSAT_OUTPUT_PATH", str(BASE_DIR / "output")))
-TEMPLATES_PATH = BASE_DIR / "docs" / "templates"
+TEMPLATES_PATH = Path(os.getenv("CSAT_TEMPLATES_PATH", str(BASE_DIR / "docs" / "templates")))
 I18N_PATH = Path(__file__).resolve().parent.parent / "i18n"
 LOG_PATH = Path(os.getenv("CSAT_LOG_PATH", str(BASE_DIR / "logs")))
 

@@ -1607,7 +1607,35 @@ def render_kerncijfers_vergelijking(  # noqa: C901
         title = f"{_titel_base}\u00a0\u2014 S2\u00a0{_bl_yr}\u00a0vs\u00a0{_cu_yr}"
     else:
         title = f"{_titel_base}\u00a0\u2014 {_bl_yr}\u00a0vs\u00a0{_cu_yr}"
-    st.markdown(f"#### {title}")
+
+    # --- Titel + CSV-downloadknop (HTML — zelfde stijl als _render_sortable_table) ---
+    _kc_csv_buf = io.StringIO()
+    pd.DataFrame(
+        [
+            {
+                col_kpi: r["label"],
+                col_vorig: r["vorig"],
+                col_huidig: r["huidig"],
+                col_delta: r["delta"],
+                col_trend: r["arrow"],
+            }
+            for r in rows
+        ]
+    ).to_csv(_kc_csv_buf, index=False)
+    _kc_b64 = base64.b64encode(_kc_csv_buf.getvalue().encode()).decode()
+    _kc_filename = f"kerncijfers-{_bl_yr}-vs-{_cu_yr}.csv"
+    _kc_header_html = (
+        f"<div style='display:flex;justify-content:space-between;align-items:center;"
+        f"margin-bottom:0'>"
+        f"<h4 style='margin:0;font-size:24px;font-weight:600;color:#1A1A1A;"
+        f'font-family:"Source Sans",sans-serif;line-height:1.3\'>'
+        f"{html.escape(title)}</h4>"
+        f"<a href='data:text/csv;base64,{_kc_b64}' download='{_kc_filename}'"
+        f" style='background:#003a70;color:#fff;padding:4px 14px;border-radius:4px;"
+        f"font-size:0.78rem;font-family:Poppins,Verdana,sans-serif;white-space:nowrap;"
+        f"text-decoration:none;display:inline-block'>📤 Export CSV</a>"
+        f"</div>"
+    )
 
     _th_base = (
         f"background:{ZORGI_DARK_BLUE};color:#ffffff;"
@@ -1625,7 +1653,8 @@ def render_kerncijfers_vergelijking(  # noqa: C901
     _w = {"kpi": "38%", "val": "20%", "delta": "13%", "trend": "9%"}
 
     parts = [
-        "<table style='width:100%;border-collapse:collapse;margin-top:0.4rem;table-layout:fixed'>",
+        _kc_header_html,
+        "<table style='width:100%;border-collapse:collapse;margin-top:0;table-layout:fixed'>",
         "<thead><tr>",
         f"<th style='{_th_base};width:{_w['kpi']}'>{html.escape(col_kpi)}</th>",
         f"<th style='{_th_base};width:{_w['val']}'>{html.escape(col_vorig)}</th>",
@@ -2914,8 +2943,39 @@ def render_kpi_targets(  # noqa: C901
     col_status_h = d.get("col_status", "Status")
     col_actie_h = "Action" if lang == "fr" else "Actie"
 
+    # --- CSV-downloadknop (HTML — zelfde stijl als _render_sortable_table, rechts uitgelijnd) ---
+    _kt_csv_buf = io.StringIO()
+    pd.DataFrame(
+        [
+            {
+                col_kpi: r["label"],
+                col_baseline_h: r["baseline"],
+                col_target_h: r["target"],
+                col_realization: r["realisatie"],
+                col_status_h: r["status"],
+                col_actie_h: r.get("actie", ""),
+            }
+            for r in rows
+        ]
+    ).to_csv(_kt_csv_buf, index=False)
+    _kt_b64 = base64.b64encode(_kt_csv_buf.getvalue().encode()).decode()
+    _kt_title = d.get("kpi_targets_table_title", d.get("kpi_targets_title", "KPI Targets"))
+    _kt_header_html = (
+        f"<div style='display:flex;justify-content:space-between;align-items:center;"
+        f"margin-bottom:0'>"
+        f"<h4 style='margin:0;font-size:24px;font-weight:600;color:#1A1A1A;"
+        f'font-family:"Source Sans",sans-serif;line-height:1.3\'>'
+        f"{html.escape(_kt_title)}</h4>"
+        f"<a href='data:text/csv;base64,{_kt_b64}' download='kpi-targets-export.csv'"
+        f" style='background:#003a70;color:#fff;padding:4px 14px;border-radius:4px;"
+        f"font-size:0.78rem;font-family:Poppins,Verdana,sans-serif;white-space:nowrap;"
+        f"text-decoration:none;display:inline-block'>📤 Export CSV</a>"
+        f"</div>"
+    )
+
     parts = [
-        "<table style='width:100%;border-collapse:collapse;margin-top:0.4rem;table-layout:fixed'>",
+        _kt_header_html,
+        "<table style='width:100%;border-collapse:collapse;margin-top:0;table-layout:fixed'>",
         "<thead><tr>",
         f"<th style='{_th_base};width:{_w['kpi']}'>{html.escape(col_kpi)}</th>",
         f"<th style='{_th_base};width:{_w['val']}'>{html.escape(col_baseline_h)}</th>",

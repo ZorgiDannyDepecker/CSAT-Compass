@@ -5,6 +5,29 @@ Formaat gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.0.0/).
 
 ---
 
+## [0.5.53] — 19/04/2026
+
+### Toegevoegd
+
+- **`src/dashboard/app.py`** — `render_kerncijfers_vergelijking()`: CSV-exportknop toegevoegd (HTML `<a>`-downloadlink, ZORGI-stijl); titel + knop in één `st.markdown()` samengebracht zodat er geen Streamlit-gap is tussen header en tabel; `font-size:24px`, `font-weight:600`, `font-family:"Source Sans",sans-serif`
+- **`src/dashboard/app.py`** — `render_kpi_targets()`: idem — CSV-exportknop + gecombineerde header+tabel render; genereert `kpi-targets-export.csv`
+
+### Gewijzigd
+
+- **`docs/02-tactisch/fasen/fase5b-dashboard-ui-verfijning.md`** — v1.2 → v1.3: §6 "Klikbare per-ZH filtering" hernoemd naar "Filtering per ziekenhuis"; §7 verouderde Plotly Coming-soon-regel gecorrigeerd naar ✅ Volledig geïmplementeerd
+- **`docs/02-tactisch/implementatie-gids.md`** — Fase 5e beschrijving uitgebreid: tendensvenster instelbare startdatum toegevoegd als derde Ronde 2-item
+
+---
+
+## [0.5.52] — 19/04/2026
+
+### Toegevoegd
+
+- **`src/dashboard/app.py`** — `render_kerncijfers_vergelijking()`: CSV-downloadknop toegevoegd naast de sectietitel (Tab 1 — Samenvatting); genereert `kerncijfers-{bl}-vs-{cu}.csv` met kolommen KPI / Vorig / Huidig / Δ / Trend
+- **`src/dashboard/app.py`** — `render_kpi_targets()`: CSV-downloadknop toegevoegd boven de HTML-tabel (Tab 6 — KPI Targets); genereert `kpi-targets-export.csv` met kolommen KPI / Baseline / Target / Realisatie / Status / Actie
+
+---
+
 ## [0.5.51] — 18/04/2026
 
 ### Opgelost

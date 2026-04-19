@@ -48,7 +48,7 @@ PILLAR_REGISTRY: dict[str, dict] = {
         "report_name": "OAZIS",
         "report_name_fr": "OAZIS",
         "direction": "west",
-        "color": "#a06b8a",  # Light Purple — afgeleide 60% gradient Purple→ULB
+        "color": "#a06b8a",  # Light Purple — afgeleide pillar-kleur (60% menging Purple #7f4267 → Ultra Light Blue #d7e7f3)
         "products": ["CARE ADMIN"],
     },
     "erp4hc": {

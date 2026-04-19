@@ -1,7 +1,7 @@
 # CSAT-Compass - Implementatiegids
 
-**Versie:** 2.6
-**Laatst bijgewerkt:** 10/04/2026
+**Versie:** 2.7
+**Laatst bijgewerkt:** 18/04/2026
 
 **Doel:** Index van alle implementatiefasen met status en verwijzingen
 **Type:** Guide
@@ -28,9 +28,10 @@
 | Fase 3g | [fase3g-evolutie-rapport-verfijning.md](fasen/fase3g-evolutie-rapport-verfijning.md) | Evolutierapport verfijning — implementatie release 1 | M | ✅ Compleet |
 | Fase 5a | [fase5a-streamlit-dashboard.md](fasen/fase5a-streamlit-dashboard.md) | Streamlit dashboard PHARMA-only — app.py, dashboard_exporter.py, KPI-kaarten, NL/FR toggle | L | ✅ Afgerond |
 | Fase 4 | `fase4-pijlers.md` | CARE / CARE ADMIN / ERP4HC pijleranalysers | M | ⏳ Gepland |
-| Fase 5b | [fase5b-dashboard-ui-verfijning.md](fasen/fase5b-dashboard-ui-verfijning.md) | Dashboard UI-verfijning — vaste tabbalk, datapanel sectie 2 + 3, vergelijkingstabel | M | 🔄 In uitvoering |
-| Fase 5c | `fase5c-dashboard-plotly.md` | Plotly interactieve grafieken — vervangt matplotlib PNG embed | S | ⏳ Gepland |
-| Fase 5d | `fase5d-dashboard-advanced.md` | Geavanceerde features ronde 2 — filtering per ziekenhuis, PDF-export | M | ⏳ Gepland |
+| Fase 5b | [fase5b-dashboard-ui-verfijning.md](fasen/fase5b-dashboard-ui-verfijning.md) | Dashboard UI-verfijning — vaste tabbalk, alle 6 tabbladen volledig uitgewerkt (Tijdlijn, Tickets, Responstijd, Ziekenhuizen, KPI Targets) | M | ✅ Afgerond |
+| Fase 5c | [fase5c-tickets-prioriteit-insights.md](fasen/fase5c-tickets-prioriteit-insights.md) | Tickets & Prioriteit — insight-boxes, feedbackthema's, productiezetting | S | ✅ Afgerond |
+| Fase 5d | — | Plotly interactieve grafieken — geïntegreerd in Fase 5b/5c | S | ✅ Afgerond (geïntegreerd) |
+| Fase 5e | `fase5e-dashboard-advanced.md` | Geavanceerde features ronde 2 — filtering per ziekenhuis, PDF-export vanuit dashboard, tendensvenster instelbare startdatum | M | ⏳ Gepland |
 | Fase 6 | `fase6-zorgi-overall.md` | ZORGI-aggregatie | S | ⏳ Gepland |
 
 > 💡 **Fase 3a–3d** vormen samen de volledige evolutie-rapportage (Option C — standalone, geen externe AI nodig).
@@ -185,3 +186,4 @@ src/csat/utils/zorgi_theme.py                      ← pure constanten, geen fra
 | 2.4 | 02/04/2026 | Fase 5 opgesplitst in 5a/5b/5c/5d; fasevolgorde herzien (5a vóór 4 — strategische keuze); Fase 5a status In Progress; Mermaid diagram + T-shirt tabel bijgewerkt | Danny Depecker + GHC |
 | 2.5 | 06/04/2026 | Fase 5a link gecorrigeerd naar fase5a-streamlit-dashboard.md; status In uitvoering; T-shirt L (was S) | GHC |
 | 2.6 | 10/04/2026 | Fase 5a status → Afgerond; Fase 5b link toegevoegd (fase5b-dashboard-ui-verfijning.md), status In uitvoering, T-shirt M; T-shirt tabel Fase 5b bijgewerkt | Danny Depecker + GHC |
+| 2.7 | 18/04/2026 | Fase 5b/5c/5d status → Afgerond; Fase 5d (Plotly) geïntegreerd in 5b/5c; Fase 5e toegevoegd als geavanceerde features ronde 2; fasebeschrijvingen bijgewerkt | Danny Depecker + GHC |
