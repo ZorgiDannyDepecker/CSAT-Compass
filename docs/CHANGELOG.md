@@ -5,6 +5,26 @@ Formaat gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.0.0/).
 
 ---
 
+## [0.5.55] — 19/04/2026
+
+### Toegevoegd
+
+- **`src/dashboard/app.py`** — `_render_sortable_table()`: filterrij toegevoegd onder de kolomkoppen — elke kolom krijgt een `<input>` met `🔍` placeholder; live JavaScript-filtering verbergt rijen die niet overeenkomen; `sticky top:32px` zodat de filterrij ook bij scrollen zichtbaar blijft; sorteerfunctie werkt enkel op zichtbare rijen; iframe hoogte +28px voor filterrij
+
+---
+
+## [0.5.54] — 19/04/2026
+
+### Toegevoegd
+
+- **`src/dashboard/app.py`** — Ziekenhuisfilter in sidebar: `st.multiselect()` toont alle ziekenhuizen van de actieve pijler; selectie wordt bewaard in `session_state`; actieve filter toont caption met aantal geselecteerde ziekenhuizen
+- **`src/dashboard/app.py`** — `_run_analysis_on_df()`: nieuwe niet-gecachede analyse-functie voor gefilterde DataFrames; de bestaande gecachede `_run_analysis()` blijft ongewijzigd voor de ongefilterde flow
+- **`src/dashboard/app.py`** — `main()`: df wordt vroeg geladen via `_load_df()` (cached); gefilterde of volledige df wordt doorgestuurd naar de juiste analyse-functie; Tab 3 hergebruikt de gefilterde df
+- **`src/csat/i18n/nl.json`** — nieuwe sleutels: `hospital_filter`, `hospital_filter_placeholder`, `hospital_filter_active`
+- **`src/csat/i18n/fr.json`** — idem in Frans
+
+---
+
 ## [0.5.53] — 19/04/2026
 
 ### Toegevoegd

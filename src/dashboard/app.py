@@ -246,18 +246,33 @@ def _run_analysis(
     return analyser.analyse(baseline_periods, current_periods)
 
 
+def _run_analysis_on_df(
+    df: pd.DataFrame,
+    baseline_year: int,
+    current_year: int,
+    current_month: int,
+    pillar: str,
+) -> EvolutionResult:
+    """Voer analyse uit op een reeds gefilterd DataFrame (niet gecached — voor ziekenhuisfilter)."""
+    baseline_periods = [f"{baseline_year}-{m:02d}" for m in range(1, 13)]
+    current_periods = [f"{current_year}-{m:02d}" for m in range(1, current_month + 1)]
+    analyser = EvolutionAnalyser(df, pillar)
+    return analyser.analyse(baseline_periods, current_periods)
+
+
 # ---------------------------------------------------------------------------
 # Sidebar
 # ---------------------------------------------------------------------------
 
 
 def _render_sidebar(
-    t: dict, today: date, last_year: int, last_month: int
-) -> tuple[str, str | None, str]:
+    t: dict, today: date, last_year: int, last_month: int, df: pd.DataFrame | None = None
+) -> tuple[str, str | None, str, list[str]]:
     """
-    Render de sidebar en geef (pillar_key, window_start, lang) terug.
+    Render de sidebar en geef (pillar_key, window_start, lang, selected_hospitals) terug.
 
     window_start is None voor Volledig venster, "2025-07-01" voor Tendensvenster.
+    selected_hospitals is [] wanneer geen filter actief is (= alle ziekenhuizen tonen).
     last_year / last_month: laatste volledig afgeronde maand (nooit de lopende maand).
     """
     d = t["dashboard"]
@@ -359,7 +374,7 @@ def _render_sidebar(
             st.rerun()
         st.divider()
 
-    return selected_pillar, window_start, lang
+    return selected_pillar, window_start, lang, []
 
 
 # ---------------------------------------------------------------------------
@@ -2173,12 +2188,13 @@ def _render_sortable_table(
         rows_html += f"<tr>{cells}</tr>"
 
     # Hoogte-berekening
-    # 34px per rij = 5px padding-top + 5px padding-bottom + ~13px font + 1px border ≈ 24px + marge
-    # +4px onderste padding — minimale buffer zodat iframe content niet afknipt
-    body_h = min(n_rows * 34 + 8, max_body_height)
+    # th-rij (32px) + filterrij (30px) zitten BINNEN de scroll-wrap → meeverekenen in scroll_wrap_h
+    # 36px per datarij | 8px buffer | top-row: 44px | 4px margin | 16px eindbuffer
+    content_h = 32 + 30 + n_rows * 36 + 8
+    scroll_wrap_h = min(content_h, max_body_height)
     footer_h = 28 * len(footer_text.split("  |  ")) if footer_text else 0
-    top_row_h = 40 if show_title else 0
-    iframe_h = top_row_h + 32 + body_h + 4 + footer_h  # top-row + header + body + padding + footer
+    top_row_h = 44 if show_title else 0
+    iframe_h = top_row_h + 4 + scroll_wrap_h + footer_h + 16
 
     safe_title = html.escape(title)
     safe_label = html.escape(export_label)
@@ -2209,22 +2225,31 @@ def _render_sortable_table(
         ".export-btn:hover{background:#00509e;}"
         f".scroll-wrap{{max-height:{max_body_height}px;overflow-y:auto;width:100%;"
         "border:1px solid #d0dce8;border-radius:2px;}"
-        "table{width:100%;border-collapse:collapse;}"
+        "table{width:100%;border-collapse:separate;border-spacing:0;"
+        "border-bottom:1px solid #d0dce8;border-right:1px solid #d0dce8;}"
         "th{background:#003a70;color:#fff;padding:6px 8px;text-align:left;"
         "font-size:0.82rem;font-family:'Poppins','Verdana',sans-serif;"
-        "cursor:pointer;border-right:1px solid #2a5a9c;white-space:nowrap;user-select:none;"
-        "position:sticky;top:0;z-index:1;}"
+        "cursor:pointer;border-right:1px solid #2a5a9c;border-bottom:1px solid #2a5a9c;"
+        "white-space:nowrap;user-select:none;position:sticky;top:0;z-index:2;}"
         ".th-label{vertical-align:middle;}"
         ".sort-icon{display:inline-block;margin-left:5px;font-size:0.75rem;"
         "vertical-align:middle;opacity:0.85;min-width:12px;}"
         "th.sorted-asc .sort-icon::after{content:'\\2191';}"
         "th.sorted-desc .sort-icon::after{content:'\\2193';}"
-        "th.sorted-asc,th.sorted-desc{background:#1a5faf;}"  # lichtere achtergrond bij actieve sortering
-        "th:last-child{border-right:none;}"
+        "th.sorted-asc,th.sorted-desc{background:#1a5faf;}"
+        ".filter-row td{background:#e8f0f7;padding:3px 4px;"
+        "position:sticky;top:32px;z-index:1;border-bottom:2px solid #b0c8e0;"
+        "border-right:1px solid #c8d8e8;}"
+        ".filter-row td:last-child{border-right:none;}"
+        ".filter-row input{width:100%;box-sizing:border-box;border:1px solid #b0c8e0;"
+        "border-radius:3px;padding:2px 5px;font-size:0.75rem;"
+        "font-family:'Poppins','Verdana',sans-serif;background:#fff;color:#1a1a1a;}"
+        ".filter-row input:focus{outline:none;border-color:#003a70;}"
         "td{padding:5px 8px;font-size:0.82rem;text-align:left;"
         "border-bottom:1px solid #e0e8f0;border-right:1px solid #d0dce8;}"
-        "td:last-child{border-right:none;}"
+        "tr:last-child td{border-bottom:none;}"
         "tr:hover td{background:#f0f6ff;}"
+        "tr.hidden{display:none;}"
         "p.footer{font-size:0.75rem;color:#5f8495;margin:8px 0 0 0;padding:0;line-height:1.5;}"
         "</style></head><body>"
         + (
@@ -2240,15 +2265,35 @@ def _render_sortable_table(
             "</div>"
         )
         + "<div class='scroll-wrap'>"
-        f"<table id='t'><thead><tr>{th_html}</tr></thead>"
+        f"<table id='t'><thead>"
+        f"<tr>{th_html}</tr>"
+        f"<tr class='filter-row' id='fr'>"
+        + "".join(
+            f"<td><input type='text' placeholder='🔍' oninput='applyFilters()' "
+            f"id='fi{i}' autocomplete='off'/></td>"
+            for i in range(len(cols))
+        )
+        + "</tr>"
+        f"</thead>"
         f"<tbody>{rows_html}</tbody></table>"
         f"</div>{footer_html}"
         "<script>"
         "var _sd=-1,_sc=true;"
+        "function applyFilters(){"
+        "var tb=document.getElementById('t').tBodies[0];"
+        "var rows=Array.from(tb.rows);"
+        "var filters=[];"
+        f"for(var i=0;i<{len(cols)};i++){{"
+        "var el=document.getElementById('fi'+i);"
+        "filters.push(el?el.value.toLowerCase():'');}"
+        "rows.forEach(function(r){"
+        "var show=filters.every(function(f,i){"
+        "return !f||r.cells[i].textContent.toLowerCase().includes(f);});"
+        "r.classList.toggle('hidden',!show);});}"
         "function sortBy(ci){"
         "var t=document.getElementById('t');"
         "var tb=t.tBodies[0];"
-        "var rows=Array.from(tb.rows);"
+        "var rows=Array.from(tb.rows).filter(function(r){return !r.classList.contains('hidden');});"
         "var asc=(_sd===ci)?!_sc:true;"
         "_sd=ci;_sc=asc;"
         "rows.sort(function(a,b){"
@@ -2617,7 +2662,7 @@ def _tab_hospitals(data: DashboardData, t: dict, lang: str) -> None:
         df_g,
         title=f"\U0001f4cb {full_title} ({n_full})",
         delta_col=col_delta,
-        max_body_height=600,
+        max_body_height=16 * 36 + 62 + 8,
         export_filename=f"ziekenhuizen-volledig-{cu}.csv",
     )
 
@@ -3698,7 +3743,7 @@ def _render_coming_soon(t: dict, pillar_name: str) -> None:
 # ---------------------------------------------------------------------------
 
 
-def main() -> None:
+def main() -> None:  # noqa: C901
     """Streamlit entry point — configureert de pagina en rendert het volledige dashboard."""
     st.set_page_config(
         page_title="CSAT-Compass",
@@ -3738,7 +3783,12 @@ def main() -> None:
 
     # Sidebar
     last_year, last_month = _last_complete_period(today)
-    selected_pillar, window_start, lang = _render_sidebar(t, today, last_year, last_month)
+    # Laad ruwe data vroeg (gecached — instant bij herrender) zodat de sidebar
+    # de ziekenhuislijst kan tonen in het filter-multiselect.
+    _df_raw = _load_df()
+    selected_pillar, window_start, lang, selected_hospitals = _render_sidebar(
+        t, today, last_year, last_month, df=_df_raw
+    )
 
     # Niet-PHARMA pijlers → Coming soon
     if selected_pillar not in _ACTIVE_PILLARS:
@@ -3758,12 +3808,24 @@ def main() -> None:
     # PHARMA data laden en analyseren
     with st.spinner("Data laden…"):
         try:
-            result = _run_analysis(
-                baseline_year=_BASELINE_YEAR,
-                current_year=last_year,
-                current_month=last_month,
-                pillar=selected_pillar,
-            )
+            if selected_hospitals:
+                # Ziekenhuisfilter actief → gefilterde df, niet gecached
+                _df_filtered = _df_raw[_df_raw["hospital"].isin(selected_hospitals)]
+                result = _run_analysis_on_df(
+                    _df_filtered,
+                    baseline_year=_BASELINE_YEAR,
+                    current_year=last_year,
+                    current_month=last_month,
+                    pillar=selected_pillar,
+                )
+            else:
+                # Geen filter → gecachede analyse op volledige dataset
+                result = _run_analysis(
+                    baseline_year=_BASELINE_YEAR,
+                    current_year=last_year,
+                    current_month=last_month,
+                    pillar=selected_pillar,
+                )
         except Exception as exc:  # noqa: BLE001
             st.error(f"❌ Data laden mislukt: {exc}")
             return
@@ -3821,8 +3883,13 @@ def main() -> None:
     with tab2:
         _tab_timeline(data, t, lang)
     with tab3:
-        _df_dev = _load_df()
         _dev_products = PILLAR_REGISTRY.get(selected_pillar, {}).get("products", [])
+        # Gebruik gefilterde df als ziekenhuisfilter actief is
+        _df_dev = (
+            _df_raw[_df_raw["hospital"].isin(selected_hospitals)]
+            if selected_hospitals
+            else _load_df()
+        )
         _df_dev = _df_dev[_df_dev[FILTER_COLUMN].isin(_dev_products)]
         _dev_mode = "trend" if data.mode == "trend" else "full"
         _dev_trend_start = int(_TREND_WINDOW_START[5:7])  # "2025-07-01" → 7
