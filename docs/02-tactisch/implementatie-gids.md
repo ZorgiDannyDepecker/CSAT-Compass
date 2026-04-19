@@ -1,7 +1,7 @@
 # CSAT-Compass - Implementatiegids
 
-**Versie:** 2.7
-**Laatst bijgewerkt:** 18/04/2026
+**Versie:** 2.9
+**Laatst bijgewerkt:** 19/04/2026
 
 **Doel:** Index van alle implementatiefasen met status en verwijzingen
 **Type:** Guide
@@ -27,12 +27,13 @@
 | Fase 3f | [fase3f-evolutie-advieskader.md](fasen/fase3f-evolutie-advieskader.md) | Evolutie-advieskader — gap-analyse, 12 beslissingen DDP, release 1 scope | S | ✅ Compleet (v3.0) |
 | Fase 3g | [fase3g-evolutie-rapport-verfijning.md](fasen/fase3g-evolutie-rapport-verfijning.md) | Evolutierapport verfijning — implementatie release 1 | M | ✅ Compleet |
 | Fase 5a | [fase5a-streamlit-dashboard.md](fasen/fase5a-streamlit-dashboard.md) | Streamlit dashboard PHARMA-only — app.py, dashboard_exporter.py, KPI-kaarten, NL/FR toggle | L | ✅ Afgerond |
-| Fase 4 | `fase4-pijlers.md` | CARE / CARE ADMIN / ERP4HC pijleranalysers | M | ⏳ Gepland |
+| **Fase 4** | [fase4-pijlers.md](fasen/fase4-pijlers.md) | CARE / CARE ADMIN / ERP4HC pijleranalysers | M | 🔄 Volgende |
 | Fase 5b | [fase5b-dashboard-ui-verfijning.md](fasen/fase5b-dashboard-ui-verfijning.md) | Dashboard UI-verfijning — vaste tabbalk, alle 6 tabbladen volledig uitgewerkt (Tijdlijn, Tickets, Responstijd, Ziekenhuizen, KPI Targets) | M | ✅ Afgerond |
 | Fase 5c | [fase5c-tickets-prioriteit-insights.md](fasen/fase5c-tickets-prioriteit-insights.md) | Tickets & Prioriteit — insight-boxes, feedbackthema's, productiezetting | S | ✅ Afgerond |
 | Fase 5d | — | Plotly interactieve grafieken — geïntegreerd in Fase 5b/5c | S | ✅ Afgerond (geïntegreerd) |
-| Fase 5e | `fase5e-dashboard-advanced.md` | Geavanceerde features ronde 2 — filtering per ziekenhuis, PDF-export vanuit dashboard, tendensvenster instelbare startdatum | M | ⏳ Gepland |
-| Fase 6 | `fase6-zorgi-overall.md` | ZORGI-aggregatie | S | ⏳ Gepland |
+| Fase 5e | [fase5e → geïntegreerd] | Geavanceerde features — filtering per ziekenhuis (kolomfilters), Export CSV, UI-verfijning | S | ✅ Afgerond |
+| **Fase 5** | — | **Dashboard PHARMA volledig afgerond** — alle 6 tabbladen, export CSV, kolomfilters, UI-verfijning | — | ✅ **Volledig afgerond** |
+| Fase 6 | `fase6-zorgi-overall.md` | ZORGI-aggregatie — alle pijlers gecombineerd | S | ⏳ Gepland |
 
 > 💡 **Fase 3a–3d** vormen samen de volledige evolutie-rapportage (Option C — standalone, geen externe AI nodig).
 > Dit vervangt de voormalige Claude-workflow (`PromptTemplate_CustomerSatisfactionEvolution.md`).
@@ -40,9 +41,9 @@
 > 💡 **Fase 3f** is het normatieve advieskader (v3.0 — samenvoeging CD + GHC advies, alle 12 DDP-beslissingen).
 > De oorspronkelijke GHC-versie is gearchiveerd in `archive/analyse_3f/fase3f-evolutie-advieskader_ghc.md`.
 >
-> 💡 **Fase 5a vóór Fase 4** — strategische keuze: PHARMA is de enige volledige pijler en levert onmiddellijk
-> managementwaarde voor CEO Eric + COO Christian. De dashboardarchitectuur wordt pijler-agnostisch gebouwd
-> zodat Fase 4-pijlers later een flip-the-switch uitbreiding zijn (Fase 5b).
+> 💡 **Fase 5 volledig afgerond (19/04/2026)** — PHARMA-dashboard operationeel voor CEO Eric + COO Christian.
+> Fase 4 is de logische volgende stap: pijler-agnostische architectuur laat CARE / CARE ADMIN / ERP4HC
+> toe als flip-the-switch uitbreiding. Vereiste info (SD-nummers, categorieën) eerst opvragen bij het team.
 > Volledig handover-document: `WIP/handover-fase5a-2026-03-31.md`.
 
 ---
@@ -62,11 +63,12 @@
 | Fase 3g | M | 8–24u | Evolutierapport verfijning — metrics, InsightsGenerator (gedeeld), templates en validatie |
 | Fase 5a | S | 4–8u | Dashboard PHARMA-only — volledige infrastructuur herbruikbaar (loaders, analysers, i18n, theme) |
 | Fase 4 | M | 8–24u | 3 pijlers (config + analyser + tests), repetitief maar elk met eigen categorieën |
-| Fase 5b | M | 8–24u | Dashboard UI-verfijning — vaste tabbalk (sprint 1 ✅), datapanel secties 2+3, vergelijkingstabel |
-| Fase 5c | S | 4–8u | Plotly grafieken — vervangt PNG embed, infrastructuur (branding.py) al aanwezig |
-| Fase 5d | M | 8–24u | Geavanceerde features — filtering per ziekenhuis + PDF-export vanuit dashboard |
+| Fase 5b | M | 8–24u | Dashboard UI-verfijning — vaste tabbalk, alle tabbladen, Plotly grafieken, insights |
+| Fase 5c | S | 4–8u | Tickets & Prioriteit — insight-boxes, feedbackthema's, productiezetting |
+| Fase 5d | S | 4–8u | Plotly grafieken — geïntegreerd in 5b/5c |
+| Fase 5e | S | 4–8u | Export CSV, kolomfilters, UI-verfijning — geïntegreerd in 5b/5c/5d |
 | Fase 6 | S | 4–8u | Aggregatie van bestaande pijlers, geen nieuwe infrastructuur |
-| **Totaal** | **XXXL** | **108–224u** | Combinatie van M+M+S+M+M+M+S+S+M+S+M+S+S+M+S |
+| **Totaal** | **XXXL** | **108–224u** | Combinatie van M+M+S+M+M+M+S+S+M+S+M+S+S+S+S+S |
 
 ### T-shirt legenda
 
@@ -81,7 +83,7 @@
 | XXXL  | >120u          | >40×                |
 
 > 💡 Fase 3d en 6 zijn bewust klein gehouden — ze hergebruiken infrastructuur van eerdere fasen.
-> Fase 5 is opgesplitst in 4 sub-fasen (5a–5d) om scope-creep te beheersen. Fase 5d is het grootste risico op uitbreiding.
+> Fase 5 is volledig afgerond (5a–5e). Fase 4 is de volgende prioriteit.
 
 ---
 
@@ -187,3 +189,5 @@ src/csat/utils/zorgi_theme.py                      ← pure constanten, geen fra
 | 2.5 | 06/04/2026 | Fase 5a link gecorrigeerd naar fase5a-streamlit-dashboard.md; status In uitvoering; T-shirt L (was S) | GHC |
 | 2.6 | 10/04/2026 | Fase 5a status → Afgerond; Fase 5b link toegevoegd (fase5b-dashboard-ui-verfijning.md), status In uitvoering, T-shirt M; T-shirt tabel Fase 5b bijgewerkt | Danny Depecker + GHC |
 | 2.7 | 18/04/2026 | Fase 5b/5c/5d status → Afgerond; Fase 5d (Plotly) geïntegreerd in 5b/5c; Fase 5e toegevoegd als geavanceerde features ronde 2; fasebeschrijvingen bijgewerkt | Danny Depecker + GHC |
+| 2.8 | 19/04/2026 | Fase 5 volledig afgerond — export CSV, kolomfilters, UI-verfijning; samenvattingsregel toegevoegd | Danny Depecker + GHC |
+| 2.9 | 19/04/2026 | Fase 4 link toegevoegd (fase4-pijlers.md), status 🔄 Volgende; T-shirt tabel gecorrigeerd (5d/5e); nota's bijgewerkt voor Fase 4 start | Danny Depecker + GHC |

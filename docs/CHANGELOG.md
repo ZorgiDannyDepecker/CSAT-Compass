@@ -5,6 +5,29 @@ Formaat gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.0.0/).
 
 ---
 
+## [0.5.57] — 19/04/2026
+
+### Toegevoegd
+
+- **`docs/02-tactisch/fasen/fase4-pijlers.md`** — Nieuw implementatiedocument Fase 4 (v1.0):
+  scope, architectuurprincipe, vereiste info (SD-nummers/categorieën), acceptatiecriteria, afhankelijkheden
+
+### Gewijzigd
+
+- **`docs/02-tactisch/implementatie-gids.md`** (v2.9) — Fase 4 als 🔄 Volgende met link;
+  T-shirt tabel gecorrigeerd (5d/5e realistisch); nota's bijgewerkt voor Fase 4 start
+
+---
+
+## [0.5.56] — 19/04/2026
+
+### Gewijzigd
+
+- **`docs/02-tactisch/implementatie-gids.md`** — Fase 5 volledig afgerond gedocumenteerd (v2.8):
+  samenvattingsregel toegevoegd, versiehistorie bijgewerkt
+
+---
+
 ## [0.5.55] — 19/04/2026
 
 ### Toegevoegd
