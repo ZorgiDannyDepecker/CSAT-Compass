@@ -35,6 +35,7 @@ Drie samenhangende features die als één fase worden opgepakt:
 Gebruikersprofielen worden opgeslagen als individuele JSON-bestanden in `data/profiles/`.
 
 **Motivatie:**
+
 - ~20 gebruikers = verwaarloosbare schaal (~20 bestanden van elk <2KB)
 - Geen DB-migratie of tabelwijzigingen in `Lerni_DB` nodig
 - Eenvoudig te debuggen, backuppen en handmatig te corrigeren
@@ -43,6 +44,7 @@ Gebruikersprofielen worden opgeslagen als individuele JSON-bestanden in `data/pr
 **Bestandsnaamconventie:** `data/profiles/{email}.json`
 
 **JSON-schema:**
+
 ```json
 {
   "email": "danny.depecker@zorgi.be",
@@ -99,7 +101,7 @@ Favorieten zijn herorderbaar via drag-and-drop via `streamlit-sortables`
 
 ## Nieuwe Modules
 
-```
+```text
 src/
   csat/
     user/
@@ -180,14 +182,15 @@ Geen andere nieuwe dependencies.
 
 ## Datamap-uitbreiding
 
-```
+```text
 data/
   profiles/              ← nieuw te creëren
     .gitkeep
 ```
 
 **`.gitignore` aanvulling:**
-```
+
+```text
 data/profiles/*.json
 ```
 
