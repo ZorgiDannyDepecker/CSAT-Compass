@@ -5,6 +5,19 @@ Formaat gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.0.0/).
 
 ---
 
+## [0.7.0] — 20/04/2026
+
+### Toegevoegd
+
+- `app.py`: Hover tooltip op hero metrics tegel A ("Meest voorkomend type") en tegel B ("Laagst scorend type") via CSS `::after` pseudo-element met `st.html()` — toont volledige issue type naam rechts uitgelijnd bij hover op de metricwaarde
+
+### Opgelost
+
+- `app.py`: `KeyError: 'footnote'` in `render_kerncijfers_vergelijking` — vervangen door `r.get("footnote", False)` voor robuuste fallback
+- `app.py`: CSS tooltip-aanpak gemigreerd van `st.markdown` + `_stc.html` (geblokkeerd door Streamlit) naar `st.html()` (geen iframe, directe DOM-injectie)
+
+---
+
 ## [0.6.2] — 20/04/2026
 
 ### Gewijzigd

@@ -492,18 +492,17 @@ def _chart_timeline(data: DashboardData, t: dict, lang: str) -> go.Figure:
         line={"dash": "dash", "color": ZORGI_RED, "width": 1.2},
         opacity=0.8,
     )
-    fig.add_annotation(
-        x=0.99,
-        y=AVG_SCORE_MIN,
-        xref="paper",
-        yref="y2",
-        text=f"KPI min. {AVG_SCORE_MIN:.1f}\u2605",
-        showarrow=False,
-        xanchor="right",
-        yanchor="top",
-        font={"size": 10, "color": ZORGI_RED},
-        bgcolor="rgba(255,255,255,0.82)",
-        borderpad=3,
+    # Legenda-entry voor KPI-drempellijn (dummy trace — onzichtbaar, enkel voor legenda)
+    fig.add_trace(
+        go.Scatter(
+            x=[None],
+            y=[None],
+            mode="lines",
+            name=f"KPI min. {AVG_SCORE_MIN:.1f}\u2605",
+            line={"dash": "10px,6px", "color": ZORGI_RED, "width": 1.5},
+            yaxis="y2",
+            showlegend=True,
+        )
     )
 
     # ③ Gewogen jaar-gemiddelde vorig jaar — ook yref="y2"
@@ -524,16 +523,17 @@ def _chart_timeline(data: DashboardData, t: dict, lang: str) -> go.Figure:
             line={"dash": "dot", "color": ZORGI_GREY_BLUE, "width": 1.0},
             opacity=0.7,
         )
-        fig.add_annotation(
-            x=0.99,
-            y=gem_vorig,
-            xref="paper",
-            yref="y2",
-            text=f"Gem. {vorig_jaar}: {gem_str}\u2605",
-            showarrow=False,
-            xanchor="right",
-            yanchor="top",
-            font={"size": 10, "color": ZORGI_GREY_BLUE},
+        # Legenda-entry voor jaar-gemiddelde vorig jaar (dummy trace)
+        fig.add_trace(
+            go.Scatter(
+                x=[None],
+                y=[None],
+                mode="lines",
+                name=f"{'Moy.' if lang == 'fr' else 'Gem.'} {vorig_jaar}: {gem_str}\u2605",
+                line={"dash": "dot", "color": ZORGI_GREY_BLUE, "width": 1.5},
+                yaxis="y2",
+                showlegend=True,
+            )
         )
 
     # ⑤ Jaar-scheidingslijn bij multi-jaar data
@@ -702,18 +702,16 @@ def _chart_period_comparison(data: DashboardData, t: dict, lang: str = "nl") -> 
         line={"dash": "dash", "color": ZORGI_RED, "width": 1.2},
         opacity=0.8,
     )
-    fig.add_annotation(
-        x=0.99,
-        y=AVG_SCORE_MIN,
-        xref="paper",
-        yref="y",
-        text=f"KPI min. {AVG_SCORE_MIN:.1f}\u2605",
-        showarrow=False,
-        xanchor="right",
-        yanchor="top",
-        font={"size": 10, "color": ZORGI_RED},
-        bgcolor="rgba(255,255,255,0.82)",
-        borderpad=3,
+    # Legenda-entry voor KPI-drempellijn (dummy trace — onzichtbaar, enkel voor legenda)
+    fig.add_trace(
+        go.Scatter(
+            x=[None],
+            y=[None],
+            mode="lines",
+            name=f"KPI min. {AVG_SCORE_MIN:.1f}\u2605",
+            line={"dash": "10px,6px", "color": ZORGI_RED, "width": 1.5},
+            showlegend=True,
+        )
     )
 
     fig.update_layout(
@@ -808,18 +806,16 @@ def _chart_rolling_avg(data: DashboardData, t: dict, lang: str = "nl") -> go.Fig
         line={"dash": "dash", "color": ZORGI_RED, "width": 1.2},
         opacity=0.8,
     )
-    fig.add_annotation(
-        x=0.99,
-        y=AVG_SCORE_MIN,
-        xref="paper",
-        yref="y",
-        text=f"KPI min. {AVG_SCORE_MIN:.1f}\u2605",
-        showarrow=False,
-        xanchor="right",
-        yanchor="top",
-        font={"size": 10, "color": ZORGI_RED},
-        bgcolor="rgba(255,255,255,0.82)",
-        borderpad=3,
+    # Legenda-entry voor KPI-drempellijn (dummy trace — onzichtbaar, enkel voor legenda)
+    fig.add_trace(
+        go.Scatter(
+            x=[None],
+            y=[None],
+            mode="lines",
+            name=f"KPI min. {AVG_SCORE_MIN:.1f}\u2605",
+            line={"dash": "10px,6px", "color": ZORGI_RED, "width": 1.5},
+            showlegend=True,
+        )
     )
 
     # Dynamische y-as range
@@ -1688,9 +1684,12 @@ def render_kerncijfers_vergelijking(  # noqa: C901
     for i, r in enumerate(rows):
         bg = _row_colors[i % 2]
         _td = f"{_td_base};background:{bg}"
+        label_html = html.escape(r["label"])
+        if r.get("footnote", False):
+            label_html += "<sup style='color:#5f8495;font-size:0.7em;margin-left:2px'>¹</sup>"
         parts += [
             "<tr>",
-            f"<td style='{_td}'>{html.escape(r['label'])}</td>",
+            f"<td style='{_td}'>{label_html}</td>",
             f"<td style='{_td}'>{html.escape(r['vorig'])}</td>",
             f"<td style='{_td}'>{html.escape(r['huidig'])}</td>",
             (
@@ -3101,18 +3100,30 @@ def _tab_targets(data: DashboardData, t: dict, lang: str) -> None:
 # ---------------------------------------------------------------------------
 
 
-def _build_issue_type_chart(df_comparison, chart_title: str = "", prev_label: str = "2025"):
+def _build_issue_type_chart(
+    df_comparison, chart_title: str = "", prev_label: str = "2025", lang: str = "nl"
+):
     """Horizontale bar chart voor issue type vergelijking — Plotly/ZORGI-stijl."""
     import math
+
+    def _ls(nl: str, fr: str) -> str:
+        return fr if lang == "fr" else nl
 
     color_ok = ZORGI_FUNC_POSITIVE
     color_bad = ZORGI_RED
     color_neutral = ZORGI_DARK_BLUE
     color_prev = "#A7B4C1"  # lichtgrijs voor baseline-balk
+
     df_sorted = df_comparison.sort_values(
         "issue_type", ascending=True, na_position="last"
     ).reset_index(drop=True)
-    types = df_sorted["issue_type"].tolist()
+    # Hover-namen: gebruik '_issue_type_orig' kolom als aanwezig (originele naam), anders issue_type
+    if "_issue_type_orig" in df_sorted.columns:
+        types_orig = [str(t) for t in df_sorted["_issue_type_orig"].tolist()]
+    else:
+        types_orig = [str(t) for t in df_sorted["issue_type"].tolist()]
+    # Y-as labels: volledige naam, geen wrapping
+    types = [str(t) for t in df_sorted["issue_type"].tolist()]
     scores_prev = df_sorted["score_prev"].tolist()
     scores_curr = df_sorted["score_curr"].tolist()
     counts_prev = (
@@ -3122,7 +3133,7 @@ def _build_issue_type_chart(df_comparison, chart_title: str = "", prev_label: st
         df_sorted["count_curr"].tolist() if "count_curr" in df_sorted.columns else [0] * len(types)
     )
     n = len(types)
-    _bar_w = 0.35  # iets kleiner van 0.40 → 0.35
+    _bar_w = 0.35
     ytd_colors = []
     for sp, sc in zip(scores_prev, scores_curr, strict=False):
         if not math.isnan(sc) and not math.isnan(sp):
@@ -3134,10 +3145,10 @@ def _build_issue_type_chart(df_comparison, chart_title: str = "", prev_label: st
     x_min = max(0.0, round(min(all_sc) - 0.3, 1)) if all_sc else 0.0
 
     def _score_text(v):
-        return f"\u00a0\u00a0{v:.2f}\u2605" if not math.isnan(v) else ""
+        return f"{v:.2f}\u2605" if not math.isnan(v) else ""
 
     fig = go.Figure()
-    # 2025-balk — lichtgrijs, score buiten
+    # Baseline-balk — lichtgrijs, score binnen de bar (wit)
     fig.add_trace(
         go.Bar(
             name=prev_label,
@@ -3146,14 +3157,17 @@ def _build_issue_type_chart(df_comparison, chart_title: str = "", prev_label: st
             orientation="h",
             marker_color=color_prev,
             text=[_score_text(v) for v in scores_prev],
-            textposition="outside",
-            textfont={"size": 9, "color": "#444444"},
+            textposition="inside",
+            insidetextanchor="end",
+            constraintext="inside",
+            textfont={"size": 9, "color": "#ffffff"},
             width=_bar_w,
             offset=-_bar_w,
-            hovertemplate=f"%{{y}} {prev_label}: %{{x:.2f}}\u2605<extra></extra>",
+            customdata=types_orig,
+            hovertemplate=f"%{{customdata}} {prev_label}: %{{x:.2f}}\u2605<extra></extra>",
         )
     )
-    # YTD-balk — gekleurde bars, score buiten
+    # YTD-balk — gekleurde bars, score binnen de bar (wit)
     fig.add_trace(
         go.Bar(
             name="YTD",
@@ -3162,22 +3176,25 @@ def _build_issue_type_chart(df_comparison, chart_title: str = "", prev_label: st
             orientation="h",
             marker_color=ytd_colors,
             text=[_score_text(v) for v in scores_curr],
-            textposition="outside",
-            textfont={"size": 9, "color": "#444444"},
+            textposition="inside",
+            insidetextanchor="end",
+            constraintext="inside",
+            textfont={"size": 9, "color": "#ffffff"},
             width=_bar_w,
             offset=0.0,
             showlegend=False,
-            hovertemplate="%{y} YTD: %{x:.2f}\u2605<extra></extra>",
+            customdata=types_orig,
+            hovertemplate="%{customdata} YTD: %{x:.2f}\u2605<extra></extra>",
         )
     )
-    # Legenda-dummies
+    # Legenda-dummies — NL/FR
     fig.add_trace(
         go.Scatter(
             x=[None],
             y=[None],
             mode="markers",
             marker={"symbol": "square", "size": 12, "color": color_ok},
-            name="YTD (verbetering)",
+            name=_ls("YTD (verbetering)", "YTD (amélioration)"),
         )
     )
     fig.add_trace(
@@ -3186,7 +3203,7 @@ def _build_issue_type_chart(df_comparison, chart_title: str = "", prev_label: st
             y=[None],
             mode="markers",
             marker={"symbol": "square", "size": 12, "color": color_bad},
-            name="YTD (verslechtering)",
+            name=_ls("YTD (verslechtering)", "YTD (dégradation)"),
         )
     )
     # 6. Ticketaantallen binnenin via annotaties — wit
@@ -3230,10 +3247,11 @@ def _build_issue_type_chart(df_comparison, chart_title: str = "", prev_label: st
         if chart_title
         else ""
     )
-    _margin_t = 64 if chart_title else 50
+    _margin_t = 64 if chart_title else 36
     fig.update_layout(
         title=_title_cfg,
         barmode="overlay",
+        hovermode="closest",
         xaxis={
             "title": "",
             "range": [x_min, x_max],
@@ -3241,25 +3259,28 @@ def _build_issue_type_chart(df_comparison, chart_title: str = "", prev_label: st
             "ticksuffix": "\u2605",
             "tickformat": ".1f",
         },
-        yaxis={"title": "", "autorange": "reversed"},
-        height=max(250, n * 72 + 80),
+        yaxis={"title": "", "autorange": "reversed", "automargin": True},
+        height=max(200, n * 72 + 60),
         legend={
             "orientation": "h",
             "yanchor": "bottom",
-            "y": 1.04,
+            "y": 1.02,
             "xanchor": "center",
             "x": 0.5,
             "itemsizing": "constant",
         },
-        margin={"t": _margin_t, "b": 10, "r": 0},
+        margin={"t": _margin_t, "b": 0, "r": 10},
         modebar_remove=["pan2d", "autoScale2d"],
     )
     return apply_plotly_theme(fig)
 
 
-def _build_priority_chart(df_comparison, prev_label: str = "2025"):
+def _build_priority_chart(df_comparison, prev_label: str = "2025", lang: str = "nl"):
     """Horizontale Plotly grouped bar chart voor prioriteit vergelijking."""
     import math
+
+    def _ls(nl: str, fr: str) -> str:
+        return fr if lang == "fr" else nl
 
     priority_order = ["Blocker", "Critical", "Major", "Minor", "Trivial"]
     color_ok = ZORGI_FUNC_POSITIVE
@@ -3298,7 +3319,7 @@ def _build_priority_chart(df_comparison, prev_label: str = "2025"):
     x_min = max(0.0, round(min(all_sc) - 0.3, 1)) if all_sc else 0.0
 
     def _score_text(v):
-        return f"\u00a0\u00a0{v:.2f}\u2605" if not math.isnan(v) else ""
+        return f"{v:.2f}\u2605" if not math.isnan(v) else ""
 
     fig = go.Figure()
     fig.add_trace(
@@ -3309,8 +3330,10 @@ def _build_priority_chart(df_comparison, prev_label: str = "2025"):
             orientation="h",
             marker_color=color_prev,
             text=[_score_text(v) for v in scores_prev],
-            textposition="outside",
-            textfont={"size": 9, "color": "#444444"},
+            textposition="inside",
+            insidetextanchor="end",
+            constraintext="inside",
+            textfont={"size": 9, "color": "#ffffff"},
             width=_bar_w,
             offset=-_bar_w,
             hovertemplate=f"%{{y}} {prev_label}: %{{x:.2f}}\u2605<extra></extra>",
@@ -3324,8 +3347,10 @@ def _build_priority_chart(df_comparison, prev_label: str = "2025"):
             orientation="h",
             marker_color=ytd_colors,
             text=[_score_text(v) for v in scores_curr],
-            textposition="outside",
-            textfont={"size": 9, "color": "#444444"},
+            textposition="inside",
+            insidetextanchor="end",
+            constraintext="inside",
+            textfont={"size": 9, "color": "#ffffff"},
             width=_bar_w,
             offset=0.0,
             showlegend=False,
@@ -3338,7 +3363,7 @@ def _build_priority_chart(df_comparison, prev_label: str = "2025"):
             y=[None],
             mode="markers",
             marker={"symbol": "square", "size": 12, "color": color_ok},
-            name="YTD (verbetering)",
+            name=_ls("YTD (verbetering)", "YTD (amélioration)"),
         )
     )
     fig.add_trace(
@@ -3347,7 +3372,7 @@ def _build_priority_chart(df_comparison, prev_label: str = "2025"):
             y=[None],
             mode="markers",
             marker={"symbol": "square", "size": 12, "color": color_bad},
-            name="YTD (verslechtering)",
+            name=_ls("YTD (verslechtering)", "YTD (dégradation)"),
         )
     )
 
@@ -3362,7 +3387,7 @@ def _build_priority_chart(df_comparison, prev_label: str = "2025"):
                 showarrow=False,
                 xanchor="left",
                 font={"size": 10, "color": "#ffffff"},
-                yshift=-10,
+                yshift=10,
             )
         if not math.isnan(vc) and cc > 0:
             fig.add_annotation(
@@ -3372,12 +3397,13 @@ def _build_priority_chart(df_comparison, prev_label: str = "2025"):
                 showarrow=False,
                 xanchor="left",
                 font={"size": 10, "color": "#ffffff"},
-                yshift=10,
+                yshift=-10,
             )
 
     fig.update_layout(
         title="",
         barmode="overlay",
+        hovermode="closest",
         xaxis={
             "title": "",
             "range": [x_min, x_max],
@@ -3386,16 +3412,16 @@ def _build_priority_chart(df_comparison, prev_label: str = "2025"):
             "tickformat": ".1f",
         },
         yaxis={"title": "", "autorange": "reversed"},
-        height=max(250, n * 72 + 80),
+        height=max(200, n * 72 + 60),
         legend={
             "orientation": "h",
             "yanchor": "bottom",
-            "y": 1.04,
+            "y": 1.02,
             "xanchor": "center",
             "x": 0.5,
             "itemsizing": "constant",
         },
-        margin={"t": 50, "b": 10, "r": 0},
+        margin={"t": 36, "b": 0, "r": 60},
         modebar_remove=["pan2d", "autoScale2d"],
     )
     return apply_plotly_theme(fig)
@@ -3484,15 +3510,63 @@ def render_tab_tickets_prioriteit(
     )
     col_a, col_b, col_c, col_d = st.columns(4)
     col_a.metric(
-        label="Meest voorkomend type",
+        label=_ls("Meest voorkomend type", "Type le plus fréquent"),
         value=metrics["most_common_type"],
-        delta=f"{metrics['most_common_type_pct']}% van alle tickets",
+        delta=f"{metrics['most_common_type_pct']}% {_ls('van alle tickets', 'de tous les tickets')}",
     )
+    # Tegel B: native st.metric (100% identiek aan A/C/D) + CSS ::after tooltip bij hover op tegel
     col_b.metric(
         label=_ls("Laagst scorend type", "Type avec le score le plus bas"),
         value=metrics["lowest_score_type"],
         delta=f"{metrics['lowest_score_type_value']}\u2605 \u2014 {_ls('laagste', 'le plus bas')}",
         delta_color="inverse",
+    )
+
+    def _escape_css(s: str) -> str:
+        return s.replace("\\", "\\\\").replace('"', '\\"').replace("'", "\\'")
+
+    _a_tt = _escape_css(str(metrics["most_common_type"]))
+    _b_tt = _escape_css(str(metrics["lowest_score_type"]))
+    st.html(
+        f"""<style>
+        /* Tegel A + B: overflow visible voor ::after tooltip */
+        [data-testid="stColumn"]:nth-child(1) [data-testid="stMetric"],
+        [data-testid="stColumn"]:nth-child(1) [data-testid="metric-container"],
+        [data-testid="stColumn"]:nth-child(2) [data-testid="stMetric"],
+        [data-testid="stColumn"]:nth-child(2) [data-testid="metric-container"] {{
+            overflow: visible !important;
+        }}
+        [data-testid="stColumn"]:nth-child(1) [data-testid="stMetricValue"],
+        [data-testid="stColumn"]:nth-child(2) [data-testid="stMetricValue"] {{
+            position: relative !important;
+            overflow: visible !important;
+            cursor: help !important;
+        }}
+        /* Gedeelde tooltip-stijl */
+        [data-testid="stColumn"]:nth-child(1) [data-testid="stMetricValue"]:hover::after,
+        [data-testid="stColumn"]:nth-child(2) [data-testid="stMetricValue"]:hover::after {{
+            position: absolute;
+            top: calc(100% + 6px);
+            right: 0;
+            left: auto;
+            transform: none;
+            background: rgba(31,31,31,0.88);
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 5px;
+            font-size: 0.75rem;
+            white-space: nowrap;
+            z-index: 9999;
+            pointer-events: none;
+        }}
+        /* Tooltip inhoud per tegel */
+        [data-testid="stColumn"]:nth-child(1) [data-testid="stMetricValue"]:hover::after {{
+            content: "{_a_tt}";
+        }}
+        [data-testid="stColumn"]:nth-child(2) [data-testid="stMetricValue"]:hover::after {{
+            content: "{_b_tt}";
+        }}
+        </style>"""
     )
     col_c.metric(
         label=_ls("Grootste prioritaire groep", "Groupe prioritaire le plus grand"),
@@ -3533,17 +3607,16 @@ def render_tab_tickets_prioriteit(
         trend_start_month=trend_start_month,
     )
     st.plotly_chart(
-        _build_issue_type_chart(df_issue, chart_title="", prev_label=_prev_label),
+        _build_issue_type_chart(df_issue, chart_title="", prev_label=_prev_label, lang=lang),
         width="stretch",
         config=_CHART_CONFIG,
     )
     st.markdown(
-        "<hr style='margin:0.4rem 0 0.8rem 0;border:none;border-top:1px solid #e0e8f0'>",
+        "<div style='margin-top:-2.5rem;height:0;overflow:hidden'></div>",
         unsafe_allow_html=True,
     )
-    # Sorteerbare detailtabel — 1cm onder de scheidingslijn geplaatst
     st.markdown(
-        "<div style='margin-top:-1cm;height:0;overflow:hidden'></div>",
+        "<hr style='margin:0.4rem 0 0.5rem 0;border:none;border-top:1px solid #e0e8f0'>",
         unsafe_allow_html=True,
     )
     import math as _math
@@ -3560,15 +3633,17 @@ def render_tab_tickets_prioriteit(
     def _fdelta_n(v):
         return f"{v:+.1f} ppt" if not _math.isnan(v) else "\u2014"
 
+    _col_neg = _ls("% Negatief", "% Négatif")
+    _col_dneg = _ls("\u0394 Negatief", "\u0394 Négatif")
     df_tbl = pd.DataFrame(
         [
             {
                 _ls("Type", "Type"): str(r["issue_type"]),
                 f"Score {_prev_label}": _fstar(r["score_prev"]),
                 "Score YTD": _fstar(r["score_curr"]),
-                _ls("% Negatief", "% Négatif"): _fpct(r["pct_neg_curr"]),
+                _col_neg: _fpct(r["pct_neg_curr"]),
                 "\u0394 Score": _fdelta_s(r["delta_score"]),
-                _ls("\u0394 Negatief", "\u0394 Négatif"): _fdelta_n(r["delta_neg"]),
+                _col_dneg: _fdelta_n(r["delta_neg"]),
             }
             for _, r in df_issue.iterrows()
         ]
@@ -3584,8 +3659,6 @@ def render_tab_tickets_prioriteit(
         export_filename="issue_type_vergelijking.csv",
         col_widths=["32%", "13%", "13%", "11%", "11%", "13%"],
     )
-    _col_neg = _ls("% Negatief", "% Négatif")
-    _col_dneg = _ls("\u0394 Negatief", "\u0394 Négatif")
     st.markdown(
         "<div style='font-size:0.80rem;color:#5f8495;margin-top:-2.5rem;line-height:1.6;"
         "padding:0.35rem 0 0.35rem 0;'>"
@@ -3639,16 +3712,18 @@ def render_tab_tickets_prioriteit(
         trend_start_month=trend_start_month,
     )
     st.plotly_chart(
-        _build_priority_chart(df_prio, prev_label=_prev_label),
+        _build_priority_chart(df_prio, prev_label=_prev_label, lang=lang),
         width="stretch",
         config=_CHART_CONFIG,
     )
+    # Negatieve marge: compenseert Streamlit-gap (stVerticalBlock) na plotly_chart
     st.markdown(
-        "<hr style='margin:0.4rem 0 0.8rem 0;border:none;border-top:1px solid #e0e8f0'>",
+        "<div style='margin-top:-2.5rem;height:0;overflow:hidden'></div>",
         unsafe_allow_html=True,
     )
     st.markdown(
-        "<div style='margin-top:-1cm;height:0;overflow:hidden'></div>", unsafe_allow_html=True
+        "<hr style='margin:0.4rem 0 0.5rem 0;border:none;border-top:1px solid #e0e8f0'>",
+        unsafe_allow_html=True,
     )
     _col_prio = _ls("Prioriteit", "Priorité")
     _col_neg_p = _ls("% Negatief", "% Négatif")
