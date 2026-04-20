@@ -5,6 +5,16 @@ Formaat gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.0.0/).
 
 ---
 
+## [0.6.1] — 20/04/2026
+
+### Opgelost
+
+- **`docs/issues/BACKLOG-005-personalisatie-favorieten-tabblad.md`** — 6 markdownlint-fouten
+  opgelost: blank lines voor lijst (MD032), blank lines rond fenced code blocks (MD031),
+  taalspecificatie op code blocks (MD040) — CI Markdown Lint was failing
+
+---
+
 ## [0.6.0] — 20/04/2026
 
 ### Toegevoegd
