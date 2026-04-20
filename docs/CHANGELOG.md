@@ -5,6 +5,19 @@ Formaat gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.0.0/).
 
 ---
 
+## [0.6.2] — 20/04/2026
+
+### Gewijzigd
+
+- **`src/dashboard/app.py`** — Tijdlijn grafiek annotaties:
+  - KPI min-lijn label: `yanchor="bottom"` → `yanchor="top"` — tekst nu **onder** de lijn (was boven)
+  - Gem. vorig jaar label: idem bevestigd op `yanchor="top"` — consistentie
+  - Alle KPI-annotaties: `bgcolor="rgba(255,255,255,0.82)"` + `borderpad=3` toegevoegd —
+    witte achtergrond voor betere leesbaarheid (rood op blauw was te weinig contrast)
+  - Wijziging doorgevoerd in alle 4 KPI-annotaties (combo-grafiek + trend-grafiek)
+
+---
+
 ## [0.6.1] — 20/04/2026
 
 ### Opgelost

@@ -500,8 +500,10 @@ def _chart_timeline(data: DashboardData, t: dict, lang: str) -> go.Figure:
         text=f"KPI min. {AVG_SCORE_MIN:.1f}\u2605",
         showarrow=False,
         xanchor="right",
-        yanchor="bottom",
+        yanchor="top",
         font={"size": 10, "color": ZORGI_RED},
+        bgcolor="rgba(255,255,255,0.82)",
+        borderpad=3,
     )
 
     # ③ Gewogen jaar-gemiddelde vorig jaar — ook yref="y2"
@@ -708,8 +710,10 @@ def _chart_period_comparison(data: DashboardData, t: dict, lang: str = "nl") -> 
         text=f"KPI min. {AVG_SCORE_MIN:.1f}\u2605",
         showarrow=False,
         xanchor="right",
-        yanchor="bottom",
+        yanchor="top",
         font={"size": 10, "color": ZORGI_RED},
+        bgcolor="rgba(255,255,255,0.82)",
+        borderpad=3,
     )
 
     fig.update_layout(
@@ -812,8 +816,10 @@ def _chart_rolling_avg(data: DashboardData, t: dict, lang: str = "nl") -> go.Fig
         text=f"KPI min. {AVG_SCORE_MIN:.1f}\u2605",
         showarrow=False,
         xanchor="right",
-        yanchor="bottom",
+        yanchor="top",
         font={"size": 10, "color": ZORGI_RED},
+        bgcolor="rgba(255,255,255,0.82)",
+        borderpad=3,
     )
 
     # Dynamische y-as range
