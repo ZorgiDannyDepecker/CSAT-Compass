@@ -326,6 +326,146 @@ def evolution_df() -> pd.DataFrame:
 
 
 @pytest.fixture
+def care_admin_df() -> pd.DataFrame:
+    """
+    Testdataset met 6 CARE ADMIN-tickets verdeeld over 2 ziekenhuizen.
+
+    Filterkolom: product_domain = 'CARE ADMIN'
+    - Jan 2026: 5 tickets (Sint-Maarten Mechelen: 3, ZNA Middelheim: 2)
+    - Feb 2026: 1 ticket (ZNA Middelheim)
+    - Jan: 4 gescoord, 1 zonder score (SDX-004)
+    - Reactiegraad jan = 4/5 = 80%
+    - Gemiddelde score jan = (4+5+3+4)/4 = 4,0
+    - H/C jan: SDX-001 (Blocker) = 1/5 = 20% (bewust boven 15%)
+    """
+    rijen = [
+        # CARE ADMIN — januari 2026 — Sint-Maarten Mechelen
+        _make_row(
+            "SDX-001",
+            "Bug",
+            "Blocker",
+            4.0,
+            "Sint-Maarten Mechelen",
+            "ZORGI CARE ADMIN",
+            "CARE ADMIN",
+            "2026-01-05",
+            "2026-01-10",
+        ),
+        _make_row(
+            "SDX-002",
+            "Request for Information",
+            "Trivial",
+            5.0,
+            "Sint-Maarten Mechelen",
+            "ZORGI CARE ADMIN",
+            "CARE ADMIN",
+            "2026-01-08",
+            "2026-01-12",
+        ),
+        _make_row(
+            "SDX-003",
+            "Incident",
+            "Minor",
+            3.0,
+            "Sint-Maarten Mechelen",
+            "ZORGI CARE ADMIN",
+            "CARE ADMIN",
+            "2026-01-12",
+            "2026-01-16",
+        ),
+        # CARE ADMIN — januari 2026 — ZNA Middelheim
+        _make_row(
+            "SDX-004",
+            "Bug",
+            "Minor",
+            None,
+            "ZNA Middelheim",
+            "ZORGI CARE ADMIN",
+            "CARE ADMIN",
+            "2026-01-15",
+        ),
+        _make_row(
+            "SDX-005",
+            "Task",
+            "Trivial",
+            4.0,
+            "ZNA Middelheim",
+            "ZORGI CARE ADMIN",
+            "CARE ADMIN",
+            "2026-01-20",
+            "2026-01-24",
+        ),
+        # CARE ADMIN — februari 2026 — ZNA Middelheim
+        _make_row(
+            "SDX-006",
+            "Bug",
+            "Major",
+            4.0,
+            "ZNA Middelheim",
+            "ZORGI CARE ADMIN",
+            "CARE ADMIN",
+            "2026-02-03",
+            "2026-02-07",
+        ),
+    ]
+    return pd.DataFrame(rijen)
+
+
+@pytest.fixture
+def erp4hc_df() -> pd.DataFrame:
+    """
+    Testdataset met 4 ERP4HC-tickets verdeeld over 2 ziekenhuizen.
+
+    Filterkolom: product_domain = 'ERP'
+    - Jan 2026: 3 tickets (AZ Delta: 3)
+    - Feb 2026: 1 ticket (GHB Hasselt)
+    - Jan: 2 gescoord, 1 zonder score (SDE-003)
+    - Reactiegraad jan = 2/3 = 66,7%
+    - Gemiddelde score jan = (3+4)/2 = 3,5
+    - H/C jan: SDE-003 (Blocker) = 1/3 = 33,3% (bewust boven 15%)
+    """
+    rijen = [
+        # ERP4HC — januari 2026 — AZ Delta
+        _make_row(
+            "SDE-001",
+            "Request for Improvement",
+            "Minor",
+            3.0,
+            "AZ Delta",
+            "ERP4HC",
+            "ERP",
+            "2026-01-06",
+            "2026-01-12",
+        ),
+        _make_row(
+            "SDE-002",
+            "Request for Configuration",
+            "Trivial",
+            4.0,
+            "AZ Delta",
+            "ERP4HC",
+            "ERP",
+            "2026-01-10",
+            "2026-01-15",
+        ),
+        _make_row("SDE-003", "Bug", "Blocker", None, "AZ Delta", "ERP4HC", "ERP", "2026-01-18"),
+        # ERP4HC — februari 2026 — GHB Hasselt
+        _make_row(
+            "SDE-004",
+            "Task",
+            "Trivial",
+            5.0,
+            "GHB Hasselt",
+            "ERP4HC",
+            "ERP",
+            "2026-02-05",
+            "2026-02-09",
+        ),
+    ]
+    return pd.DataFrame(rijen)
+
+
+@pytest.fixture
 def empty_df() -> pd.DataFrame:
     """Leeg DataFrame met correcte kolomstructuur (randgeval tests)."""
     kolommen = [

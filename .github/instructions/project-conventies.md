@@ -290,7 +290,7 @@ Bij verplaatsing naar `archive/` blijven **Bestandsnaam** en **Path** ongewijzig
 | ------------- | ----------------------------------- | ---------------------------------------- |
 | GHC           | GitHub Copilot                      | AI-coding assistent in PyCharm           |
 | GHD           | GitHub Desktop                      | GUI-client voor Git-operaties op Windows |
-| PC2025        | PyCharm 2025.x                      | Primaire IDE                             |
+|         | PyCharm 2026.x                      | Primaire IDE                             |
 | ADR           | Architecture Decision Record        | Architectuurbeslissing                   |
 | NVT           | Niet Van Toepassing                 | Leeg verplicht veld                      |
 | TBD           | To Be Defined                       | Nog in te vullen veld                    |

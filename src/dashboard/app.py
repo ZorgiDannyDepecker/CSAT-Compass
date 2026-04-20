@@ -86,7 +86,7 @@ from csat.utils.zorgi_theme import (  # noqa: E402
 
 _BASELINE_YEAR: int = 2025
 _TREND_WINDOW_START: str = "2025-07-01"
-_ACTIVE_PILLARS: frozenset[str] = frozenset({"pharma"})
+_ACTIVE_PILLARS: frozenset[str] = frozenset({"pharma", "care", "care_admin", "erp4hc"})
 _APP_VERSION: str = f"v{__version__}"
 
 

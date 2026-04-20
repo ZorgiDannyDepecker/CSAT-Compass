@@ -45,8 +45,8 @@ PILLAR_REGISTRY: dict[str, dict] = {
     "care_admin": {
         "name": "CARE ADMIN",
         "name_fr": "CARE ADMIN",
-        "report_name": "OAZIS",
-        "report_name_fr": "OAZIS",
+        "report_name": "CARE ADMIN",
+        "report_name_fr": "CARE ADMIN",
         "direction": "west",
         "color": "#a06b8a",  # Light Purple — afgeleide pillar-kleur (60% menging Purple #7f4267 → Ultra Light Blue #d7e7f3)
         "products": ["CARE ADMIN"],

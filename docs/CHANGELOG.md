@@ -5,6 +5,35 @@ Formaat gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.0.0/).
 
 ---
 
+## [0.6.0] — 20/04/2026
+
+### Toegevoegd
+
+- **`src/csat/pillars/care_admin/config.py`** — CARE ADMIN pijlerconfiguratie:
+  PILLAR_KEY, PRODUCT_FILTER, KPI-drempels (HIGH_CRITICAL_MAX=15.0), namen NL/FR, richting
+- **`src/csat/pillars/care_admin/analyser.py`** — `CareAdminAnalyser`: thin wrapper op
+  `PillarAnalyser` met drempelwaardeevaluatie en `kpi_status()`
+- **`src/csat/pillars/care/config.py`** — CARE pijlerconfiguratie (analoog aan PHARMA)
+- **`src/csat/pillars/care/analyser.py`** — `CareAnalyser`: thin wrapper op `PillarAnalyser`
+- **`src/csat/pillars/erp4hc/config.py`** — ERP4HC pijlerconfiguratie (PRODUCT_FILTER="ERP")
+- **`src/csat/pillars/erp4hc/analyser.py`** — `Erp4hcAnalyser`: thin wrapper op `PillarAnalyser`
+- **`tests/pillars/test_care_admin_analyser.py`** — 38 unit tests voor CareAdminAnalyser
+- **`tests/pillars/test_care_analyser.py`** — 37 unit tests voor CareAnalyser
+- **`tests/pillars/test_erp4hc_analyser.py`** — 38 unit tests voor Erp4hcAnalyser
+- **`tests/conftest.py`** — Nieuwe fixtures: `care_admin_df` (6 tickets) en `erp4hc_df` (4 tickets)
+
+### Gewijzigd
+
+- **`src/csat/config/pillars.py`** — OAZIS verwijderd als `report_name` voor CARE ADMIN;
+  vervangen door `"CARE ADMIN"` conform beslissing 20/04/2026
+- **`src/dashboard/app.py`** — `_ACTIVE_PILLARS` uitgebreid van `{"pharma"}` naar
+  `{"pharma", "care", "care_admin", "erp4hc"}` — alle 4 pijlers nu actief in de sidebar
+- **`pyproject.toml`** — versie `0.5.57` → `0.6.0` (minor bump: 3 nieuwe pijlers)
+- **`WIP/handover-fase4-2026-04-19.md`** — bijgewerkt naar v1.1 met alle bevestigde beslissingen
+  en implementatieplan stap 1–11
+
+---
+
 ## [0.5.57] — 19/04/2026
 
 ### Toegevoegd

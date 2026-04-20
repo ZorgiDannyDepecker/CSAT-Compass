@@ -63,7 +63,7 @@ The user is a Senior Advisor at a company that develops hospital software. Their
 ## Abbreviations
 
 - **GHC** = GitHub Copilot
-- **PC2025** = PyCharm 2025.3
+- **PC2026** = PyCharm 2026.1
 
 ---
 
