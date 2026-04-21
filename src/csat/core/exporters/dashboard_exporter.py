@@ -775,19 +775,23 @@ class DashboardExporter:
     # ------------------------------------------------------------------
     # Intern — ziekenhuizen
     # ------------------------------------------------------------------
-
-    @staticmethod
+    @classmethod
     def _build_hospital_top10(
+        cls,
         hospital_comparison: list[HospitalComparison],
     ) -> list[ZhSignalEntry]:
-        """Bouw de top-10-lijst voor Tab 5 (min. _TOP_MIN_TICKETS tickets).
+        """Bouw de top-10-lijst voor Tab 5 (score ≥ 4,0★ + min. _TOP_MIN_TICKETS tickets).
 
+        Score-filter ≥ 4,0 garandeert dat de titel '≥ 4,0★' altijd klopt.
+        Ticket-filter (min. 5) zorgt voor statistisch relevante resultaten.
         Sortering: hoogste score eerst; bij gelijke score meer tickets eerst.
         """
         filtered = [
             h
             for h in hospital_comparison
-            if h.current_score is not None and h.current_total >= DashboardExporter._TOP_MIN_TICKETS
+            if h.current_score is not None
+            and h.current_score >= cls._ATTENTION_SCORE_THRESHOLD
+            and h.current_total >= cls._TOP_MIN_TICKETS
         ]
         sorted_top = sorted(
             filtered,

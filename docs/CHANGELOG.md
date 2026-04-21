@@ -3,6 +3,21 @@
 Alle noemenswaardige wijzigingen aan dit project worden hier gedocumenteerd.
 Formaat gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.0.0/).
 
+## [0.6.32] — 21/04/2026
+
+### Opgelost
+
+- `src/csat/core/exporters/dashboard_exporter.py` — `_build_hospital_top10`:
+  score-filter `>= 4,0★` toegevoegd zodat de titel "≥ 4,0★" altijd correct is;
+  `@staticmethod` → `@classmethod` (gebruikt `cls._ATTENTION_SCORE_THRESHOLD`);
+  docstring bijgewerkt met beide filtercondities
+- `tests/core/test_dashboard_exporter.py` — `TestBuildHospitalTop10` toegevoegd
+  (8 tests): score-grens, grenswaarde 4,0 exact, min-tickets, sortering, max-10,
+  None-score, lege input, data-integriteit
+- `pyproject.toml` — versie 0.6.31 → 0.6.32
+
+---
+
 ## [0.6.31] — 21/04/2026
 
 ### Opgelost

@@ -680,7 +680,91 @@ class TestBuildHospitalBottom10:
 
 
 # ---------------------------------------------------------------------------
-# Tests — _build_period_groups volledig via prepare()
+# Tests — _build_hospital_top10
+# ---------------------------------------------------------------------------
+
+
+class TestBuildHospitalTop10:
+    """Tests voor DashboardExporter._build_hospital_top10() — score >= 4.0 + min 5 tickets."""
+
+    def _make_hc(self, name: str, score: float | None, total: int) -> HospitalComparison:
+        return HospitalComparison(
+            hospital=name,
+            baseline_score=4.0,
+            baseline_total=5,
+            current_score=score,
+            current_total=total,
+        )
+
+    def test_sluit_score_onder_4_uit(self):
+        """Ziekenhuizen met score < 4.0 worden niet opgenomen (title-garantie)."""
+        comparisons = [
+            self._make_hc("TOP", 4.5, 10),  # ✓ opgenomen
+            self._make_hc("GRENS", 3.9, 10),  # ✗ score < 4.0
+        ]
+        result = DashboardExporter._build_hospital_top10(comparisons)
+        hospitals = [e.hospital for e in result]
+        assert "TOP" in hospitals
+        assert "GRENS" not in hospitals
+
+    def test_grenswaarde_4_0_opgenomen(self):
+        """Score exact 4.0 met voldoende tickets wordt WEL opgenomen."""
+        comparisons = [self._make_hc("EXACT", 4.0, 5)]
+        result = DashboardExporter._build_hospital_top10(comparisons)
+        assert len(result) == 1
+        assert result[0].hospital == "EXACT"
+
+    def test_sluit_onvoldoende_tickets_uit(self):
+        """Score >= 4.0 maar < _TOP_MIN_TICKETS tickets wordt niet opgenomen."""
+        comparisons = [
+            self._make_hc("WEINIG", 4.8, 4),  # ✗ < 5 tickets
+            self._make_hc("VOLDOENDE", 4.2, 5),  # ✓ >= 5 tickets
+        ]
+        result = DashboardExporter._build_hospital_top10(comparisons)
+        hospitals = [e.hospital for e in result]
+        assert "WEINIG" not in hospitals
+        assert "VOLDOENDE" in hospitals
+
+    def test_gesorteerd_hoogste_score_eerst(self):
+        """Top-10 wordt gesorteerd op aflopende score."""
+        comparisons = [
+            self._make_hc("A", 4.2, 10),
+            self._make_hc("B", 5.0, 5),
+            self._make_hc("C", 4.8, 8),
+        ]
+        result = DashboardExporter._build_hospital_top10(comparisons)
+        scores = [e.score for e in result]
+        assert scores == sorted(scores, reverse=True)
+
+    def test_maximaal_10_entries(self):
+        """Lijst is beperkt tot 10 entries ook bij meer dan 10 kandidaten."""
+        comparisons = [self._make_hc(f"ZH{i}", 4.0 + i * 0.05, 10) for i in range(15)]
+        result = DashboardExporter._build_hospital_top10(comparisons)
+        assert len(result) <= 10
+
+    def test_slaat_none_score_over(self):
+        """Ziekenhuizen met score=None worden overgeslagen."""
+        comparisons = [
+            HospitalComparison("A", 4.0, 5, None, 10),
+            self._make_hc("B", 4.5, 10),
+        ]
+        result = DashboardExporter._build_hospital_top10(comparisons)
+        assert all(e.hospital != "A" for e in result)
+
+    def test_lege_input_geeft_lege_lijst(self):
+        """Lege input geeft lege lijst terug."""
+        assert DashboardExporter._build_hospital_top10([]) == []
+
+    def test_score_en_tickets_correct_overgenomen(self):
+        """Score en tickets worden correct overgezet naar ZhSignalEntry."""
+        comparisons = [self._make_hc("UZ Leuven", 4.75, 12)]
+        result = DashboardExporter._build_hospital_top10(comparisons)
+        assert len(result) == 1
+        assert result[0].hospital == "UZ Leuven"
+        assert result[0].score == 4.75
+        assert result[0].tickets == 12
+
+
 # ---------------------------------------------------------------------------
 
 
