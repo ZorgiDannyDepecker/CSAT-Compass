@@ -3,6 +3,21 @@
 Alle noemenswaardige wijzigingen aan dit project worden hier gedocumenteerd.
 Formaat gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.0.0/).
 
+## [0.6.31] — 21/04/2026
+
+### Opgelost
+
+- `src/csat/i18n/nl.json` — `hospital_attention_title`: `(3,0★ – 4,0★)` →
+  `(≥ 3,0★ & < 4,0★)` — onderscheid mbt < 4,0 was niet zichtbaar in de titel
+- `src/csat/i18n/fr.json` — `hospital_attention_title`: zelfde correctie in FR;
+  ook dubbele spatie in `"comptes  surveiller"` → `"comptes à surveiller"` hersteld
+- `src/dashboard/app.py` — commentaar sectie B bijgewerkt naar `(≥ 3,0★ & < 4,0★)`
+- `src/csat/core/exporters/dashboard_exporter.py` — docstring `_build_hospital_attention`:
+  "score tussen" → "score ≥ 3,0★ en < 4,0★" (filterlogica was reeds correct)
+- `pyproject.toml` — versie 0.6.30 → 0.6.31
+
+---
+
 ## [0.6.30] — 21/04/2026
 
 ### Gewijzigd

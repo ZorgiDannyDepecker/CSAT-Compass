@@ -338,7 +338,7 @@
       "urgentie": {"title": "🚨 Gebrek aan urgentie ({pct}%)", "action": "Escalatieprotocol Critical · 4-uren reactieregel"}
     },
     "hospital_bottom10_title": "Top 10 minst (< 3,0★)",
-    "hospital_attention_title": "Top 10 aandachtsaccounts (3,0★ – 4,0★)",
+    "hospital_attention_title": "Top 10 aandachtsaccounts (≥ 3,0★ & < 4,0★)",
     "hospital_no_attention": "Geen aandachtsaccounts in de huidige periode.",
     "hospital_top10_title": "Top 10 best (≥ 4,0★)",
     "hospital_top10_footnote": "¹ Alleen ziekenhuizen met minimaal 5 tickets in de huidige periode worden opgenomen (statistisch relevant).",

@@ -840,7 +840,7 @@ class DashboardExporter:
         cls,
         hospital_comparisons: list[HospitalComparison],
     ) -> list[ZhSignalEntry]:
-        """Aandachtsaccounts: score tussen 3,0★ en 4,0★ (≥1 ticket huidig).
+        """Aandachtsaccounts: score ≥ 3,0★ en < 4,0★ (≥1 ticket huidig).
 
         Sortering: oplopend score.
         Geen limiet — alle aandachtsaccounts worden opgenomen.

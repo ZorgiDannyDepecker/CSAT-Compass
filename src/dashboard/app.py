@@ -2539,7 +2539,7 @@ def _tab_hospitals(data: DashboardData, t: dict, lang: str) -> None:
         unsafe_allow_html=True,
     )
 
-    # --- B: Aandachtsaccounts (3,0★ - 4,0★) ---
+    # --- B: Aandachtsaccounts (≥ 3,0★ & < 4,0★) ---
     if data.hospital_attention:
         _render_sortable_table(
             pd.DataFrame(
