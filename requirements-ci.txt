@@ -1,10 +1,10 @@
 # =============================================================================
 # CSAT-Compass — CI-afhankelijkheden (GitHub Actions / Ubuntu)
 # Bevat alleen wat nodig is om de testsuite te draaien.
-# Zware pakketten (weasyprint, streamlit, plotly) worden weggelaten —
-# die vereisen system-level libraries op Ubuntu (Cairo, pango, etc.)
-# die niet beschikbaar zijn in de standaard GitHub Actions runner.
-# matplotlib is wél beschikbaar op Ubuntu via pip zonder extra system-deps.
+# WeasyPrint wordt weggelaten — vereist system-level libraries op Ubuntu
+# (Cairo, pango, etc.) die niet beschikbaar zijn in de standaard runner.
+# Streamlit en plotly worden WEL meegenomen — installeren zonder system-deps
+# en zijn vereist om app.py via importlib te laden in test_render_sortable_table.
 # =============================================================================
 
 # --- Data laden (SQL + CSV) ---
@@ -15,6 +15,10 @@ pyodbc>=5.0.0         # vereist: sudo apt-get install -y unixodbc-dev
 
 # --- Visualisatie (matplotlib — geen system-deps op Ubuntu) ---
 matplotlib>=3.7.0
+
+# --- Dashboard (streamlit + plotly — geen system-deps op Ubuntu) ---
+streamlit>=1.32.0
+plotly>=5.20.0
 
 # --- Utilities ---
 python-dotenv>=1.0.0

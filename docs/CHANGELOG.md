@@ -3,6 +3,18 @@
 Alle noemenswaardige wijzigingen aan dit project worden hier gedocumenteerd.
 Formaat gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.0.0/).
 
+## [0.6.29] — 21/04/2026
+
+### Opgelost
+
+- `requirements-ci.txt` — `streamlit>=1.32.0` en `plotly>=5.20.0` toegevoegd:
+  ontbraken in CI waardoor `app.py` niet kon laden via `importlib` in
+  `test_render_sortable_table.py` → alle 38 tests werden overgeslagen (pytest.skip)
+  → `app.py` CI-coverage 0,91% i.p.v. de verwachte ~84%; header bijgewerkt
+- `pyproject.toml` — versie 0.6.28 → 0.6.29
+
+---
+
 ## [0.6.28] — 21/04/2026
 
 ### Opgelost
