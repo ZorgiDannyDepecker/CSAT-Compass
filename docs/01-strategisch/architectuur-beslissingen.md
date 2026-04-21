@@ -28,6 +28,7 @@
 11. [ADR-011 — satisfaction_date als CSAT-periodegroepering](#11-adr-011--satisfaction_date-als-csat-periodegroepering)
 12. [ADR-012 — Nieuwe instappers uitsluiten uit delta-ranking (subplot 4)](#12-adr-012--nieuwe-instappers-uitsluiten-uit-delta-ranking-subplot-4)
 13. [ADR-013 — Runner/library-structuur (scripts vs src vs tools)](#13-adr-013--runnerlibrary-structuur-scripts-vs-src-vs-tools)
+14. [ADR-014 — Streamlit server-side vs browser client-side](#15-adr-014--streamlit-server-side-vs-browser-client-side)
 
 ---
 
@@ -710,6 +711,100 @@ Nieuw dev-hulpmiddel (PowerShell)? → tools/
 
 ---
 
+---
+
+## 15. ADR-014 — Streamlit server-side vs browser client-side
+
+**Datum:** 21/04/2026
+**Status:** ✅ Approved
+**Beslissing:** CSAT-Compass is een server-side applicatie. De browser is een dunne
+client. Enkel HTML-componenten via `st.components.v1.html()` draaien client-side
+(in een iframe). Alle overige logica — data, analyse, rendering — draait op de server.
+
+### Context
+
+Bij de keuze voor Streamlit (ADR-002) werd de technologische keuze vastgelegd.
+De architecturele implicatie — server-side vs client-side — werd nog niet expliciet
+gedocumenteerd. Inzicht hierover is relevant voor:
+
+- **Testbaarheid:** welke code is unit-testbaar en welke niet?
+- **Coverage:** waarom haalt `app.py` 84% en niet 100%?
+- **Security:** waar wordt gebruikersinput verwerkt?
+- **Deployment:** welke resources zijn vereist op de server?
+
+### Beslissing
+
+| Laag | Locatie | Technologie | Draait op |
+|---|---|---|---|
+| Data ophalen | `src/csat/core/loaders/` | SQLAlchemy / pandas | **Server** |
+| Analyse & berekening | `src/csat/core/analysers/` | Python / pandas | **Server** |
+| Rapportgeneratie | `src/csat/core/exporters/` | Jinja2 / matplotlib | **Server** |
+| Streamlit UI-logica | `src/dashboard/app.py` | Streamlit Python API | **Server** |
+| HTML-componenten | `src/dashboard/app.py` — `st.components.v1.html()` | HTML / CSS / JS in iframe | **Browser (client)** |
+
+### Consequenties
+
+**1. Testbaarheid**
+
+| Categorie | Testbaar via unit tests? | Reden |
+|---|---|---|
+| Analyselogica (`src/csat/`) | ✅ Ja | Pure Python — geen runtime vereist |
+| HTML-generatie in `app.py` | ✅ Ja | Genereert een string — testbaar via `importlib` + mock |
+| Streamlit widget-aanroepen (`st.write`, `st.tabs`, ...) | ❌ Nee | Vereist Streamlit-runtime — niet beschikbaar in unit tests |
+| `st.components.v1.html()` | ⚠️ Deels | Aanroep is mockbaar; browser-rendering (JS) is niet testbaar |
+
+**2. Coverage — waarom 84% op `app.py`?**
+
+De 16% niet-gedekte regels zijn uitsluitend Streamlit UI-aanroepen:
+tab-selectie, sidebar-widgets, `st.plotly_chart`, `st.metric`, enzovoort.
+Deze zijn **correct niet gedekt** — ze vereisen een actieve Streamlit-server en
+een browser. Dit is de architecturele bovengrens voor unit test coverage van `app.py`.
+
+**3. HTML-componenten zijn client-side**
+
+`_render_sortable_table()` genereert een HTML-string met CSS en JavaScript
+(sortering, filters, scrollbar, `selfResize()`). Die string wordt via
+`st.components.v1.html(html_str, height=...)` in een **iframe** geplaatst.
+Die iframe draait volledig in de browser — Streamlit heeft geen controle over
+de interne werking ervan na het doorgeven van de HTML-string.
+
+Gevolg: de JavaScript in de iframe (`selfResize`, sorteerfuncties) is
+**niet testbaar vanuit Python**. Enkel de HTML-generatie (Python-kant) is testbaar.
+
+**4. Security**
+
+- Gebruikersinput (sidebar-filters, dropdown) wordt verwerkt op de server
+- De browser stuurt de waarden terug naar de Streamlit-server via WebSocket
+- Geen gevoelige data wordt naar de browser gestuurd buiten de zichtbare tabelcellen
+- PII-bescherming: anonimisering en aggregatie gebeuren server-side vóór rendering
+
+**5. Deployment**
+
+- De Streamlit-server vereist Python + alle dependencies op de hostmachine
+- De browser heeft enkel een moderne webbrowser nodig — geen installatie
+- Lokaal: `streamlit run src/dashboard/app.py`
+- Intern netwerk: `streamlit run ... --server.port 8501 --server.address 0.0.0.0`
+
+### Alternatieven overwogen
+
+| Optie | Omschrijving | Reden verworpen |
+|---|---|---|
+| Volledig client-side (React/Vue SPA) | Browser doet alles — sneller na laden | ❌ Vereist JavaScript-stack naast Python; breekt ADR-002 |
+| Server-side rendering zonder Streamlit (Flask + Jinja2) | HTML server-side gegenereerd | ❌ Verlies van interactiviteit; meer boilerplate |
+| Hybride (Streamlit + externe API) | Data via REST API, UI via Streamlit | ❌ Overkill voor huidige scope; voegt latency toe |
+| **Streamlit server-side + iframe voor client-side HTML** | **Gekozen** | **✅ Maximale interactiviteit binnen Python-ecosysteem** |
+
+### Betrokken bestanden
+
+| Bestand | Relevantie |
+|---|---|
+| `src/dashboard/app.py` | Enige Streamlit-applicatie — bevat zowel server-side als client-side (iframe) code |
+| `tests/utils/test_render_sortable_table.py` | 39 tests voor HTML-generatie (server-side, testbaar) |
+| `tests/utils/test_dashboard_app.py` | 3 smoke tests voor module-laadbaar + geen crash |
+| `pyproject.toml` | `--cov=src` — meet beide lagen; 84% dekking op `app.py` is de architecturele bovengrens |
+
+---
+
 ## Versiehistorie
 
 | Versie | Datum | Wijzigingen | Auteur |
@@ -724,3 +819,4 @@ Nieuw dev-hulpmiddel (PowerShell)? → tools/
 | 1.7 | 25/03/2026 | ADR-012 toegevoegd: nieuwe instappers uitsluiten uit delta-ranking subplot 4 | Danny Depecker + GHC |
 | 1.8 | 25/03/2026 | ADR-012 uitgebreid: ZORGI_BORDEAUX kleurverantwoording + zorgi_theme.py als betrokken bestand | Danny Depecker + GHC |
 | 1.9 | 31/03/2026 | ADR-013 toegevoegd: runner/library-structuur scripts vs src vs tools | Danny Depecker + GHC |
+| 2.0 | 21/04/2026 | ADR-014 toegevoegd: Streamlit server-side vs browser client-side | Danny Depecker + GHC |

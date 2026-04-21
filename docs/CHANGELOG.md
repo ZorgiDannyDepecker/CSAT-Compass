@@ -3,6 +3,21 @@
 Alle noemenswaardige wijzigingen aan dit project worden hier gedocumenteerd.
 Formaat gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.0.0/).
 
+## [0.6.27] — 21/04/2026
+
+### Toegevoegd
+
+- `docs/01-strategisch/architectuur-beslissingen.md` — ADR-014 toegevoegd:
+  Streamlit server-side vs browser client-side; documenteert testbaarheidsgrens (84% coverage
+  is architecturele bovengrens), iframe-uitzondering voor `_render_sortable_table` HTML-componenten,
+  security model en deployment; versie 1.9 → 2.0
+
+### Gewijzigd
+
+- `pyproject.toml` — versie 0.6.26 → 0.6.27
+
+---
+
 ## [0.6.26] — 21/04/2026
 
 ### Gewijzigd
