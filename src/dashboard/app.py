@@ -981,21 +981,22 @@ def _chart_hospitals(data: DashboardData, t: dict) -> go.Figure:
     d = t["dashboard"]
 
     # Combineer alle drie lijsten, dedupliceer op ziekenhuisnaam
-    all_zh: dict[str, float] = {}
+    all_zh: dict[str, tuple[float, int]] = {}  # hospital -> (score, tickets)
     for h in data.hospital_bottom10 or []:
-        all_zh[h.hospital] = h.score
+        all_zh[h.hospital] = (h.score, h.tickets)
     for h in data.hospital_attention or []:
-        all_zh[h.hospital] = h.score
+        all_zh[h.hospital] = (h.score, h.tickets)
     for h in data.hospital_top10 or []:
-        all_zh[h.hospital] = h.score
+        all_zh[h.hospital] = (h.score, h.tickets)
 
     if not all_zh:
         return go.Figure()
 
     # Sorteer op score laag → hoog
-    sorted_zh = sorted(all_zh.items(), key=lambda x: x[1])
+    sorted_zh = sorted(all_zh.items(), key=lambda x: x[1][0])
     hospitals = [x[0] for x in sorted_zh]
-    scores = [x[1] for x in sorted_zh]
+    scores = [x[1][0] for x in sorted_zh]
+    tickets_list = [x[1][1] for x in sorted_zh]
 
     # Kleur op drempelwaarden
     def _zh_color(s: float) -> str:
@@ -1007,19 +1008,41 @@ def _chart_hospitals(data: DashboardData, t: dict) -> go.Figure:
 
     colors = [_zh_color(s) for s in scores]
 
-    fig = go.Figure(
+    fig = go.Figure()
+
+    # Laag 1 — gekleurde balken met ticketcount IN de balk (wit)
+    fig.add_trace(
         go.Bar(
             y=hospitals,
             x=scores,
             orientation="h",
             marker_color=colors,
-            text=[f"{s:.2f}★" for s in scores],
-            textposition="outside",
-            hovertemplate="%{y}: %{x:.2f}★<extra></extra>",
+            text=[str(tk) for tk in tickets_list],
+            textposition="inside",
+            textfont={"color": "white", "size": 11},
+            insidetextanchor="start",
+            hovertemplate="%{y}: %{x:.2f}★ (%{text} tickets)<extra></extra>",
             showlegend=False,
         )
     )
+
+    # Laag 2 — transparante balk met score BUITEN de balk
+    fig.add_trace(
+        go.Bar(
+            y=hospitals,
+            x=scores,
+            orientation="h",
+            marker_color="rgba(0,0,0,0)",
+            text=[f"{s:.2f}★" for s in scores],
+            textposition="outside",
+            textfont={"color": "#333333", "size": 11},
+            showlegend=False,
+            hoverinfo="skip",
+        )
+    )
+
     fig.update_layout(
+        barmode="overlay",
         title={"text": ""},  # Leeg — titel staat als st.markdown boven de grafiek
         xaxis={"title": d["timeline_score"]},  # autorange — geen vaste schaal
         yaxis={"autorange": "reversed"},  # lage score bovenaan, hoge score onderaan

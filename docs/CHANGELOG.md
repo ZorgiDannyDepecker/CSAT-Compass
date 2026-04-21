@@ -3,6 +3,21 @@
 Alle noemenswaardige wijzigingen aan dit project worden hier gedocumenteerd.
 Formaat gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.0.0/).
 
+## [0.6.33] — 21/04/2026
+
+### Gewijzigd
+
+- `src/csat/i18n/nl.json` — `hospital_attention_title`: `& <` → `en <`
+- `src/csat/i18n/fr.json` — `hospital_attention_title`: `& <` → `et <`
+- `src/dashboard/app.py` — `_chart_hospitals`: ticketcount toegevoegd IN de
+  balk (wit, 11pt, links uitgelijnd via `insidetextanchor="start"`);
+  score-label blijft BUITEN de balk via transparante overlay-trace (`barmode="overlay"`);
+  `all_zh` type gewijzigd van `dict[str, float]` naar `dict[str, tuple[float, int]]`
+  om tickets bij te houden per ziekenhuis; hover toont beide waarden
+- `pyproject.toml` — versie 0.6.32 → 0.6.33
+
+---
+
 ## [0.6.32] — 21/04/2026
 
 ### Opgelost

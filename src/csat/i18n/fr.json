@@ -338,7 +338,7 @@
       "urgentie": {"title": "🚨 Manque d'urgence ({pct}%)", "action": "Protocole d'escalade Critical · règle de réaction 4 heures"}
     },
     "hospital_bottom10_title": "Top 10 en difficulté (< 3,0★)",
-    "hospital_attention_title": "Top 10 comptes à surveiller (≥ 3,0★ & < 4,0★)",
+    "hospital_attention_title": "Top 10 comptes à surveiller (≥ 3,0★ et < 4,0★)",
     "hospital_no_attention": "Aucun compte à surveiller dans la période en cours.",
     "hospital_top10_title": "Top 10 meilleurs (≥ 4,0★)",
     "hospital_top10_footnote": "¹ Seuls les hôpitaux avec au moins 5 tickets dans la période en cours sont inclus (représentativité statistique).",
