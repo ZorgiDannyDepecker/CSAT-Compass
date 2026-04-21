@@ -3,6 +3,25 @@
 Alle noemenswaardige wijzigingen aan dit project worden hier gedocumenteerd.
 Formaat gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.0.0/).
 
+## [0.6.30] — 21/04/2026
+
+### Gewijzigd
+
+- `codecov.yml` — `src/dashboard/**` terug in ignore-lijst: CI-coverage voor
+  `app.py` is structureel onbetrouwbaar (16% in CI door `importlib`+`exec_module`
+  interactie met `coverage.py` op Linux vs 84% lokaal op Windows);
+  misleidende 69% totaalcoverage hersteld naar correcte 100% op `src/csat/`;
+  `src/dashboard/` verwijderd uit `flags.unittests.paths`
+- `pyproject.toml` — `--cov=src` terug naar `--cov=src/csat` (consistent met Codecov);
+  versie 0.6.29 → 0.6.30
+
+### Opmerking
+
+`app.py` lokale coverage blijft 84% (39 tests via importlib+mock) — gedocumenteerd
+in ADR-014. CI-meting is de architecturele limiet van dit testpatroon.
+
+---
+
 ## [0.6.29] — 21/04/2026
 
 ### Opgelost
