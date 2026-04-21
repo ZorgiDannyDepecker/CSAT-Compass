@@ -3,6 +3,16 @@
 Alle noemenswaardige wijzigingen aan dit project worden hier gedocumenteerd.
 Formaat gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.0.0/).
 
+## [0.6.25] — 21/04/2026
+
+### Opgelost
+
+- `docs/CHANGELOG.md` — MD022/MD032: ontbrekende lege regel na `### Gewijzigd` heading in v0.6.20-entry toegevoegd
+- `docs/progression/week-2026-04-21-nl.md` — MD012: dubbele lege regel aan het einde van het bestand verwijderd
+- `pyproject.toml` — versie 0.6.24 → 0.6.25
+
+---
+
 ## [0.6.24] — 21/04/2026
 
 ### Gewijzigd
@@ -21,6 +31,7 @@ Formaat gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.0.0/).
 ## [0.6.20] — 21/04/2026
 
 ### Gewijzigd
+
 - `docs/01-strategisch/projectplan-highlevel.md` v1.7: Fase 4 + 5a + 5b + 5c → ✅ Compleet; outputspecificatie bijgewerkt naar 30 bestanden; pijler-submappen en bestandsnaamconventie gecorrigeerd
 - `docs/03-operationeel/operations-runbook.md` v1.1: verwacht aantal bestanden bijgewerkt naar 30 + pijler-submappen beschreven
 - `WIP/handover-fase4-2026-04-19.md`: status, versie en commit bijgewerkt naar definitieve staat v0.6.19
