@@ -2197,14 +2197,25 @@ def _render_sortable_table(
     # Hoogte-berekening — gemeten via browser DevTools:
     # topRow=31px, headerRij=33px, filterRij=30px, dataRij≈28px, border=2px
     # topRow marginBottom=4px → gap tussen topRow en scroll-wrap
+    # body padding-bottom=8px; buffer=10px voor eventuele wrapping
     content_h = 33 + 30 + n_rows * 28 + 2
-    scroll_wrap_h = content_h
-    footer_h = 28 * len(footer_text.split("  |  ")) if footer_text else 0
+    _scroll_needed = content_h > max_body_height
+    scroll_wrap_h = max_body_height if _scroll_needed else content_h
+    footer_h = 38 * len(footer_text.split("  |  ")) if footer_text else 0
     footer_raw_h = (footer_html_raw.count("<br>") + 1) * 22 + 15 if footer_html_raw else 0
-    insight_h = 40 if insight_html else 0
+    insight_h = 60 if insight_html else 0
     top_row_h = 31 if show_title else 0
+    _body_pad = 8  # body padding-bottom in px
+    _buf = 10  # vaste buffer voor wrapping en browser-afwijkingen
     iframe_h = (
-        top_row_h + (4 if show_title else 0) + scroll_wrap_h + footer_h + footer_raw_h + insight_h
+        top_row_h
+        + (4 if show_title else 0)
+        + scroll_wrap_h
+        + footer_h
+        + footer_raw_h
+        + insight_h
+        + _body_pad
+        + _buf
     )
 
     safe_title = html.escape(title)
@@ -2223,7 +2234,7 @@ def _render_sortable_table(
         "<link href='https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Source+Sans+3:wght@400;600&display=swap'"
         " rel='stylesheet'>"
         "<style>"
-        "body{margin:0;padding:0;background:transparent;"
+        "body{margin:0;padding:0 0 8px 0;background:transparent;"
         "font-family:'Poppins','Verdana',sans-serif;}"
         ".top-row{display:flex;justify-content:space-between;align-items:center;"
         "margin:0 0 4px 0;gap:8px;}"
@@ -2234,9 +2245,18 @@ def _render_sortable_table(
         "font-family:'Poppins','Verdana',sans-serif;white-space:nowrap;"
         "text-decoration:none;display:inline-block;}"
         ".export-btn:hover{background:#00509e;}"
-        ".scroll-wrap{overflow-y:visible;width:100%;"
-        "border:1px solid #d0dce8;border-radius:2px;}"
-        "table{width:100%;border-collapse:separate;border-spacing:0;"
+        + (
+            f".scroll-wrap{{overflow-y:auto;max-height:{max_body_height}px;width:100%;"
+            "border:1px solid #d0dce8;border-radius:2px;}"
+            ".scroll-wrap::-webkit-scrollbar{width:7px;}"
+            ".scroll-wrap::-webkit-scrollbar-track{background:#f0f4f8;border-radius:4px;}"
+            ".scroll-wrap::-webkit-scrollbar-thumb{background:#b0c4d8;border-radius:4px;}"
+            ".scroll-wrap::-webkit-scrollbar-thumb:hover{background:#7a9db8;}"
+            if _scroll_needed
+            else ".scroll-wrap{overflow-y:visible;width:100%;"
+            "border:1px solid #d0dce8;border-radius:2px;}"
+        )
+        + "table{width:100%;border-collapse:separate;border-spacing:0;"
         "border-bottom:1px solid #d0dce8;border-right:1px solid #d0dce8;}"
         "th{background:#003a70;color:#fff;padding:6px 8px;text-align:left;"
         "font-size:0.82rem;font-family:'Poppins','Verdana',sans-serif;"
@@ -2330,7 +2350,8 @@ def _render_sortable_table(
         "try{var p=window.parent;var frames=p.document.querySelectorAll('iframe');"
         "frames.forEach(function(f){if(f.contentWindow===window){f.style.height=h+'px';f.style.minHeight=h+'px';}});}"
         "catch(e){}}"
-        "selfResize();"
+        "selfResize();setTimeout(selfResize,150);"
+        "if(document.fonts&&document.fonts.ready){document.fonts.ready.then(selfResize);}"
         "</script></body></html>"
     )
 
@@ -2401,7 +2422,7 @@ def _render_migration_tables(
     """Rendert sectie E (verdwenen) en F (nieuwe) ziekenhuistabellen."""
     # --- E: Verdwenen ziekenhuizen ---
     st.markdown(
-        "<hr style='margin:0.4rem 0 0.8rem 0;border:none;border-top:1px solid #e0e8f0'>",
+        "<hr style='margin:2.1rem 0 0.8rem 0;border:none;border-top:1px solid #e0e8f0'>",
         unsafe_allow_html=True,
     )
     disappeared_title = d.get("hospital_disappeared_title", "Verdwenen ziekenhuizen")
@@ -2429,7 +2450,7 @@ def _render_migration_tables(
 
     # --- F: Nieuwe ziekenhuizen ---
     st.markdown(
-        "<hr style='margin:0.4rem 0 0.8rem 0;border:none;border-top:1px solid #e0e8f0'>",
+        "<hr style='margin:2.1rem 0 0.8rem 0;border:none;border-top:1px solid #e0e8f0'>",
         unsafe_allow_html=True,
     )
     new_title = d.get("hospital_new_title", "Nieuwe ziekenhuizen")
@@ -2511,7 +2532,7 @@ def _tab_hospitals(data: DashboardData, t: dict, lang: str) -> None:
         st.info(d["no_data"])
 
     st.markdown(
-        "<hr style='margin:0.4rem 0 0.8rem 0;border:none;border-top:1px solid #e0e8f0'>",
+        "<hr style='margin:2.1rem 0 0.8rem 0;border:none;border-top:1px solid #e0e8f0'>",
         unsafe_allow_html=True,
     )
 
@@ -2535,7 +2556,7 @@ def _tab_hospitals(data: DashboardData, t: dict, lang: str) -> None:
         st.info(d["hospital_no_attention"])
 
     st.markdown(
-        "<hr style='margin:1.5rem 0 0.8rem 0;border:none;border-top:1px solid #e0e8f0'>",
+        "<hr style='margin:2.1rem 0 0.8rem 0;border:none;border-top:1px solid #e0e8f0'>",
         unsafe_allow_html=True,
     )
 
@@ -2583,7 +2604,7 @@ def _tab_hospitals(data: DashboardData, t: dict, lang: str) -> None:
 
     # --- D: Score-evolutie (grootste verschuivingen) ---
     st.markdown(
-        "<hr style='margin:0.4rem 0 0.8rem 0;border:none;border-top:1px solid #e0e8f0'>",
+        "<hr style='margin:2.1rem 0 0.8rem 0;border:none;border-top:1px solid #e0e8f0'>",
         unsafe_allow_html=True,
     )
     shifts_title = d.get("hospital_shifts_title", "Score-evolutie: grootste verschuivingen")
@@ -2634,7 +2655,7 @@ def _tab_hospitals(data: DashboardData, t: dict, lang: str) -> None:
 
     # --- G: Volledig ziekenhuizenoverzicht ---
     st.markdown(
-        "<hr style='margin:0.4rem 0 0.8rem 0;border:none;border-top:1px solid #e0e8f0'>",
+        "<hr style='margin:2.1rem 0 0.8rem 0;border:none;border-top:1px solid #e0e8f0'>",
         unsafe_allow_html=True,
     )
     full_title = d.get("hospital_full_title", "Volledig ziekenhuizenoverzicht")

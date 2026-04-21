@@ -5,6 +5,35 @@ Formaat gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.0.0/).
 
 ---
 
+## [0.6.13] — 21/04/2026
+
+### Toegevoegd
+
+- `app.py`: `_render_sortable_table` — `max_body_height` parameter nu volledig geïmplementeerd: als `content_h > max_body_height` (standaard 460px ≈ 15 rijen) wordt `.scroll-wrap` voorzien van `overflow-y:auto` + `max-height` + gestileerde webkit-scrollbar; anders blijft de tabel volledig uitgevouwen
+
+### Gewijzigd
+
+- `app.py`: Ziekenhuizen-tab — `<hr>` margin-top verhoogd naar `2.1rem` (was 1.8rem) voor extra ademruimte boven scheidingslijnen
+
+### Opgelost
+
+- `app.py`: SyntaxError in `html_str` — expliciete `+` toegevoegd voor `"table{..."` na sluitende `)` van de ternary expressie voor scroll-CSS (Python staat geen impliciete string-aaneenschakeling toe na een expressieresultaat)
+
+---
+
+## [0.6.12] — 21/04/2026
+
+### Gewijzigd
+
+- `app.py`: `_render_sortable_table` — `insight_h` verhoogd van 40px naar 60px (correcte hoogte voor 1-2 regels tekst)
+- `app.py`: `_render_sortable_table` — `footer_h` per lijn verhoogd van 28px naar 38px (buffer voor lange tekst die wrapt)
+- `app.py`: `_render_sortable_table` — `_body_pad = 8` en `_buf = 10` toegevoegd aan `iframe_h` berekening (body padding-bottom + vaste buffer)
+- `app.py`: `_render_sortable_table` — `body` krijgt `padding-bottom:8px` in iframe CSS
+- `app.py`: `_render_sortable_table` — `selfResize()` extra triggers: `setTimeout(150ms)` + `document.fonts.ready` voor correcte hoogte na font-load
+- `app.py`: Ziekenhuizen-tab — `margin-top` op alle `<hr>` scheidingslijnen na tabellen verhoogd naar `1.6rem` (was 0.4rem/1.5rem) voor meer ademruimte
+
+---
+
 ## [0.6.11] — 21/04/2026
 
 ### Toegevoegd
