@@ -814,18 +814,14 @@ STREAMLIT_CSS: str = f"""
         margin-top: 0.35rem;
         transition: background 0.15s ease, color 0.15s ease;
     }}
-    /* ── stIFrame auto-resize — live getest 15/04/2026 ─────────────────────
-       inject_iframe_resize() JS bepaalt de exacte hoogte via getBoundingClientRect
-       (topRow + scroll-wrap + footers). Deze CSS-regels stellen de basis in.
-       De spacer-verberging elimineert de 3x16px=48px gap die Streamlit produceert
-       via lege placeholder-children na elke iframe-container. */
-    [data-testid="stElementContainer"]:has(> .stIFrame) {{
-        flex: 0 0 auto !important;
-        min-height: 0 !important;
-    }}
-    /* Verberg lege spacer-containers na iframes (h=0px met alleen een lege div erin) */
-    [data-testid="stVerticalBlock"] > [data-testid="stElementContainer"]:has(> div:empty):not(:has(iframe)):not(:has([data-testid])) {{
-        display: none !important;
+    /* ── Comprimeer gap na sorteerbare-tabel iframes ────────────────────
+       Streamlit's stVerticalBlock heeft een vaste gap van 32px tussen
+       elk element. Na een iframe-tabel is dat te veel — we willen de
+       legenda-tekst direct na de tabel zonder zichtbare tussenruimte.
+       De negatieve margin op de VOLGENDE container compenseert de gap. */
+    [data-testid="stElementContainer"]:has(> .stIFrame)
+        + [data-testid="stElementContainer"] {{
+        margin-top: -28px !important;
     }}
     .zorgi-tab-nav-btn:hover {{
         background: {ZORGI_ULTRA_LIGHT};
@@ -1192,68 +1188,43 @@ def inject_tab_persistence() -> None:
 
 def inject_iframe_resize() -> None:
     """
-    Resize alle sorteerbare-tabel iframes naar hun exacte content-hoogte.
+    Resize sorteerbare-tabel iframes naar exacte body.scrollHeight.
 
-    Probleem: Streamlit's emotion-cache hardcodeert height op stElementContainer.
-    scrollHeight klopt niet (bevat lege scroll-wrap ruimte via max-height).
-
-    Oplossing: meet topRow + scroll-wrap + footers direct via getBoundingClientRect.
-    Dit is de enige betrouwbare maat — live getest 14/04/2026.
-    Wordt ook herhaald bij tabbladwissel via click-listener.
+    Meet bodyScrollH direct — de enige betrouwbare maat ongeacht
+    max-height, borders of padding. Wordt uitgevoerd na laden + bij tabwissel.
     """
     import streamlit.components.v1 as _stc_inner
 
     _js = """<style>html,body{margin:0;padding:0;height:1px;overflow:hidden}</style>
 <script>
-(function() {
+(function(){
     var d = window.parent.document;
-
-    function resizeAll() {
-        var containers = d.querySelectorAll(
-            '[data-testid="stElementContainer"]:has(> .stIFrame)'
-        );
-        containers.forEach(function(c) {
-            var iframe = c.querySelector('iframe');
-            if (!iframe) return;
-            try {
-                var doc = iframe.contentDocument;
-                if (!doc) return;
-                var topRow = doc.querySelector('.top-row');
-                var wrap   = doc.querySelector('.scroll-wrap');
-                if (!wrap) return;  /* geen sorteerbare tabel — overslaan */
-                var footers = doc.querySelectorAll('p.footer');
-                var topH    = topRow ? Math.round(topRow.getBoundingClientRect().height) : 0;
-                var wrapH   = Math.round(wrap.getBoundingClientRect().height);
-                var footerH = 0;
-                footers.forEach(function(p) {
-                    footerH += Math.round(p.getBoundingClientRect().height) + 4;
-                });
-                /* 4px gap topRow→wrap, 8px onderste padding */
-                var realH = topH + 4 + wrapH + (footerH ? footerH + 8 : 0) + 8;
-                if (realH > 50) {
-                    c.style.setProperty('height', realH + 'px', 'important');
-                    c.style.setProperty('flex', '0 0 ' + realH + 'px', 'important');
-                    iframe.style.setProperty('height', realH + 'px', 'important');
+    function resizeAll(){
+        d.querySelectorAll('iframe').forEach(function(f){
+            try{
+                var doc = f.contentDocument;
+                if(!doc) return;
+                if(!doc.querySelector('.scroll-wrap')) return;
+                var h = doc.body.scrollHeight;
+                if(h > 20){
+                    f.style.setProperty('height', h+'px', 'important');
+                    var c = f.closest('[data-testid="stElementContainer"]');
+                    if(c) c.style.setProperty('height', h+'px', 'important');
                 }
-            } catch(e) {}
+            }catch(e){}
         });
     }
-
-    /* Initiële resize — iframes laden asynchroon */
-    setTimeout(resizeAll, 250);
-    setTimeout(resizeAll, 700);
-    setTimeout(resizeAll, 1400);
-
-    /* Herhaal bij elke tabbladwissel */
-    if (!d.__zorgiIframeResizeAttached) {
-        d.__zorgiIframeResizeAttached = true;
-        d.addEventListener('click', function(e) {
+    setTimeout(resizeAll, 300);
+    setTimeout(resizeAll, 800);
+    setTimeout(resizeAll, 1500);
+    if(!d.__zorgiResizeAttached){
+        d.__zorgiResizeAttached = true;
+        d.addEventListener('click', function(e){
             var el = e.target;
-            while (el && el !== d.documentElement) {
-                if (el.getAttribute && el.getAttribute('data-baseweb') === 'tab') {
-                    setTimeout(resizeAll, 350);
-                    setTimeout(resizeAll, 900);
-                    setTimeout(resizeAll, 1800);
+            while(el && el !== d.documentElement){
+                if(el.getAttribute && el.getAttribute('data-baseweb')==='tab'){
+                    setTimeout(resizeAll, 400);
+                    setTimeout(resizeAll, 1000);
                     break;
                 }
                 el = el.parentElement;

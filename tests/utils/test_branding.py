@@ -556,11 +556,11 @@ class TestInjectStreamlitComponents:
         mock_stc = self._call_iframe_resize()
         assert mock_stc.html.call_args.kwargs["height"] == 1
 
-    def test_inject_iframe_resize_js_bevat_bounding_rect(self) -> None:
-        """De geïnjecteerde JS meet hoogte via getBoundingClientRect."""
+    def test_inject_iframe_resize_js_bevat_scroll_height(self) -> None:
+        """De geïnjecteerde JS meet hoogte via body.scrollHeight."""
         mock_stc = self._call_iframe_resize()
         js_html: str = mock_stc.html.call_args.args[0]
-        assert "getBoundingClientRect" in js_html
+        assert "scrollHeight" in js_html
 
     def test_inject_iframe_resize_js_bevat_scroll_wrap(self) -> None:
         """De geïnjecteerde JS zoekt de .scroll-wrap container."""

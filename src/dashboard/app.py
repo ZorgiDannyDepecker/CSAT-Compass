@@ -2192,14 +2192,14 @@ def _render_sortable_table(
             cells += f'<td style="{style}">{val}</td>'
         rows_html += f"<tr>{cells}</tr>"
 
-    # Hoogte-berekening
-    # th-rij (32px) + filterrij (30px) zitten BINNEN de scroll-wrap → meeverekenen in scroll_wrap_h
-    # 36px per datarij | 8px buffer | top-row: 44px | 4px margin | 16px eindbuffer
-    content_h = 32 + 30 + n_rows * 36 + 8
-    scroll_wrap_h = min(content_h, max_body_height)
+    # Hoogte-berekening — gemeten via browser DevTools (21/04/2026):
+    # topRow=31px, headerRij=33px, filterRij=30px, dataRij=31px, border=2px
+    # topRow marginBottom=4px → gap tussen topRow en scroll-wrap
+    content_h = 33 + 30 + n_rows * 31 + 2
+    scroll_wrap_h = content_h
     footer_h = 28 * len(footer_text.split("  |  ")) if footer_text else 0
-    top_row_h = 44 if show_title else 0
-    iframe_h = top_row_h + 4 + scroll_wrap_h + footer_h + 16
+    top_row_h = 31 if show_title else 0
+    iframe_h = top_row_h + (4 if show_title else 0) + scroll_wrap_h + footer_h
 
     safe_title = html.escape(title)
     safe_label = html.escape(export_label)
@@ -2228,7 +2228,7 @@ def _render_sortable_table(
         "font-family:'Poppins','Verdana',sans-serif;white-space:nowrap;"
         "text-decoration:none;display:inline-block;}"
         ".export-btn:hover{background:#00509e;}"
-        f".scroll-wrap{{max-height:{max_body_height}px;overflow-y:auto;width:100%;"
+        ".scroll-wrap{overflow-y:visible;width:100%;"
         "border:1px solid #d0dce8;border-radius:2px;}"
         "table{width:100%;border-collapse:separate;border-spacing:0;"
         "border-bottom:1px solid #d0dce8;border-right:1px solid #d0dce8;}"
@@ -3660,7 +3660,7 @@ def render_tab_tickets_prioriteit(
         col_widths=["32%", "13%", "13%", "11%", "11%", "13%"],
     )
     st.markdown(
-        "<div style='font-size:0.80rem;color:#5f8495;margin-top:-2.5rem;line-height:1.6;"
+        "<div style='font-size:0.80rem;color:#5f8495;margin-top:4px;line-height:1.6;"
         "padding:0.35rem 0 0.35rem 0;'>"
         f"<b style='color:#3a5a7a'>{_col_neg}</b>: "
         + _ls(
@@ -3753,7 +3753,7 @@ def render_tab_tickets_prioriteit(
         col_widths=["28%", "14%", "13%", "11%", "11%", "13%"],
     )
     st.markdown(
-        "<div style='font-size:0.80rem;color:#5f8495;margin-top:-2.5rem;line-height:1.6;"
+        "<div style='font-size:0.80rem;color:#5f8495;margin-top:4px;line-height:1.6;"
         "padding:0.35rem 0 0.35rem 0;'>"
         f"<b style='color:#3a5a7a'>{_col_neg_p}</b>: "
         + _ls(
