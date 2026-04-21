@@ -1,7 +1,7 @@
 # 📓 CSAT-Compass - Project Journal
 
-**Versie:** 2.5
-**Laatst bijgewerkt:** 17/04/2026
+**Versie:** 2.8
+**Laatst bijgewerkt:** 21/04/2026
 
 **Doel:** Chronologisch logboek van beslissingen, bevindingen en voortgang  
 **Type:** Reference  
@@ -33,6 +33,9 @@
 - [2026-04-06 — Fase 5a Dashboard implementatie + sidebar verfijning](#2026-04-06--fase-5a-dashboard-implementatie--sidebar-verfijning)
 - [2026-04-10 — Fase 5b sprint 1: vaste tabbalk + layout-verfijning](#2026-04-10--fase-5b-sprint-1-vaste-tabbalk--layout-verfijning)
 - [2026-04-17 — Versiebeheer & Git-praktijken versterkt (Prioriteit 1)](#2026-04-17--versiebeheer--git-praktijken-versterkt-prioriteit-1)
+- [2026-04-19 — Fase 4 opstart: CARE / CARE ADMIN / ERP4HC](#2026-04-19--fase-4-opstart-care--care-admin--erp4hc)
+- [2026-04-20 — Fase 4 afsluiting + Fase 5b/5c dashboard uitbreiding](#2026-04-20--fase-4-afsluiting--fase-5b5c-dashboard-uitbreiding)
+- [2026-04-21 — Output-structuur, matrix-fix, documentatie-afsluiting](#2026-04-21--output-structuur-matrix-fix-documentatie-afsluiting)
 - [Versiehistorie](#versiehistorie)
 
 ---
@@ -563,6 +566,108 @@ release-history traceerbaar, PR-discipline geborgd voor toekomstige samenwerking
 
 ---
 
+## 2026-04-19 — Fase 4 opstart: CARE / CARE ADMIN / ERP4HC
+
+**Versie:** v0.5.57 → v0.6.0 | **Tests:** 1.122 (0 failures)
+
+### Context
+
+Na de afronding van Fase 5a/5b (PHARMA-dashboard) werd Fase 4 gestart: de drie resterende
+pijleranalysers implementeren als flip-the-switch uitbreiding op de bestaande PHARMA-architectuur.
+
+### Uitgevoerde acties
+
+- **CARE ADMIN analyser** — `config.py` + `analyser.py` + `__init__.py` + 39 tests
+- **CARE analyser** — zelfde structuur, 38 tests
+- **ERP4HC analyser** — zelfde structuur, 39 tests
+- **Dashboard-integratie** — `_ACTIVE_PILLARS` uitgebreid, sidebar toont alle 4 pijlers
+- **`pillars.py`** — OAZIS-referenties vervangen door `"CARE ADMIN"`
+- **`handover-fase4-2026-04-19.md`** aangemaakt als documentatie-basis
+
+### Beslissingen
+
+- SD-projectnummers niet opgenomen in code — irrelevant voor werking
+- KPI-drempels starten op `HIGH_CRITICAL_MAX=15.0` (PHARMA-baseline), bijstuurbaar per pijler
+- Ticketcategorieën globaal — geen pijlerspecifieke filtering
+- CARE richting `↗`, CARE ADMIN `↖`, ERP4HC `↙` (conform kompasmodel)
+
+### Resultaat
+
+Alle 4 pijleranalysers actief (PHARMA + CARE + CARE ADMIN + ERP4HC).
+1.122 tests, 0 failures. Fase 4 volledig voltooid.
+
+---
+
+## 2026-04-20 — Fase 4 afsluiting + Fase 5b/5c dashboard uitbreiding
+
+**Versie:** v0.6.0 → v0.6.13 | **Tests:** 1.122 (0 failures)
+
+### Context
+
+Na Fase 4 werden de dashboard-functionaliteiten verder verfijnd (Fase 5b/5c):
+sorteerbare tabellen, insight-boxes, footer-teksten, dynamische iframe-hoogte en
+pijlerordening in de sidebar.
+
+### Uitgevoerde acties
+
+- **`_render_sortable_table()`** uitgebreid:
+  - `insight_html` parameter — infobalk binnenin iframe
+  - `footer_html_raw` parameter — rijke HTML-voetnoot binnenin iframe
+  - `selfResize()` JS met `height=1px` reset + `setTimeout` + `fonts.ready` voor correcte hoogte
+  - Rijhoogte 31px → 28px; `insight_h`, `footer_h`, `_body_pad`, `_buf` meegeteld
+- **Scrollbar** automatisch actief bij tabellen met >15 rijen (webkit-gestijld)
+- **Sidebar pijlerordening** aangepast: PHARMA onderaan (alfabetisch)
+- **`<hr>` Ziekenhuizen-tab** → `margin-top: 2.1rem` voor ademruimte
+- **BACKLOG-003/005/006** aangemaakt — openstaande backlogpunten gedocumenteerd
+
+### Beslissingen
+
+- Insight-box en voetnoot inside iframe — enige betrouwbare oplossing voor Streamlit flexbox-gap
+- `selfResize()` vereist `height=1px` reset vóór meting om zowel groei als inkrimping te ondersteunen
+
+### Resultaat
+
+Dashboard volledig operationeel voor alle 4 pijlers. Fase 5b/5c effectief voltooid.
+Fase 5c (`fase5c-tickets-prioriteit-insights.md`) actief als fasebestand.
+
+---
+
+## 2026-04-21 — Output-structuur, matrix-fix, documentatie-afsluiting
+
+**Versie:** v0.6.13 → v0.6.21
+
+### Context
+
+Operationele validatiesessie: volledige maandelijkse run voor alle pijlers, output-structuur
+verfijnd en alle documentatie gebracht naar de definitieve post-Fase-4-staat.
+
+### Uitgevoerde acties
+
+- **Output-structuur** — pijler-submappen ingevoerd: `output/YYYY-MM-DD/{pijler}/`
+  - Dubbele mappen (`2026-04-21/2026-04-21/`) opgelost: `dated_output_dir()` dubbel aangeroepen → gefixed
+- **Bestandsnaamconventie matrix** — `matrix-{pillar}-YYYY-{lang}.md` (was `matrix-YYYY-{lang}.md`)
+  - `MatrixExporter.export()` uitgebreid met `pillar_key` parameter
+- **`run_monthly.py`** — matrix nu gegenereerd voor elke pijler (was hardcoded `pharma`)
+- **`generate_all_evolutions.py`** — pijler-submap aangemaakt per pijler
+- **Full run gevalideerd** — 30 bestanden in 41,3 seconden, 0 fouten
+- **Documentatie afgerond:**
+  - `projectplan-highlevel.md` v1.7 — Fase 4+5a+5b+5c → ✅ Compleet, outputspec bijgewerkt
+  - `operations-runbook.md` v1.1 — 22 → 30 bestanden, pijler-submappen
+  - `fase4-pijlers.md` v2.0 — status definitief ✅
+  - `WIP/handover-fase4-2026-04-19.md` → gearchiveerd naar `archive/WIP/`
+
+### Beslissingen
+
+- Matrix voor alle pijlers bij elke run — niet enkel PHARMA
+- Uitvoer in datumsubmap per pijler voor overzichtelijkheid en archiveerbaarheid
+
+### Resultaat
+
+Alle output correct gestructureerd. Alle documentatie up-to-date.
+Project klaar voor Fase 6 (ZORGI dashboard-tab).
+
+---
+
 ## Versiehistorie
 
 | Versie | Datum | Wijzigingen | Auteur               |
@@ -583,6 +688,9 @@ release-history traceerbaar, PR-discipline geborgd voor toekomstige samenwerking
 | 2.3 | 06/04/2026 | Fase 5a dashboard implementatie + sidebar verfijning: pure CSS tooltip, i18n fixes, LOGO_ASSETS CI-fix, 790 tests | Danny Depecker + GHC |
 | 2.4 | 10/04/2026 | Fase 5b sprint 1: vaste tabbalk (position:fixed), sidebar-responsiviteit, layout-verfijning, 810 tests; v0.2.8 | Danny Depecker + GHC |
 | 2.5 | 17/04/2026 | Versiebeheer & Git-praktijken versterkt: PR-template, annotated tags v0.5.0+v0.5.38, branch protection master, BACKLOG-004 | Danny Depecker + GHC |
+| 2.6 | 19/04/2026 | Fase 4 opstart: CARE / CARE ADMIN / ERP4HC analysers + tests + dashboard-integratie (v0.6.0, 1.122 tests) | Danny Depecker + GHC |
+| 2.7 | 20/04/2026 | Fase 5b/5c verfijning: iframe-hoogte, insight_html, footer_html_raw, scrollbar >15 rijen, sidebar-ordening, hr-spacing | Danny Depecker + GHC |
+| 2.8 | 21/04/2026 | Output-structuur (pijler-submappen), matrix-bestandsnaamfix, run_monthly all-pillar matrix, documentatie-afsluiting Fase 4 | Danny Depecker + GHC |
 
 ---
 *ZORGI — Danny Depecker*

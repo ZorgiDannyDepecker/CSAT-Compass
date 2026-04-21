@@ -3,6 +3,61 @@
 Alle noemenswaardige wijzigingen aan dit project worden hier gedocumenteerd.
 Formaat gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.0.0/).
 
+## [0.6.24] — 21/04/2026
+
+### Gewijzigd
+
+- `tests/scripts/test_run_monthly.py` — tests bijgewerkt na run_monthly refactor:
+  `call_args_list[1]` → `call_args_list[-1]` voor evolutie-aanroep (matrix loopt nu per pijler),
+  `call_count == 2` → `len(_DEFAULT_PILLARS) + 1`, `--output` controles aangepast
+  (sub-scripts ontvangen OUTPUT_PATH, niet de dated submap)
+- `tests/utils/test_render_sortable_table.py` — lint-fixes: `fn` → `_fn` (RUF059),
+  `mock_stc` verwijderd (F841), `return str(...)` voor MyPy no-any-return
+- `pyproject.toml` — versie 0.6.23 → 0.6.24
+- `docs/CHANGELOG.md` — deze entry toegevoegd
+
+---
+
+## [0.6.20] — 21/04/2026
+
+### Gewijzigd
+- `docs/01-strategisch/projectplan-highlevel.md` v1.7: Fase 4 + 5a + 5b + 5c → ✅ Compleet; outputspecificatie bijgewerkt naar 30 bestanden; pijler-submappen en bestandsnaamconventie gecorrigeerd
+- `docs/03-operationeel/operations-runbook.md` v1.1: verwacht aantal bestanden bijgewerkt naar 30 + pijler-submappen beschreven
+- `WIP/handover-fase4-2026-04-19.md`: status, versie en commit bijgewerkt naar definitieve staat v0.6.19
+
+---
+
+## [0.6.17] — 21/04/2026
+
+### Gewijzigd
+
+- `scripts/generate_matrix.py`: output wordt nu geschreven naar `output/YYYY-MM-DD/{pillar}/` (pillar-submap onder de datummap)
+- `scripts/generate_all_evolutions.py`: per pijler een eigen submap `output/YYYY-MM-DD/{pillar}/` aangemaakt in de for-loop — alle bestanden gegroepeerd per pijler
+
+---
+
+## [0.6.16] — 21/04/2026
+
+### Opgelost
+
+- `scripts/run_monthly.py`: dubbele geneste datummap (`output/2026-04-21/2026-04-21/`) opgelost — `--output` argument gewijzigd van `dated_dir` naar `OUTPUT_PATH`; de subscripts (`generate_matrix.py`, `generate_all_evolutions.py`) roepen zelf `dated_output_dir()` aan en mogen de basismap ontvangen, niet de al-gedateerde submap
+
+---
+
+## [0.6.15] — 21/04/2026
+
+### Gewijzigd
+
+- `docs/02-tactisch/fasen/fase4-pijlers.md` — status bijgewerkt naar ✅ Voltooid; alle acceptatiecriteria aangevinkt; pijlertabel uitgebreid met PRODUCT_FILTER en testcount (CARE 38, CARE ADMIN 39, ERP4HC 39); beslissingen en versiehistorie toegevoegd (v2.0)
+
+---
+
+## [0.6.14] — 21/04/2026
+
+### Gewijzigd
+
+- `app.py`: Sidebar pijlerlijst nu alfabetisch gesorteerd op naam — `sub_pillars` gebruikt `sorted(..., key=lambda k: PILLAR_REGISTRY[k]["name"])` → volgorde: ZORGI (bovenaan), CARE, CARE ADMIN, ERP4HC²·⁰, PHARMA (onderaan)
+
 ---
 
 ## [0.6.13] — 21/04/2026

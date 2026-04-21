@@ -162,9 +162,9 @@ def main() -> None:
 
     # Aantal pijlers en outputberekening
     n_pijlers = len(args.pillar)
-    n_md      = n_pijlers * 2                           # NL + FR per pijler
+    n_md      = n_pijlers * 2                               # NL + FR per pijler
     n_png     = n_pijlers * 2 if not args.no_charts else 0  # NL + FR PNG
-    n_matrix  = 2                                        # NL + FR matrix
+    n_matrix  = n_pijlers * 2                               # NL + FR matrix per pijler
     totaal    = n_matrix + n_md + n_png
 
     # Header tonen
@@ -183,19 +183,20 @@ def main() -> None:
 
     start = time.monotonic()
 
-    # --- Stap 1: Matrix (pharma — altijd de primaire pijler) ---
-    print("[1/2] Matrix genereren (pharma) ...")
-    matrix_args = [
-        "--from", p["matrix_from"],
-        "--to",   p["matrix_to"],
-        "--pillar", "pharma",
-        "--lang", "both",
-        "--output", str(dated_dir),
-    ]
-    result = _run_script(ROOT / "scripts" / "generate_matrix.py", matrix_args)
-    if result.returncode != 0:
-        print(f"\n[FOUT] Matrix genereren mislukt (exit code {result.returncode})")
-        sys.exit(result.returncode)
+    # --- Stap 1: Matrix (alle opgegeven pijlers) ---
+    print(f"[1/2] Matrix genereren ({n_pijlers} pijler(s)) ...")
+    for pillar in args.pillar:
+        matrix_args = [
+            "--from", p["matrix_from"],
+            "--to",   p["matrix_to"],
+            "--pillar", pillar,
+            "--lang", "both",
+            "--output", str(OUTPUT_PATH),
+        ]
+        result = _run_script(ROOT / "scripts" / "generate_matrix.py", matrix_args)
+        if result.returncode != 0:
+            print(f"\n[FOUT] Matrix genereren mislukt voor pijler '{pillar}' (exit code {result.returncode})")
+            sys.exit(result.returncode)
     print()
 
     # --- Stap 2: Evolutierapporten (alle opgegeven pijlers) ---
@@ -205,7 +206,7 @@ def main() -> None:
         "--current",  current_from,  current_to,
         "--year", huidig_jaar,
         "--pillar", *args.pillar,
-        "--output", str(dated_dir),
+        "--output", str(OUTPUT_PATH),
     ]
     if not args.no_charts:
         evo_args.append("--chart")

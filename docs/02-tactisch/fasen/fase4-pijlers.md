@@ -1,12 +1,12 @@
 # Fase 4 — CARE / CARE ADMIN / ERP4HC Pijleranalysers
 
-**Versie:** 1.0
-**Datum:** 19/04/2026
+**Versie:** 2.0
+**Datum:** 19/04/2026 (afgerond: 20/04/2026)
 
 **Doel:** Implementatie van de drie resterende pijleranalysers voor ZORGI-breed CSAT-gebruik
 **Type:** Implementatiedocument
 **Auteur:** Danny Depecker + GHC
-**Status:** 🔄 In voorbereiding
+**Status:** ✅ Voltooid — 20/04/2026
 
 **Bestandsnaam:** fase4-pijlers.md
 **Path:** docs/02-tactisch/fasen/
@@ -15,9 +15,9 @@
 
 ## Context
 
-Na de volledige afronding van Fase 5 (PHARMA-dashboard) worden de drie resterende
+Na de volledige afronding van Fase 5 (PHARMA-dashboard) werden de drie resterende
 pijlers geïmplementeerd. De architectuur is pijler-agnostisch gebouwd in Fase 1/5a,
-zodat elke nieuwe pijler een **flip-the-switch uitbreiding** is.
+zodat elke nieuwe pijler een **flip-the-switch uitbreiding** was.
 
 ### Bestaande referentie: PHARMA-pijler
 
@@ -33,19 +33,19 @@ zodat elke nieuwe pijler een **flip-the-switch uitbreiding** is.
 
 ### 3 nieuwe pijlers
 
-| Pijler | SD-nummer | Doelgroep | Status |
-|---|---|---|---|
-| **CARE** | TBD | Zorgpersoneel applicaties | ⏳ Te implementeren |
-| **CARE ADMIN** | TBD | Administratie zorgpersoneel | ⏳ Te implementeren |
-| **ERP4HC** | TBD | ERP-applicaties ziekenhuizen | ⏳ Te implementeren |
+| Pijler | PRODUCT_FILTER | Doelgroep | Tests | Status |
+|---|---|---|---|---|
+| **CARE** | `"CARE"` | Zorgpersoneel applicaties | 38 | ✅ Geïmplementeerd |
+| **CARE ADMIN** | `"CARE ADMIN"` | Administratie zorgpersoneel | 39 | ✅ Geïmplementeerd |
+| **ERP4HC** | `"ERP"` | ERP-applicaties ziekenhuizen | 39 | ✅ Geïmplementeerd |
 
-### Per pijler te leveren
+### Per pijler geleverd
 
-1. `src/csat/pillars/{pijler}/config.py` — categorieën, KPI-drempels, SD-nummer
+1. `src/csat/pillars/{pijler}/config.py` — KPI-drempels, namen NL/FR, richting
 2. `src/csat/pillars/{pijler}/analyser.py` — thin wrapper op `PillarAnalyser`
 3. `src/csat/pillars/{pijler}/__init__.py` — publieke exports
-4. Tests in `tests/pillars/test_{pijler}_analyser.py`
-5. Dashboard-integratie: pijler toevoegen aan sidebar-selectie in `app.py`
+4. Tests in `tests/pillars/test_{pijler}_analyser.py` (min. 30, gerealiseerd 38–39)
+5. Dashboard-integratie: `_ACTIVE_PILLARS` uitgebreid, sidebar toont alle 4 pijlers
 
 ---
 
@@ -54,10 +54,10 @@ zodat elke nieuwe pijler een **flip-the-switch uitbreiding** is.
 ```text
 PillarAnalyser (generiek)
     ↑ erft
-CareAnalyser          ← config: CARE-categorieën + SD-nummer
-CareAdminAnalyser     ← config: CARE ADMIN-categorieën + SD-nummer
-Erp4hcAnalyser        ← config: ERP4HC-categorieën + SD-nummer
-PharmaAnalyser        ← config: PHARMA-categorieën (al geïmplementeerd)
+CareAnalyser          ← src/csat/pillars/care/       ✅ 38 tests
+CareAdminAnalyser     ← src/csat/pillars/care_admin/  ✅ 39 tests
+Erp4hcAnalyser        ← src/csat/pillars/erp4hc/      ✅ 39 tests
+PharmaAnalyser        ← src/csat/pillars/pharma/      ✅ (referentie)
 ```
 
 Elke pijleranalyser erft volledig van `PillarAnalyser` — geen duplicatie van logica.
@@ -65,28 +65,25 @@ Enkel `config.py` is pijlerspecifiek.
 
 ---
 
-## Vereiste informatie (voor implementatie)
+## Beslissingen — bevestigd 20/04/2026
 
-| Item | Pijler | Status |
-|---|---|---|
-| SD-projectnummer | CARE | ❓ Nog te bevestigen |
-| SD-projectnummer | CARE ADMIN | ❓ Nog te bevestigen |
-| SD-projectnummer | ERP4HC | ❓ Nog te bevestigen |
-| Ticketcategorieën | CARE | ❓ Nog te bevestigen |
-| Ticketcategorieën | CARE ADMIN | ❓ Nog te bevestigen |
-| Ticketcategorieën | ERP4HC | ❓ Nog te bevestigen |
-| KPI-drempels (score, H/C ratio) | Alle 3 | ❓ Zelfde als PHARMA of pijlerspecifiek? |
+| Item | Beslissing |
+|---|---|
+| SD-projectnummers | Niet opgenomen in code — irrelevant voor werking |
+| Ticketcategorieën | Globaal — geen pijlerspecifieke filtering |
+| KPI-drempels | Start met `HIGH_CRITICAL_MAX=15.0` (PHARMA-baseline), later bijstuurbaar per pijler |
+| OAZIS-referenties | Verwijderd — vervangen door `"CARE ADMIN"` in `pillars.py` |
 
 ---
 
 ## Acceptatiecriteria
 
-- [ ] Alle 3 pijlers laden CSV/SQL data correct via de hybride loader
-- [ ] `analyse()` en `analyse_ytd()` werken identiek aan PHARMA
-- [ ] Dashboard toont pijler correct via sidebar-selectie
-- [ ] Tests: minimum 30 tests per pijler (analoog aan `test_pillar_analyser.py`)
-- [ ] Coverage: 100% voor nieuwe bronbestanden
-- [ ] CI: alle pre-commit hooks slagen na implementatie
+- [x] Alle 3 pijlers laden CSV/SQL data correct via de hybride loader
+- [x] `analyse()` en `analyse_ytd()` werken identiek aan PHARMA
+- [x] Dashboard toont alle 4 pijlers correct via sidebar-selectie
+- [x] Tests: minimum 30 tests per pijler — gerealiseerd: CARE 38, CARE ADMIN 39, ERP4HC 39
+- [x] Coverage: 100% voor nieuwe bronbestanden
+- [x] CI: alle pre-commit hooks slagen — gevalideerd via `/pytest 3` (1.122 tests, 0 failures)
 
 ---
 
@@ -107,3 +104,4 @@ Enkel `config.py` is pijlerspecifiek.
 | Versie | Datum | Wijzigingen | Auteur |
 | ------ | ---------- | ----------- | ------ |
 | 1.0 | 19/04/2026 | Initiële versie — stub op basis van PHARMA-referentie | Danny Depecker + GHC |
+| 2.0 | 21/04/2026 | Status bijgewerkt naar ✅ Voltooid — alle criteria gevalideerd (1.122 tests, v0.6.0) | Danny Depecker + GHC |

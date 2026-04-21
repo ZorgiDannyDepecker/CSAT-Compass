@@ -6,7 +6,7 @@ van KpiResult-objecten via Jinja2-templates en NL/FR i18n-vertalingen.
 
 Talen: nl (Nederlands) + fr (Frans) — conform ZORGI tweetaligheidsbeleid.
 Templates: docs/templates/matrix-{lang}.md.j2
-Output: output/matrix-YYYY-{lang}.md
+Output: output/matrix-{pillar}-YYYY-{lang}.md
 """
 
 from datetime import UTC, datetime
@@ -30,7 +30,7 @@ class MatrixExporter:
     Genereert CSAT-vergelijkingsmatrices in Nederlandstalige of Franstalige markdown.
 
     Laadt Jinja2-templates uit docs/templates/ en i18n-vertalingen uit
-    src/csat/i18n/, en schrijft de output naar output/matrix-YYYY-{lang}.md.
+    src/csat/i18n/, en schrijft de output naar output/matrix-{pillar}-YYYY-{lang}.md.
 
     Args:
         lang:            Taalcode — 'nl' (standaard) of 'fr'
@@ -87,22 +87,23 @@ class MatrixExporter:
         context = self._build_context(results)
         return template.render(**context)
 
-    def export(self, results: list[KpiResult]) -> Path:
+    def export(self, results: list[KpiResult], pillar_key: str = "pharma") -> Path:
         """
         Render de matrix en schrijf naar de outputmap.
 
-        Bestandsnaamconventie: matrix-YYYY-{lang}.md
+        Bestandsnaamconventie: matrix-{pillar}-YYYY-{lang}.md
         Aanmaakpad wordt aangemaakt als het nog niet bestaat.
 
         Args:
-            results: Lijst van KpiResult — meerdere periodes van dezelfde pijler
+            results:    Lijst van KpiResult — meerdere periodes van dezelfde pijler
+            pillar_key: Pijlersleutel voor bestandsnaam (bv. 'pharma', 'care')
 
         Returns:
             Absoluut pad naar het gegenereerde bestand
         """
         year = results[0].period[:4]
         content = self.render(results)
-        output_file = self._output_path / f"matrix-{year}-{self._lang}.md"
+        output_file = self._output_path / f"matrix-{pillar_key}-{year}-{self._lang}.md"
         output_file.parent.mkdir(parents=True, exist_ok=True)
         output_file.write_text(content, encoding="utf-8")
         logger.info(f"[MatrixExporter:{self._lang}] Matrix geschreven → {output_file}")

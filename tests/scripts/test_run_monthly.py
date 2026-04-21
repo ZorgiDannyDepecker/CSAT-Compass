@@ -171,17 +171,18 @@ class TestMainMatrixStap:
         idx = matrix_args.index("--to")
         assert matrix_args[idx + 1] == "2026-03"
 
-    def test_matrix_altijd_pharma(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        """Matrix gebruikt altijd --pillar pharma, ongeacht --pillar argument."""
+    def test_matrix_volgt_pillar_arg(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Matrix gebruikt de opgegeven --pillar argumenten (niet hardcoded pharma)."""
         monkeypatch.setattr(
             sys, "argv", ["run_monthly.py", "--month", "2026-03", "--pillar", "care"]
         )
         with patch("subprocess.run") as mock_run:
             mock_run.return_value = _mock_subprocess_ok()
             _mod.main()
+        # Eerste subprocess-call = matrix voor 'care'
         matrix_args = mock_run.call_args_list[0][0][0]
         idx = matrix_args.index("--pillar")
-        assert matrix_args[idx + 1] == "pharma"
+        assert matrix_args[idx + 1] == "care"
 
     def test_matrix_lang_both(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Matrix gebruikt altijd --lang both."""
@@ -197,7 +198,7 @@ class TestMainMatrixStap:
     def test_matrix_krijgt_output_arg(
         self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
     ) -> None:
-        """Matrix-stap krijgt --output doorgegeven (gedateerde submap van OUTPUT_PATH)."""
+        """Matrix-stap krijgt --output doorgegeven (OUTPUT_PATH rechtstreeks)."""
         monkeypatch.setattr(sys, "argv", ["run_monthly.py", "--month", "2026-03"])
         with patch("subprocess.run") as mock_run:
             mock_run.return_value = _mock_subprocess_ok()
@@ -206,8 +207,7 @@ class TestMainMatrixStap:
         assert "--output" in matrix_args
         idx = matrix_args.index("--output")
         output_pad = Path(matrix_args[idx + 1])
-        assert output_pad.parent == tmp_path
-        assert len(output_pad.name) == 10  # YYYY-MM-DD
+        assert output_pad == tmp_path
 
 
 class TestMainEvolutieStap:
@@ -234,7 +234,7 @@ class TestMainEvolutieStap:
         with patch("subprocess.run") as mock_run:
             mock_run.return_value = _mock_subprocess_ok()
             _mod.main()
-        evo_args = mock_run.call_args_list[1][0][0]
+        evo_args = mock_run.call_args_list[-1][0][0]
         idx = evo_args.index("--baseline")
         assert evo_args[idx + 1] == "2025-01"
 
@@ -244,7 +244,7 @@ class TestMainEvolutieStap:
         with patch("subprocess.run") as mock_run:
             mock_run.return_value = _mock_subprocess_ok()
             _mod.main()
-        evo_args = mock_run.call_args_list[1][0][0]
+        evo_args = mock_run.call_args_list[-1][0][0]
         idx = evo_args.index("--baseline")
         assert evo_args[idx + 2] == "2025-12"
 
@@ -254,7 +254,7 @@ class TestMainEvolutieStap:
         with patch("subprocess.run") as mock_run:
             mock_run.return_value = _mock_subprocess_ok()
             _mod.main()
-        evo_args = mock_run.call_args_list[1][0][0]
+        evo_args = mock_run.call_args_list[-1][0][0]
         idx = evo_args.index("--current")
         assert evo_args[idx + 1] == "2026-01"
 
@@ -264,7 +264,7 @@ class TestMainEvolutieStap:
         with patch("subprocess.run") as mock_run:
             mock_run.return_value = _mock_subprocess_ok()
             _mod.main()
-        evo_args = mock_run.call_args_list[1][0][0]
+        evo_args = mock_run.call_args_list[-1][0][0]
         idx = evo_args.index("--current")
         assert evo_args[idx + 2] == "2026-03"
 
@@ -274,7 +274,7 @@ class TestMainEvolutieStap:
         with patch("subprocess.run") as mock_run:
             mock_run.return_value = _mock_subprocess_ok()
             _mod.main()
-        evo_args = mock_run.call_args_list[1][0][0]
+        evo_args = mock_run.call_args_list[-1][0][0]
         assert "--year" in evo_args
         idx = evo_args.index("--year")
         assert evo_args[idx + 1] == "2026"
@@ -285,7 +285,7 @@ class TestMainEvolutieStap:
         with patch("subprocess.run") as mock_run:
             mock_run.return_value = _mock_subprocess_ok()
             _mod.main()
-        evo_args = mock_run.call_args_list[1][0][0]
+        evo_args = mock_run.call_args_list[-1][0][0]
         assert "--pillar" in evo_args
         idx = evo_args.index("--pillar")
         pijlers_in_call = evo_args[idx + 1 :]
@@ -302,7 +302,7 @@ class TestMainEvolutieStap:
         with patch("subprocess.run") as mock_run:
             mock_run.return_value = _mock_subprocess_ok()
             _mod.main()
-        evo_args = mock_run.call_args_list[1][0][0]
+        evo_args = mock_run.call_args_list[-1][0][0]
         idx = evo_args.index("--pillar")
         pijlers_in_call = evo_args[idx + 1 :]
         assert "pharma" in pijlers_in_call
@@ -312,17 +312,17 @@ class TestMainEvolutieStap:
     def test_evolutie_krijgt_output_arg(
         self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
     ) -> None:
-        """Evolutiestap krijgt --output doorgegeven (gedateerde submap van OUTPUT_PATH)."""
+        """Evolutiestap krijgt --output doorgegeven (OUTPUT_PATH rechtstreeks)."""
         monkeypatch.setattr(sys, "argv", ["run_monthly.py", "--month", "2026-03"])
         with patch("subprocess.run") as mock_run:
             mock_run.return_value = _mock_subprocess_ok()
             _mod.main()
-        evo_args = mock_run.call_args_list[1][0][0]
+        # Laatste call = evolutie (na n_pillar matrix-calls)
+        evo_args = mock_run.call_args_list[-1][0][0]
         assert "--output" in evo_args
         idx = evo_args.index("--output")
         output_pad = Path(evo_args[idx + 1])
-        assert output_pad.parent == tmp_path
-        assert len(output_pad.name) == 10  # YYYY-MM-DD
+        assert output_pad == tmp_path
 
 
 # ---------------------------------------------------------------------------
@@ -338,44 +338,40 @@ class TestGedateerdeSubmap:
         monkeypatch.setattr(_mod, "OUTPUT_PATH", tmp_path)
 
     def test_beide_scripts_zelfde_output_pad(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        """Matrix en evolutie ontvangen exact hetzelfde --output pad."""
+        """Matrix en evolutie ontvangen exact hetzelfde --output pad (OUTPUT_PATH)."""
         monkeypatch.setattr(sys, "argv", ["run_monthly.py", "--month", "2026-03"])
         with patch("subprocess.run") as mock_run:
             mock_run.return_value = _mock_subprocess_ok()
             _mod.main()
         matrix_args = mock_run.call_args_list[0][0][0]
-        evo_args = mock_run.call_args_list[1][0][0]
+        evo_args = mock_run.call_args_list[-1][0][0]
         matrix_out = matrix_args[matrix_args.index("--output") + 1]
         evo_out = evo_args[evo_args.index("--output") + 1]
         assert matrix_out == evo_out
 
-    def test_output_pad_is_submap_van_output_root(
+    def test_output_pad_is_output_root(
         self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
     ) -> None:
-        """Output gaat naar een gedateerde submap van OUTPUT_PATH (YYYY-MM-DD)."""
+        """Output gaat naar OUTPUT_PATH rechtstreeks — de sub-scripts maken de dated submap."""
         monkeypatch.setattr(sys, "argv", ["run_monthly.py", "--month", "2026-03"])
         with patch("subprocess.run") as mock_run:
             mock_run.return_value = _mock_subprocess_ok()
             _mod.main()
         matrix_args = mock_run.call_args_list[0][0][0]
         output_pad = Path(matrix_args[matrix_args.index("--output") + 1])
-        assert output_pad.parent == tmp_path
-        assert len(output_pad.name) == 10  # YYYY-MM-DD
+        assert output_pad == tmp_path
 
     def test_output_submap_naam_bevat_datum(
         self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
     ) -> None:
-        """Output pad bevat een datumsubmap in YYYY-MM-DD formaat."""
+        """OUTPUT_PATH wordt ongewijzigd doorgegeven (sub-scripts maken zelf dated submap)."""
         monkeypatch.setattr(sys, "argv", ["run_monthly.py", "--month", "2026-03"])
         with patch("subprocess.run") as mock_run:
             mock_run.return_value = _mock_subprocess_ok()
             _mod.main()
         matrix_args = mock_run.call_args_list[0][0][0]
         output_pad = Path(matrix_args[matrix_args.index("--output") + 1])
-        # Naam is een datum YYYY-MM-DD (10 tekens, bevat koppeltekens op positie 4 en 7)
-        naam = output_pad.name
-        assert len(naam) == 10
-        assert naam[4] == "-" and naam[7] == "-"
+        assert output_pad == tmp_path
 
     def test_output_submap_wordt_aangemaakt(
         self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
@@ -407,7 +403,7 @@ class TestVlaggen:
         with patch("subprocess.run") as mock_run:
             mock_run.return_value = _mock_subprocess_ok()
             _mod.main()
-        evo_args = mock_run.call_args_list[1][0][0]
+        evo_args = mock_run.call_args_list[-1][0][0]
         assert "--chart" in evo_args
 
     def test_no_charts_slaat_chart_over(self, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -416,7 +412,7 @@ class TestVlaggen:
         with patch("subprocess.run") as mock_run:
             mock_run.return_value = _mock_subprocess_ok()
             _mod.main()
-        evo_args = mock_run.call_args_list[1][0][0]
+        evo_args = mock_run.call_args_list[-1][0][0]
         assert "--chart" not in evo_args
 
     def test_force_csv_doorgegeven_aan_evolutie(self, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -425,7 +421,7 @@ class TestVlaggen:
         with patch("subprocess.run") as mock_run:
             mock_run.return_value = _mock_subprocess_ok()
             _mod.main()
-        evo_args = mock_run.call_args_list[1][0][0]
+        evo_args = mock_run.call_args_list[-1][0][0]
         assert "--force-csv" in evo_args
 
     def test_force_csv_niet_aan_matrix(self, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -447,7 +443,7 @@ class TestVlaggen:
         with patch("subprocess.run") as mock_run:
             mock_run.return_value = _mock_subprocess_ok()
             _mod.main()
-        evo_args = mock_run.call_args_list[1][0][0]
+        evo_args = mock_run.call_args_list[-1][0][0]
         assert "--chart" not in evo_args
         assert "--force-csv" in evo_args
 
@@ -477,10 +473,9 @@ class TestFoutafhandeling:
         """sys.exit wordt aangeroepen als generate_all_evolutions.py faalt."""
         monkeypatch.setattr(sys, "argv", ["run_monthly.py", "--month", "2026-03"])
         with patch("subprocess.run") as mock_run:
-            mock_run.side_effect = [
-                _mock_subprocess_ok(),
-                _mock_subprocess_fail(),
-            ]
+            # Alle matrix-calls OK, evolutie faalt
+            ok_calls = [_mock_subprocess_ok() for _ in range(len(_DEFAULT_PILLARS))]
+            mock_run.side_effect = [*ok_calls, _mock_subprocess_fail()]
             with pytest.raises(SystemExit) as exc_info:
                 _mod.main()
         assert exc_info.value.code == 1
@@ -510,13 +505,14 @@ class TestAanroepvolgorde:
         monkeypatch.setattr(_mod, "OUTPUT_PATH", tmp_path)
 
     def test_matrix_eerst_dan_evolutie(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        """Eerste subprocess-aanroep is matrix, tweede is evolutie."""
+        """Eerste subprocess-aanroepen zijn matrix (per pijler), laatste is evolutie."""
         monkeypatch.setattr(sys, "argv", ["run_monthly.py", "--month", "2026-03"])
         with patch("subprocess.run") as mock_run:
             mock_run.return_value = _mock_subprocess_ok()
             _mod.main()
-        assert mock_run.call_count == 2
+        # N_DEFAULT_PILLARS matrix-calls + 1 evolutie-call
+        assert mock_run.call_count == len(_DEFAULT_PILLARS) + 1
         first_args = mock_run.call_args_list[0][0][0]
-        second_args = mock_run.call_args_list[1][0][0]
+        last_args = mock_run.call_args_list[-1][0][0]
         assert "generate_matrix.py" in first_args[1]
-        assert "generate_all_evolutions.py" in second_args[1]
+        assert "generate_all_evolutions.py" in last_args[1]

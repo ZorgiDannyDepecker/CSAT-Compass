@@ -294,7 +294,10 @@ def _render_sidebar(
         # --- Pijler ---
         st.markdown(f"**{d['pillar_select']}**")
         st.markdown("<div style='height:2rem;min-height:2rem'></div>", unsafe_allow_html=True)
-        sub_pillars = [k for k in PILLAR_REGISTRY if k != "zorgi"]
+        sub_pillars = sorted(
+            [k for k in PILLAR_REGISTRY if k != "zorgi"],
+            key=lambda k: PILLAR_REGISTRY[k]["name"],
+        )
         pillar_options = ["zorgi", *sub_pillars]
         pillar_labels = {}
         _is_demo = not DASHBOARD_PROD_MODE

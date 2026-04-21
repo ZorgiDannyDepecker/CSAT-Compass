@@ -168,12 +168,13 @@ def main() -> None:
     talen = ["nl", "fr"] if args.lang == "both" else [args.lang]
     gegenereerde_bestanden: list[Path] = []
     base_path = Path(args.output) if args.output else OUTPUT_PATH
-    output_dir = dated_output_dir(base_path)
+    output_dir = dated_output_dir(base_path) / args.pillar
+    output_dir.mkdir(parents=True, exist_ok=True)
     ts_suffix = datetime.now().astimezone().strftime("%Y%m%d-%H%M")
 
     for taal in talen:
         exporter = MatrixExporter(lang=taal, output_path=output_dir)
-        pad = exporter.export(resultaten)
+        pad = exporter.export(resultaten, pillar_key=args.pillar)
         # Timestamp in bestandsnaam
         nieuw_pad = pad.with_name(pad.stem + f"_{ts_suffix}" + pad.suffix)
         pad.rename(nieuw_pad)

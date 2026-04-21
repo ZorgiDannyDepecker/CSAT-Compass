@@ -1,7 +1,7 @@
 # CSAT-Compass - Operations Runbook
 
-**Versie:** 1.0
-**Laatst bijgewerkt:** 26/03/2026
+**Versie:** 1.1
+**Laatst bijgewerkt:** 21/04/2026
 
 **Doel:** Operationele procedures voor de dagelijkse en maandelijkse werking van CSAT-Compass
 **Type:** Runbook
@@ -38,7 +38,10 @@ Verifieer de teststand na grote wijzigingen:
 
 ### Stap 2 — Controleer de output
 
-- Verwacht: 22 bestanden in `output/YYYY-MM-DD_HHMM/`
+- Verwacht: **30 bestanden** in `output/YYYY-MM-DD/{pijler}/` (per pijler een submap)
+  - 10 matrices (NL + FR per pijler)
+  - 10 evolutierapporten (NL + FR per pijler)
+  - 10 PNG-visualisaties (NL + FR per pijler)
 - Controleer de consolefeedback op fouten (`[FOUT]`)
 
 ### Stap 3 — Verspreid de rapporten

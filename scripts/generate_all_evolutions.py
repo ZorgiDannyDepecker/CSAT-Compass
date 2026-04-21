@@ -122,7 +122,7 @@ def main() -> None:
 
     # Uitvoermap — datumsubmap binnen base (YYYY-MM-DD)
     base_path = Path(args.output) if args.output else OUTPUT_PATH
-    output_dir = dated_output_dir(base_path)
+    dated_dir = dated_output_dir(base_path)
     ts_suffix = datetime.now().astimezone().strftime("%Y%m%d-%H%M")
 
     # Loop over pijlers
@@ -130,6 +130,9 @@ def main() -> None:
     fouten: list[str] = []
 
     for pillar in args.pillar:
+        # Pijler-submap aanmaken: output/YYYY-MM-DD/{pillar}/
+        output_dir = dated_dir / pillar
+        output_dir.mkdir(parents=True, exist_ok=True)
         try:
             analyser = EvolutionAnalyser(df, pillar_key=pillar)
             result = analyser.analyse(baseline_periods, current_periods)

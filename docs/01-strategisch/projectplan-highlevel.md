@@ -1,7 +1,7 @@
 # CSAT-Compass - Projectplan High-Level
 
-**Versie:** 1.6
-**Laatst bijgewerkt:** 10/04/2026
+**Versie:** 1.7
+**Laatst bijgewerkt:** 21/04/2026
 
 **Doel:** Fundament en referentiedocument voor de volledige CSAT-Compass opzet  
 **Type:** Planning  
@@ -81,17 +81,19 @@ en herschreven conform de nieuwe multi-pijler architectuur.
 
 ## 3. Outputspecificatie
 
-### 3.1 Per maandelijkse run: 20 bestanden + dashboard
+### 3.1 Per maandelijkse run: 30 bestanden + dashboard
 
-| # | Rapport NL | Rapport FR | Matrix NL | Matrix FR |
-|---|---|---|---|---|
-| 1 | `rapport-YYYY-MM-zorgi-nl.md` | `rapport-YYYY-MM-zorgi-fr.md` | `matrix-YYYY-MM-zorgi-nl.md` | `matrix-YYYY-MM-zorgi-fr.md` |
-| 2 | `rapport-YYYY-MM-pharma-nl.md` | `rapport-YYYY-MM-pharma-fr.md` | `matrix-YYYY-MM-pharma-nl.md` | `matrix-YYYY-MM-pharma-fr.md` |
-| 3 | `rapport-YYYY-MM-care-nl.md` | `rapport-YYYY-MM-care-fr.md` | `matrix-YYYY-MM-care-nl.md` | `matrix-YYYY-MM-care-fr.md` |
-| 4 | `rapport-YYYY-MM-care-admin-nl.md` | `rapport-YYYY-MM-care-admin-fr.md` | `matrix-YYYY-MM-care-admin-nl.md` | `matrix-YYYY-MM-care-admin-fr.md` |
-| 5 | `rapport-YYYY-MM-erp4hc-nl.md` | `rapport-YYYY-MM-erp4hc-fr.md` | `matrix-YYYY-MM-erp4hc-nl.md` | `matrix-YYYY-MM-erp4hc-fr.md` |
+| # | Matrix NL | Matrix FR | Evolutie NL | Evolutie FR | PNG NL | PNG FR |
+|---|---|---|---|---|---|---|
+| 1 | `matrix-zorgi-YYYY-nl.md` | `matrix-zorgi-YYYY-fr.md` | `evolutie-zorgi-YYYY-nl.md` | `evolutie-zorgi-YYYY-fr.md` | `.png` | `.png` |
+| 2 | `matrix-pharma-YYYY-nl.md` | `matrix-pharma-YYYY-fr.md` | `evolutie-pharma-YYYY-nl.md` | `evolutie-pharma-YYYY-fr.md` | `.png` | `.png` |
+| 3 | `matrix-care-YYYY-nl.md` | `matrix-care-YYYY-fr.md` | `evolutie-care-YYYY-nl.md` | `evolutie-care-YYYY-fr.md` | `.png` | `.png` |
+| 4 | `matrix-care_admin-YYYY-nl.md` | `matrix-care_admin-YYYY-fr.md` | `evolutie-care_admin-YYYY-nl.md` | `evolutie-care_admin-YYYY-fr.md` | `.png` | `.png` |
+| 5 | `matrix-erp4hc-YYYY-nl.md` | `matrix-erp4hc-YYYY-fr.md` | `evolutie-erp4hc-YYYY-nl.md` | `evolutie-erp4hc-YYYY-fr.md` | `.png` | `.png` |
 
-**Totaal:** 10 rapporten + 10 matrices = **20 MD/PDF-bestanden** + Streamlit dashboard
+**Totaal:** 10 matrices + 10 evolutierapporten + 10 PNG's = **30 bestanden** + Streamlit dashboard
+
+**Mappenstructuur:** `output/YYYY-MM-DD/{pijler}/` — per pijler een eigen submap
 
 ### 3.2 Matrix scope
 
@@ -178,10 +180,10 @@ PHARMA is de **referentie-implementatie**. Elke volgende pijler is een kopie + a
 | **Fase 3** | Matrix + Evolutie + Visualisatie + Batch-runner | Fasen 3a–3e voltooid | ✅ Compleet |
 | **Fase 3f** | Evolutie-advieskader | Gap-analyse, beslisrecord, release 1 scope | ✅ Compleet |
 | **Fase 3g** | Evolutierapport verfijning | Implementatie release 1 op basis van fase 3f | ✅ Compleet |
-| **Fase 4** | CARE / CARE ADMIN / ERP4HC | Alle 4 pillar-analysers actief | ⏳ Gepland |
-| **Fase 5a** | Streamlit dashboard PHARMA-only | Dashboard PHARMA volledig (6 tabs, NL/FR, pijler-agnostisch) | 🔄 In uitvoering |
-| **Fase 5b** | Dashboard UI-verfijning | Tabbalk, samenvatting-tab polish, mini-signaalkaart, vergelijkingstabel | 🔄 In uitvoering |
-| **Fase 5c** | Streamlit dashboard overige pijlers | CARE / CARE ADMIN / ERP4HC actief in dashboard | ⏳ Gepland |
+| **Fase 4** | CARE / CARE ADMIN / ERP4HC | Alle 4 pillar-analysers actief | ✅ Compleet |
+| **Fase 5a** | Streamlit dashboard PHARMA-only | Dashboard PHARMA volledig (6 tabs, NL/FR, pijler-agnostisch) | ✅ Compleet |
+| **Fase 5b** | Dashboard UI-verfijning | Tabbalk, samenvatting-tab polish, mini-signaalkaart, vergelijkingstabel | ✅ Compleet |
+| **Fase 5c** | Streamlit dashboard overige pijlers | CARE / CARE ADMIN / ERP4HC actief in dashboard | ✅ Compleet |
 | **Fase 6** | ZORGI overall aggregatie | ZORGI-rapport + ZORGI-matrix + ZORGI dashboard tab | ⏳ Gepland |
 
 ### 6.2 Migratieaanpak
@@ -280,3 +282,4 @@ CSAT-Compass/
 | 1.4 | 31/03/2026 | Fase 3g status bijgewerkt naar Compleet | Danny Depecker + GHC |
 | 1.5 | 01/04/2026 | Fase 5 opgesplitst in 5a (PHARMA dashboard) en 5b (overige pijlers); Fase 5a status → In voorbereiding; Fase 6 uitgebreid met ZORGI dashboard tab | Danny Depecker + CD |
 | 1.6 | 10/04/2026 | Fase 5a status → In uitvoering; Fase 5b hergedefinieerd als Dashboard UI-verfijning; Fase 5c hernoemd naar overige pijlers; fasering bijgewerkt (5a/5b In uitvoering) | Danny Depecker + GHC |
+| 1.7 | 21/04/2026 | Fase 4 + 5a + 5b + 5c → ✅ Compleet; outputspecificatie bijgewerkt naar 30 bestanden + pijler-submappen; bestandsnaamconventie matrix gecorrigeerd | Danny Depecker + GHC |
