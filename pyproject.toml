@@ -1,6 +1,6 @@
 [project]
 name = "csat-compass"
-version = "0.6.34"
+version = "0.6.35"
 description = "ZORGI CSAT analyse en rapportage voor alle pijlers"
 requires-python = ">=3.11"
 

@@ -1017,7 +1017,7 @@ def _chart_hospitals(data: DashboardData, t: dict) -> go.Figure:
             x=scores,
             orientation="h",
             marker_color=colors,
-            text=[f"  {tk} t" for tk in tickets_list],
+            text=[f"   {tk} t" for tk in tickets_list],
             textposition="inside",
             textfont={"color": "white", "size": 11},
             insidetextanchor="start",

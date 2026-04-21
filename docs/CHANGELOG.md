@@ -3,6 +3,16 @@
 Alle noemenswaardige wijzigingen aan dit project worden hier gedocumenteerd.
 Formaat gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.0.0/).
 
+## [0.6.35] — 21/04/2026
+
+### Gewijzigd
+
+- `src/dashboard/app.py` — `_chart_hospitals`: ticketlabel offset 2 → 3 spaties
+  (~0,4 cm van het begin van de balk)
+- `pyproject.toml` — versie 0.6.34 → 0.6.35
+
+---
+
 ## [0.6.34] — 21/04/2026
 
 ### Gewijzigd
