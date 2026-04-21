@@ -3,6 +3,17 @@
 Alle noemenswaardige wijzigingen aan dit project worden hier gedocumenteerd.
 Formaat gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.0.0/).
 
+## [0.6.26] — 21/04/2026
+
+### Gewijzigd
+
+- `pyproject.toml` — coverage scope uitgebreid van `--cov=src/csat` naar `--cov=src`:
+  `src/dashboard/app.py` wordt nu gemeten (84% dekking, 1.207 statements);
+  totale coverage: 95% (3.885 statements, 197 gemist)
+- `pyproject.toml` — versie 0.6.25 → 0.6.26
+
+---
+
 ## [0.6.25] — 21/04/2026
 
 ### Opgelost

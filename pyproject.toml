@@ -1,6 +1,6 @@
 [project]
 name = "csat-compass"
-version = "0.6.25"
+version = "0.6.26"
 description = "ZORGI CSAT analyse en rapportage voor alle pijlers"
 requires-python = ">=3.11"
 
@@ -80,7 +80,7 @@ exclude = [".venv", "archive", "data", "output"]
 minversion = "7.0"
 testpaths = ["tests"]
 pythonpath = ["src"]
-addopts = "-ra -q --strict-markers --cov=src/csat --cov-report=term-missing --cov-report=html --cov-report=xml -p randomly --randomly-seed=last"
+addopts = "-ra -q --strict-markers --cov=src --cov-report=term-missing --cov-report=html --cov-report=xml -p randomly --randomly-seed=last"
 python_files = ["test_*.py", "*_test.py"]
 markers = [
     "unit: unit tests — snel, geen externe afhankelijkheden",
