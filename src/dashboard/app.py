@@ -2138,6 +2138,8 @@ def _render_sortable_table(
     export_filename: str = "export.csv",
     export_label: str = "📤 Export CSV",
     footer_text: str = "",
+    footer_html_raw: str = "",
+    insight_html: str = "",
     col_widths: list[str] | None = None,
     show_title: bool = True,  # False = titel weglaten uit iframe (extern via st.markdown)
 ) -> None:
@@ -2192,14 +2194,18 @@ def _render_sortable_table(
             cells += f'<td style="{style}">{val}</td>'
         rows_html += f"<tr>{cells}</tr>"
 
-    # Hoogte-berekening — gemeten via browser DevTools (21/04/2026):
-    # topRow=31px, headerRij=33px, filterRij=30px, dataRij=31px, border=2px
+    # Hoogte-berekening — gemeten via browser DevTools:
+    # topRow=31px, headerRij=33px, filterRij=30px, dataRij≈28px, border=2px
     # topRow marginBottom=4px → gap tussen topRow en scroll-wrap
-    content_h = 33 + 30 + n_rows * 31 + 2
+    content_h = 33 + 30 + n_rows * 28 + 2
     scroll_wrap_h = content_h
     footer_h = 28 * len(footer_text.split("  |  ")) if footer_text else 0
+    footer_raw_h = (footer_html_raw.count("<br>") + 1) * 22 + 15 if footer_html_raw else 0
+    insight_h = 40 if insight_html else 0
     top_row_h = 31 if show_title else 0
-    iframe_h = top_row_h + (4 if show_title else 0) + scroll_wrap_h + footer_h
+    iframe_h = (
+        top_row_h + (4 if show_title else 0) + scroll_wrap_h + footer_h + footer_raw_h + insight_h
+    )
 
     safe_title = html.escape(title)
     safe_label = html.escape(export_label)
@@ -2256,6 +2262,9 @@ def _render_sortable_table(
         "tr:hover td{background:#f0f6ff;}"
         "tr.hidden{display:none;}"
         "p.footer{font-size:0.75rem;color:#5f8495;margin:8px 0 0 0;padding:0;line-height:1.5;}"
+        ".insight-box{background:#FEF5E7;border:1px solid rgba(230,126,34,0.3);"
+        "border-radius:8px;padding:8px 12px;margin-top:8px;font-size:12px;line-height:1.5;}"
+        ".insight-box strong{color:#E67E22;}"
         "</style></head><body>"
         + (
             f"<div class='top-row'>"
@@ -2282,7 +2291,9 @@ def _render_sortable_table(
         f"</thead>"
         f"<tbody>{rows_html}</tbody></table>"
         f"</div>{footer_html}"
-        "<script>"
+        + (footer_html_raw if footer_html_raw else "")
+        + (f"{insight_html}" if insight_html else "")
+        + "<script>"
         "var _sd=-1,_sc=true;"
         "function applyFilters(){"
         "var tb=document.getElementById('t').tBodies[0];"
@@ -2314,17 +2325,16 @@ def _render_sortable_table(
         "var ths=document.getElementById('t').querySelectorAll('th');"
         "ths.forEach(function(th){th.classList.remove('sorted-asc','sorted-desc');});"
         "ths[ci].classList.add(asc?'sorted-asc':'sorted-desc');}"
+        "function selfResize(){"
+        "var h=document.body.scrollHeight;"
+        "try{var p=window.parent;var frames=p.document.querySelectorAll('iframe');"
+        "frames.forEach(function(f){if(f.contentWindow===window){f.style.height=h+'px';f.style.minHeight=h+'px';}});}"
+        "catch(e){}}"
+        "selfResize();"
         "</script></body></html>"
     )
 
     _stc.html(html_str, height=iframe_h, scrolling=False)
-    # Negatieve marge: compenseert het verschil tussen Python-berekende iframe_h
-    # en werkelijke content-hoogte + stVerticalBlock gap (16px).
-    # inject_iframe_resize() past de exacte hoogte achteraf aan via JS.
-    st.markdown(
-        "<div style='margin-top:-80px;height:0;overflow:hidden'></div>",
-        unsafe_allow_html=True,
-    )
 
 
 def _windowed_hospital_comparison(
@@ -3612,7 +3622,7 @@ def render_tab_tickets_prioriteit(
         config=_CHART_CONFIG,
     )
     st.markdown(
-        "<div style='margin-top:-2.5rem;height:0;overflow:hidden'></div>",
+        "<div style='margin-top:-0.5rem;height:0;overflow:hidden'></div>",
         unsafe_allow_html=True,
     )
     st.markdown(
@@ -3648,18 +3658,18 @@ def render_tab_tickets_prioriteit(
             for _, r in df_issue.iterrows()
         ]
     )
-    _render_sortable_table(
-        df_tbl,
-        title=_ls(
-            "\U0001f4cb Score per issue type \u2014 detail",
-            "\U0001f4cb Score par type d\u2019issue \u2014 détail",
-        ),
-        show_title=True,
-        delta_col="\u0394 Score",
-        export_filename="issue_type_vergelijking.csv",
-        col_widths=["32%", "13%", "13%", "11%", "11%", "13%"],
+    # Insight-box issue type — binnen iframe (geen Streamlit-gap)
+    from csat.core.insights.insights_generator import InsightsGenerator
+
+    _i18n = load_translations(lang)
+    _ig = InsightsGenerator(i18n=_i18n, lang=lang)
+    _insight_issue = _ig._generate_issue_type_insight(df_issue)
+    _insight_issue_html = (
+        f"<div class='insight-box'><strong>⚠ </strong>{_insight_issue}</div>"
+        if _insight_issue
+        else ""
     )
-    st.markdown(
+    _footer_issue_html = (
         "<div style='font-size:0.80rem;color:#5f8495;margin-top:4px;line-height:1.6;"
         "padding:0.35rem 0 0.35rem 0;'>"
         f"<b style='color:#3a5a7a'>{_col_neg}</b>: "
@@ -3673,21 +3683,20 @@ def render_tab_tickets_prioriteit(
             f"verschil t.o.v. {_prev_label} in procentpunten, een negatieve waarde betekent verbetering (minder negatieve scores)",
             f"différence par rapport à {_prev_label} en points de pourcentage, une valeur négative signifie une amélioration",
         )
-        + "</div>",
-        unsafe_allow_html=True,
+        + "</div>"
     )
-    # Insight-box issue type
-    from csat.core.insights.insights_generator import InsightsGenerator
-
-    _i18n = load_translations(lang)
-    _ig = InsightsGenerator(i18n=_i18n, lang=lang)
-    _insight_issue = _ig._generate_issue_type_insight(df_issue)
-    st.markdown(
-        f'<div style="background:#FEF5E7;border:1px solid rgba(230,126,34,0.3);'
-        f'border-radius:8px;padding:10px 14px;margin-top:8px;font-size:13px;">'
-        f'<strong style="color:#E67E22;">⚠ </strong>{_insight_issue}'
-        f"</div>",
-        unsafe_allow_html=True,
+    _render_sortable_table(
+        df_tbl,
+        title=_ls(
+            "\U0001f4cb Score per issue type \u2014 detail",
+            "\U0001f4cb Score par type d\u2019issue \u2014 détail",
+        ),
+        show_title=True,
+        delta_col="\u0394 Score",
+        export_filename="issue_type_vergelijking.csv",
+        col_widths=["32%", "13%", "13%", "11%", "11%", "13%"],
+        footer_html_raw=_footer_issue_html,
+        insight_html=_insight_issue_html,
     )
 
     st.divider()
@@ -3718,7 +3727,7 @@ def render_tab_tickets_prioriteit(
     )
     # Negatieve marge: compenseert Streamlit-gap (stVerticalBlock) na plotly_chart
     st.markdown(
-        "<div style='margin-top:-2.5rem;height:0;overflow:hidden'></div>",
+        "<div style='margin-top:-0.5rem;height:0;overflow:hidden'></div>",
         unsafe_allow_html=True,
     )
     st.markdown(
@@ -3741,18 +3750,13 @@ def render_tab_tickets_prioriteit(
             for _, r in df_prio.iterrows()
         ]
     )
-    _render_sortable_table(
-        df_prio_tbl,
-        title=_ls(
-            "\U0001f4cb Score per prioriteit \u2014 detail",
-            "\U0001f4cb Score par priorité \u2014 détail",
-        ),
-        show_title=True,
-        delta_col="\u0394 Score",
-        export_filename="prioriteit_vergelijking.csv",
-        col_widths=["28%", "14%", "13%", "11%", "11%", "13%"],
+    _insight_prio = _ig._generate_priority_insight(df_prio)
+    _insight_prio_html = (
+        f"<div class='insight-box'><strong>⚠ </strong>{_insight_prio}</div>"
+        if _insight_prio
+        else ""
     )
-    st.markdown(
+    _footer_prio_html = (
         "<div style='font-size:0.80rem;color:#5f8495;margin-top:4px;line-height:1.6;"
         "padding:0.35rem 0 0.35rem 0;'>"
         f"<b style='color:#3a5a7a'>{_col_neg_p}</b>: "
@@ -3766,17 +3770,20 @@ def render_tab_tickets_prioriteit(
             f"verschil t.o.v. {_prev_label} in procentpunten, een negatieve waarde betekent verbetering (minder negatieve scores)",
             f"différence par rapport à {_prev_label} en points de pourcentage, une valeur négative signifie une amélioration",
         )
-        + "</div>",
-        unsafe_allow_html=True,
+        + "</div>"
     )
-    # Insight-box prioriteit — zelfde stijl als issue type
-    _insight_prio = _ig._generate_priority_insight(df_prio)
-    st.markdown(
-        f'<div style="background:#FEF5E7;border:1px solid rgba(230,126,34,0.3);'
-        f'border-radius:8px;padding:10px 14px;margin-top:8px;font-size:13px;">'
-        f'<strong style="color:#E67E22;">⚠ </strong>{_insight_prio}'
-        f"</div>",
-        unsafe_allow_html=True,
+    _render_sortable_table(
+        df_prio_tbl,
+        title=_ls(
+            "\U0001f4cb Score per prioriteit \u2014 detail",
+            "\U0001f4cb Score par priorité \u2014 détail",
+        ),
+        show_title=True,
+        delta_col="\u0394 Score",
+        export_filename="prioriteit_vergelijking.csv",
+        col_widths=["28%", "14%", "13%", "11%", "11%", "13%"],
+        footer_html_raw=_footer_prio_html,
+        insight_html=_insight_prio_html,
     )
 
     st.divider()

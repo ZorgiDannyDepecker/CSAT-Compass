@@ -5,6 +5,20 @@ Formaat gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.0.0/).
 
 ---
 
+## [0.6.11] — 21/04/2026
+
+### Toegevoegd
+
+- `app.py`: `_render_sortable_table` — `insight_html: str = ""` parameter toegevoegd aan signatuur (was ontbrekend, veroorzaakte `TypeError` bij opstarten)
+- `app.py`: `_render_sortable_table` — nieuw `footer_html_raw: str = ""` parameter voor rijke HTML-voetnoot (met `<b>`-opmaak) binnen het iframe; hoogte automatisch berekend via `<br>`-telling
+
+### Gewijzigd
+
+- `app.py`: Volgorde binnen iframe gewijzigd: comment (legenda) verschijnt nu **vóór** de oranje infobalk — zowel voor issue type als prioriteit tabel
+- `app.py`: Losse `st.markdown` footer-blokken (% Negatief / Δ Negatief legenda) vervangen door `footer_html_raw=` parameter op beide `_render_sortable_table` aanroepen — elimineert Streamlit-componentgap tussen tabel en legenda
+
+---
+
 ## [0.7.0] — 20/04/2026
 
 ### Toegevoegd
