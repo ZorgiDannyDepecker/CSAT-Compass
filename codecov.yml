@@ -23,7 +23,6 @@ coverage:
     - "scripts/**"
     - "tools/**"
     - "docs/**"
-    - "src/dashboard/**"   # Streamlit UI — geen unit tests
     - "assets/**"
 
 comment:
@@ -37,6 +36,7 @@ flags:
   unittests:
     paths:
       - src/csat/
+      - src/dashboard/
 
 # GitHub checks op basis van Codecov-rapportage
 github_checks:

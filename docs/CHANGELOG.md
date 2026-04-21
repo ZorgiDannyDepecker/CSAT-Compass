@@ -3,6 +3,17 @@
 Alle noemenswaardige wijzigingen aan dit project worden hier gedocumenteerd.
 Formaat gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.0.0/).
 
+## [0.6.28] — 21/04/2026
+
+### Opgelost
+
+- `codecov.yml` — `src/dashboard/**` verwijderd uit ignore-lijst: Codecov negeerde
+  `app.py` expliciet waardoor de stijging van 2.678 → 3.885 gemeten statements
+  niet zichtbaar was; `src/dashboard/` toegevoegd aan `flags.unittests.paths`
+- `pyproject.toml` — versie 0.6.27 → 0.6.28
+
+---
+
 ## [0.6.27] — 21/04/2026
 
 ### Toegevoegd
