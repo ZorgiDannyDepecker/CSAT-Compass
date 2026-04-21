@@ -3,6 +3,17 @@
 Alle noemenswaardige wijzigingen aan dit project worden hier gedocumenteerd.
 Formaat gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.0.0/).
 
+## [0.6.34] — 21/04/2026
+
+### Gewijzigd
+
+- `src/dashboard/app.py` — `_chart_hospitals`: ticketlabel gewijzigd van `"12"`
+  naar `"  12 t"` (2 spaties offset + spatie + "t" suffix); label staat nu iets
+  verder van het begin van de balk en is korter leesbaar
+- `pyproject.toml` — versie 0.6.33 → 0.6.34
+
+---
+
 ## [0.6.33] — 21/04/2026
 
 ### Gewijzigd
