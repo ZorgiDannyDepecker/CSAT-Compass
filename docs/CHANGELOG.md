@@ -3,6 +3,34 @@
 Alle noemenswaardige wijzigingen aan dit project worden hier gedocumenteerd.
 Formaat gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.0.0/).
 
+## [0.7.0] — 22/04/2026
+
+### Toegevoegd
+
+- `src/csat/pillars/zorgi/result.py` — nieuwe `ZorgiResult` dataklasse (Fase 6a):
+  organisatiebrede CSAT-aggregatie met `PillarSummary` per pijler, gewogen gemiddelden,
+  best/worst pijler, trendtelling en aandachtspunten
+- `src/csat/pillars/zorgi/analyser.py` — nieuwe `ZorgiAnalyser` klasse (Fase 6a):
+  aggregeert `EvolutionResult`-objecten van PHARMA, CARE, CARE ADMIN en ERP4HC
+  via ticketvolume-gewogen gemiddelden; trendclassificatie (improving/stable/declining)
+- `src/csat/pillars/zorgi/__init__.py` — exports voor `ZorgiAnalyser`, `ZorgiResult`, `PillarSummary`
+- `tests/pillars/test_zorgi_analyser.py` — 21 unit tests voor `ZorgiAnalyser`:
+  lege input, 1 pijler, gewogen gemiddelden, best/worst detectie, trendtelling,
+  aandachtspunten en pillar_summaries
+- `src/csat/i18n/nl.json` — ZORGI i18n-sectie toegevoegd (38 sleutels)
+- `src/csat/i18n/fr.json` — ZORGI i18n-sectie toegevoegd (38 sleutels, professioneel zakelijk Frans)
+- `src/dashboard/app.py` — `_render_zorgi_tab()`: ZORGI executive dashboard met
+  KPI-kaarten, horizontale pijler-vergelijkingsgrafiek, trend-tabel en aandachtspunten
+
+### Gewijzigd
+
+- `src/dashboard/app.py` — `_ACTIVE_PILLARS`: ZORGI toegevoegd aan actieve pijlers
+- `src/dashboard/app.py` — `main()`: ZORGI-routing toegevoegd (aggregeert 4 sub-pijlers
+  via `ZorgiAnalyser`, rendert `_render_zorgi_tab()` in plaats van "Coming soon")
+- `pyproject.toml` — versie 0.6.35 → 0.7.0
+
+---
+
 ## [0.6.35] — 21/04/2026
 
 ### Gewijzigd

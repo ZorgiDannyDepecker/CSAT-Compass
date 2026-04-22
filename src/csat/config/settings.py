@@ -73,8 +73,8 @@ def db_available() -> bool:
 
 
 # --- Dashboard weergave-modus ---
-# CSAT_DASHBOARD_MODE = "prod"  → Deploy-knop en drie-puntjes-menu verborgen
-# CSAT_DASHBOARD_MODE = "demo"  → volledig zichtbaar
-# Standaard = "demo" (dev/test); zet op "prod" voor productie-gebruik
+# CSAT_DASHBOARD_MODE = "prod"  → Deploy-knop en drie-puntjes-menu verborgen (standaard)
+# CSAT_DASHBOARD_MODE = "demo"  → volledig zichtbaar (dev/test)
+# Standaard = "prod"; overschrijf met env-var CSAT_DASHBOARD_MODE=demo voor dev
 DASHBOARD_MODE: str = os.getenv("CSAT_DASHBOARD_MODE", "prod").lower()
 DASHBOARD_PROD_MODE: bool = DASHBOARD_MODE == "prod"

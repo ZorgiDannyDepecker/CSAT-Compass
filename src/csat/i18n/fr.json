@@ -480,6 +480,42 @@
       "titel": "Indicateurs cl\u00e9s comparaison",
       "trend_toelichting": "<strong>Fl\u00e8che de tendance</strong>\u00a0\u2014 \u25ba\u00a0gris\u00a0= stable (dans le bruit statistique). Seuils\u00a0: \u00b10,05\u2605 pour les scores \u00b7 \u00b12,0\u00a0ppt pour les pourcentages \u00b7 \u00b12 pour les comptages. Les variations sous le seuil re\u00e7oivent toujours \u25ba (m\u00eame si la valeur \u0394 affiche une couleur)."
     }
+  },
+  "zorgi": {
+    "tab_title": "🏢 ZORGI Organisation",
+    "page_title": "ZORGI — CSAT organisationnel",
+    "page_subtitle": "Agrégation pondérée des 4 piliers",
+    "section_kpi": "KPI organisationnels",
+    "section_pillar_comparison": "Comparaison des piliers",
+    "section_trend": "Aperçu des tendances par pilier",
+    "section_attention": "Points d'attention",
+    "kpi_avg_score": "Score CSAT moyen (org.)",
+    "kpi_pct_positive": "% Positif (org.)",
+    "kpi_pct_negative": "% Négatif (org.)",
+    "kpi_total_tickets": "Total tickets",
+    "kpi_n_hospitals": "Hôpitaux (total)",
+    "col_pillar": "Pilier",
+    "col_current_score": "Score {year}",
+    "col_baseline_score": "Référence",
+    "col_delta": "Δ Score",
+    "col_pct_positive": "% Positif",
+    "col_pct_negative": "% Négatif",
+    "col_hc_ratio": "H/C %",
+    "col_tickets": "Tickets",
+    "col_trend": "Tendance",
+    "trend_improving": "↑ En hausse",
+    "trend_stable": "→ Stable",
+    "trend_declining": "↓ En baisse",
+    "best_pillar": "Meilleur pilier",
+    "worst_pillar": "Pilier le plus faible",
+    "most_declining": "Déclin le plus fort",
+    "highest_hc": "Ratio H/C le plus élevé",
+    "attention_note_hc": "Attention : {pillar} présente le ratio High/Critical le plus élevé ({value}%).",
+    "attention_note_declining": "Attention : {pillar} affiche le déclin le plus fort ({delta}★).",
+    "pillars_summary": "{improving} en hausse · {stable} stables · {declining} en baisse",
+    "no_data": "Aucune donnée de pilier disponible.",
+    "coming_soon_title": "🚧 Agrégation ZORGI — En développement",
+    "coming_soon_text": "Le pilier ZORGI agrège les résultats de PHARMA, CARE, CARE ADMIN et ERP4HC. Disponible en Phase 6."
   }
 }
 

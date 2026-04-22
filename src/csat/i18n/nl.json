@@ -480,6 +480,42 @@
       "titel": "Kerncijfers vergelijking",
       "trend_toelichting": "<strong>Trend-pijl</strong>\u00a0\u2014 \u25ba\u00a0grijs\u00a0= stabiel (binnen statistische ruis). Drempelwaarden: \u00b10,05\u2605 voor scores \u00b7 \u00b12,0\u00a0ppt voor percentages \u00b7 \u00b12 voor tellingen. Schommelingen onder de drempel krijgen altijd \u25ba (ook als de \u0394-waarde een kleur toont)."
     }
+  },
+  "zorgi": {
+    "tab_title": "🏢 ZORGI Organisatie",
+    "page_title": "ZORGI — Organisatiebrede CSAT",
+    "page_subtitle": "Gewogen aggregatie van alle 4 pijlers",
+    "section_kpi": "Organisatie KPI's",
+    "section_pillar_comparison": "Pijler-vergelijking",
+    "section_trend": "Trendoverzicht per pijler",
+    "section_attention": "Aandachtspunten",
+    "kpi_avg_score": "Gem. CSAT-score (org.)",
+    "kpi_pct_positive": "% Positief (org.)",
+    "kpi_pct_negative": "% Negatief (org.)",
+    "kpi_total_tickets": "Totaal tickets",
+    "kpi_n_hospitals": "Ziekenhuizen (totaal)",
+    "col_pillar": "Pijler",
+    "col_current_score": "Score {year}",
+    "col_baseline_score": "Baseline",
+    "col_delta": "Δ Score",
+    "col_pct_positive": "% Positief",
+    "col_pct_negative": "% Negatief",
+    "col_hc_ratio": "H/C %",
+    "col_tickets": "Tickets",
+    "col_trend": "Trend",
+    "trend_improving": "↑ Stijgend",
+    "trend_stable": "→ Stabiel",
+    "trend_declining": "↓ Dalend",
+    "best_pillar": "Beste pijler",
+    "worst_pillar": "Slechtste pijler",
+    "most_declining": "Sterkst dalend",
+    "highest_hc": "Hoogste H/C ratio",
+    "attention_note_hc": "Let op: {pillar} heeft de hoogste High/Critical-ratio ({value}%).",
+    "attention_note_declining": "Let op: {pillar} toont de sterkste daling ({delta}★).",
+    "pillars_summary": "{improving} stijgend · {stable} stabiel · {declining} dalend",
+    "no_data": "Geen pijlerdata beschikbaar.",
+    "coming_soon_title": "🚧 ZORGI Aggregatie — In ontwikkeling",
+    "coming_soon_text": "De ZORGI-pijler aggregeert de resultaten van PHARMA, CARE, CARE ADMIN en ERP4HC. Beschikbaar in Fase 6."
   }
 }
 

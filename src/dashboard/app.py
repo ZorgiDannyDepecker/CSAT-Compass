@@ -61,6 +61,8 @@ from csat.core.exporters.dashboard_exporter import (  # noqa: E402
 )
 from csat.core.loaders import get_loader  # noqa: E402
 from csat.i18n import load_translations  # noqa: E402
+from csat.pillars.zorgi.analyser import ZorgiAnalyser  # noqa: E402
+from csat.pillars.zorgi.result import ZorgiResult  # noqa: E402
 from csat.utils.branding import (  # noqa: E402
     apply_plotly_theme,
     inject_css,
@@ -86,7 +88,7 @@ from csat.utils.zorgi_theme import (  # noqa: E402
 
 _BASELINE_YEAR: int = 2025
 _TREND_WINDOW_START: str = "2025-07-01"
-_ACTIVE_PILLARS: frozenset[str] = frozenset({"pharma", "care", "care_admin", "erp4hc"})
+_ACTIVE_PILLARS: frozenset[str] = frozenset({"pharma", "care", "care_admin", "erp4hc", "zorgi"})
 _APP_VERSION: str = f"v{__version__}"
 
 
@@ -3857,7 +3859,250 @@ def render_tab_tickets_prioriteit(
 
 
 # ---------------------------------------------------------------------------
-# Coming soon placeholder (niet-PHARMA pijlers)
+# ---------------------------------------------------------------------------
+# ZORGI — organisatiebrede aggregatie dashboard-tab (Fase 6b)
+# ---------------------------------------------------------------------------
+
+
+def _render_zorgi_tab(zorgi_result: ZorgiResult, t: dict, lang: str) -> None:  # noqa: C901
+    """
+    Rendert de ZORGI executive summary tab.
+
+    Secties:
+    1. KPI-kaarten (organisatie-breed, gewogen)
+    2. Pijler-vergelijking (horizontale bar chart)
+    3. Trend-tabel per pijler
+    4. Aandachtspunten
+    """
+    zg = t.get("zorgi", {})
+
+    # ── Header ──────────────────────────────────────────────────────────────
+    st.markdown(
+        f"<h2 style='color:{ZORGI_DARK_BLUE};margin-bottom:0.2rem'>{zg.get('page_title', 'ZORGI')}</h2>"
+        f"<p style='color:{ZORGI_GREY_BLUE};margin-top:0'>{zg.get('page_subtitle', '')}</p>",
+        unsafe_allow_html=True,
+    )
+
+    # ── Sectie 1: KPI-kaarten ───────────────────────────────────────────────
+    st.markdown(f"#### {zg.get('section_kpi', 'KPI')}")
+    col1, col2, col3, col4, col5 = st.columns(5)
+
+    def _delta_str(val: float) -> str:
+        sign = "+" if val > 0 else ""
+        return f"{sign}{val:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
+    with col1:
+        delta_label = _delta_str(zorgi_result.org_delta_avg_score)
+        st.metric(
+            zg.get("kpi_avg_score", "Gem. score"),
+            f"{zorgi_result.org_avg_score:,.2f}★".replace(",", "X")
+            .replace(".", ",")
+            .replace("X", "."),
+            delta=delta_label,
+        )
+    with col2:
+        st.metric(
+            zg.get("kpi_pct_positive", "% Positief"),
+            f"{zorgi_result.org_pct_positive:,.1f}%".replace(",", "X")
+            .replace(".", ",")
+            .replace("X", "."),
+        )
+    with col3:
+        st.metric(
+            zg.get("kpi_pct_negative", "% Negatief"),
+            f"{zorgi_result.org_pct_negative:,.1f}%".replace(",", "X")
+            .replace(".", ",")
+            .replace("X", "."),
+        )
+    with col4:
+        st.metric(
+            zg.get("kpi_total_tickets", "Tickets"),
+            f"{zorgi_result.org_total_tickets:,}".replace(",", "."),
+        )
+    with col5:
+        st.metric(
+            zg.get("kpi_n_hospitals", "Ziekenhuizen"),
+            f"{zorgi_result.org_n_hospitals:,}".replace(",", "."),
+        )
+
+    st.divider()
+
+    # ── Sectie 2: Pijler-vergelijking ───────────────────────────────────────
+    valid_summaries = [s for s in zorgi_result.pillar_summaries.values() if s is not None]
+    if not valid_summaries:
+        st.info(zg.get("no_data", "Geen data beschikbaar."))
+        return
+
+    st.markdown(f"#### {zg.get('section_pillar_comparison', 'Pijler-vergelijking')}")
+
+    pillar_names = [s.pillar.upper().replace("_", " ") for s in valid_summaries]
+    scores = [s.current_avg_score for s in valid_summaries]
+    bar_colors = [ZORGI_FUNC_POSITIVE if sc >= AVG_SCORE_MIN else ZORGI_RED for sc in scores]
+
+    fig_compare = go.Figure(
+        go.Bar(
+            x=scores,
+            y=pillar_names,
+            orientation="h",
+            marker_color=bar_colors,
+            text=[f"{sc:.2f}★" for sc in scores],
+            textposition="outside",
+        )
+    )
+    fig_compare.add_vline(x=AVG_SCORE_MIN, line_dash="dash", line_color=ZORGI_GREY_BLUE)
+    fig_compare.update_layout(
+        height=260,
+        margin={"l": 10, "r": 80, "t": 20, "b": 20},
+        xaxis={"range": [0, 5.5], "title": ""},
+        yaxis={"title": ""},
+        plot_bgcolor="#ffffff",
+        paper_bgcolor="#ffffff",
+    )
+    apply_plotly_theme(fig_compare)
+    st.plotly_chart(fig_compare, use_container_width=True)
+
+    st.divider()
+
+    # ── Sectie 3: Trend-tabel ───────────────────────────────────────────────
+    st.markdown(f"#### {zg.get('section_trend', 'Trend per pijler')}")
+
+    trend_icons = {
+        "improving": zg.get("trend_improving", "↑"),
+        "stable": zg.get("trend_stable", "→"),
+        "declining": zg.get("trend_declining", "↓"),
+    }
+    trend_colors = {
+        "improving": ZORGI_FUNC_POSITIVE,
+        "stable": ZORGI_GREY_BLUE,
+        "declining": ZORGI_RED,
+    }
+
+    col_pillar = zg.get("col_pillar", "Pijler")
+    col_current = zg.get("col_current_score", "Score").format(year=zorgi_result.current_label)
+    col_baseline = zg.get("col_baseline_score", "Baseline")
+    col_delta = zg.get("col_delta", "Δ")
+    col_pct_pos = zg.get("col_pct_positive", "% Positief")
+    col_pct_neg = zg.get("col_pct_negative", "% Negatief")
+    col_hc = zg.get("col_hc_ratio", "H/C %")
+    col_tickets = zg.get("col_tickets", "Tickets")
+    col_trend = zg.get("col_trend", "Trend")
+
+    header_cells = [
+        col_pillar,
+        col_current,
+        col_baseline,
+        col_delta,
+        col_pct_pos,
+        col_pct_neg,
+        col_hc,
+        col_tickets,
+        col_trend,
+    ]
+    header_html = "".join(
+        f"<th style='background:{ZORGI_DARK_BLUE};color:#fff;padding:6px 10px;"
+        f"text-align:{'left' if i == 0 else 'right'};white-space:nowrap'>{h}</th>"
+        for i, h in enumerate(header_cells)
+    )
+
+    rows_html = ""
+    for idx, s in enumerate(valid_summaries):
+        bg = "#ffffff" if idx % 2 == 0 else ZORGI_ULTRA_LIGHT
+        trend_icon = trend_icons.get(s.trend, "→")
+        trend_color = trend_colors.get(s.trend, ZORGI_GREY_BLUE)
+        delta_color = (
+            ZORGI_FUNC_POSITIVE
+            if s.delta_avg_score > 0
+            else (ZORGI_RED if s.delta_avg_score < 0 else ZORGI_GREY_BLUE)
+        )
+        sign = "+" if s.delta_avg_score > 0 else ""
+        cells = [
+            f"<strong>{s.pillar.upper().replace('_', ' ')}</strong>",
+            f"{s.current_avg_score:.2f}★",
+            f"{s.baseline_avg_score:.2f}★",
+            f"<span style='color:{delta_color}'>{sign}{s.delta_avg_score:.2f}</span>",
+            f"{s.current_pct_positive:.1f}%",
+            f"{s.current_pct_negative:.1f}%",
+            f"{s.current_hc_ratio:.1f}%",
+            f"{s.current_total:,}".replace(",", "."),
+            f"<span style='color:{trend_color};font-weight:700'>{trend_icon}</span>",
+        ]
+        row_html = "".join(
+            f"<td style='padding:5px 10px;background:{bg};"
+            f"text-align:{'left' if j == 0 else 'right'}'>{c}</td>"
+            for j, c in enumerate(cells)
+        )
+        rows_html += f"<tr>{row_html}</tr>"
+
+    table_html = (
+        f"<table style='width:100%;border-collapse:collapse;font-size:0.88rem'>"
+        f"<thead><tr>{header_html}</tr></thead>"
+        f"<tbody>{rows_html}</tbody></table>"
+    )
+    st.markdown(table_html, unsafe_allow_html=True)
+
+    # Trendtelling samenvatting
+    summary_txt = zg.get("pillars_summary", "").format(
+        improving=zorgi_result.pillars_improving,
+        stable=zorgi_result.pillars_stable,
+        declining=zorgi_result.pillars_declining,
+    )
+    st.markdown(
+        f"<p style='color:{ZORGI_GREY_BLUE};font-size:0.82rem;margin-top:0.4rem'>{summary_txt}</p>",
+        unsafe_allow_html=True,
+    )
+
+    st.divider()
+
+    # ── Sectie 4: Aandachtspunten ──────────────────────────────────────────
+    st.markdown(f"#### {zg.get('section_attention', 'Aandachtspunten')}")
+
+    attention_items: list[str] = []
+
+    # Best/worst pijler
+    if zorgi_result.best_pillar:
+        attention_items.append(
+            f"🥇 **{zg.get('best_pillar', 'Beste pijler')}:** "
+            f"{zorgi_result.best_pillar.upper().replace('_', ' ')}"
+        )
+    if zorgi_result.worst_pillar and zorgi_result.worst_pillar != zorgi_result.best_pillar:
+        attention_items.append(
+            f"⚠️ **{zg.get('worst_pillar', 'Slechtste pijler')}:** "
+            f"{zorgi_result.worst_pillar.upper().replace('_', ' ')}"
+        )
+
+    # Meest dalende pijler
+    if zorgi_result.pillar_most_declining:
+        declining_summary = next(
+            (s for s in valid_summaries if s.pillar == zorgi_result.pillar_most_declining), None
+        )
+        if declining_summary and declining_summary.delta_avg_score < 0:
+            note = zg.get("attention_note_declining", "").format(
+                pillar=zorgi_result.pillar_most_declining.upper().replace("_", " "),
+                delta=f"{declining_summary.delta_avg_score:.2f}",
+            )
+            attention_items.append(f"📉 {note}")
+
+    # Hoogste H/C ratio
+    if zorgi_result.pillar_highest_hc:
+        hc_summary = next(
+            (s for s in valid_summaries if s.pillar == zorgi_result.pillar_highest_hc), None
+        )
+        if hc_summary:
+            note = zg.get("attention_note_hc", "").format(
+                pillar=zorgi_result.pillar_highest_hc.upper().replace("_", " "),
+                value=f"{hc_summary.current_hc_ratio:.1f}",
+            )
+            attention_items.append(f"🔴 {note}")
+
+    if attention_items:
+        for item in attention_items:
+            st.markdown(item)
+    else:
+        st.success("✅ Geen bijzondere aandachtspunten.")
+
+
+# ---------------------------------------------------------------------------
+# Coming soon placeholder (niet-actieve pijlers)
 # ---------------------------------------------------------------------------
 
 
@@ -3925,7 +4170,7 @@ def main() -> None:  # noqa: C901
         t, today, last_year, last_month, df=_df_raw
     )
 
-    # Niet-PHARMA pijlers → Coming soon
+    # Niet-actieve pijlers → Coming soon
     if selected_pillar not in _ACTIVE_PILLARS:
         pillar_name = PILLAR_REGISTRY[selected_pillar].get("report_name", selected_pillar)
         render_topbar(
@@ -3936,7 +4181,46 @@ def main() -> None:  # noqa: C901
             version=_APP_VERSION,
         )
         _render_coming_soon(t, pillar_name)
-        # Sidebar-toggle knop (NA content — blokkeert rendering niet)
+        inject_sidebar_toggle()
+        return
+
+    # ── ZORGI pijler — aggregeer de 4 sub-pijlers ───────────────────────────
+    if selected_pillar == "zorgi":
+        zorgi_pillar_name = PILLAR_REGISTRY["zorgi"].get("report_name", "ZORGI")
+        render_topbar(
+            _topbar,
+            today_str,
+            prod_mode=DASHBOARD_PROD_MODE,
+            pillar_name=zorgi_pillar_name,
+            version=_APP_VERSION,
+        )
+        with st.spinner("ZORGI aggregatie laden…"):
+            _sub_pillars = [k for k in _ACTIVE_PILLARS if k != "zorgi"]
+            pillar_results: dict = {}
+            for _sp in _sub_pillars:
+                try:
+                    if selected_hospitals:
+                        _df_sp = _df_raw[_df_raw["hospital"].isin(selected_hospitals)]
+                        pillar_results[_sp] = _run_analysis_on_df(
+                            _df_sp,
+                            baseline_year=_BASELINE_YEAR,
+                            current_year=last_year,
+                            current_month=last_month,
+                            pillar=_sp,
+                        )
+                    else:
+                        pillar_results[_sp] = _run_analysis(
+                            baseline_year=_BASELINE_YEAR,
+                            current_year=last_year,
+                            current_month=last_month,
+                            pillar=_sp,
+                        )
+                except Exception:  # noqa: BLE001
+                    pillar_results[_sp] = None
+            zorgi_result = ZorgiAnalyser(pillar_results).aggregate()
+        _render_zorgi_tab(zorgi_result, t, lang)
+        inject_tab_scroll_reset()
+        inject_iframe_resize()
         inject_sidebar_toggle()
         return
 
