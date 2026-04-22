@@ -1,4 +1,4 @@
-# Fase 6 — ZORGI Overall Aggregatie
+﻿# Fase 6 — ZORGI Overall Aggregatie
 
 **Versie:** 1.0
 **Aangemaakt:** 21/04/2026
@@ -274,4 +274,3 @@ Stap 7 — /pytest 3 + commit
 | Versie | Datum | Wijzigingen | Auteur |
 | --- | --- | --- | --- |
 | 1.0 | 21/04/2026 | Initiële versie — handover Fase 6 | Danny Depecker + GHC |
-
