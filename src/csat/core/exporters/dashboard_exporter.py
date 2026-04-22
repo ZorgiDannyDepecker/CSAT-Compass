@@ -42,6 +42,8 @@ class ZhSignalEntry:
     score: float
     tickets: int
     disengagement_risk: bool = False  # score < 2,5★ EN < 6 kwartaaltickets
+    pillar: str = ""  # Optioneel: pijler-badge (bv. "PHARMA") — ingevuld voor ZORGI cross-pijler
+    pillar_tickets: dict = field(default_factory=dict)  # {badge: ticket_count} — ZORGI cross-pijler
 
 
 @dataclass
@@ -157,6 +159,10 @@ class DashboardData:
 
     # --- KPI Targets (Tab 6) ---
     kpi_targets: list[KpiTarget] = field(default_factory=list)
+
+    # --- ZORGI cross-pijler: ticket-breakdown per score-niveau (Tab 4 chips) ---
+    # Structuur: {score_level: {"PHARMA": 8, "CARE": 4, ...}}
+    score_pillar_breakdown: dict[int, dict[str, int]] = field(default_factory=dict)
 
     # --- Ruwe resultaten (voor geavanceerd gebruik in app.py) ---
     raw: EvolutionResult | None = None

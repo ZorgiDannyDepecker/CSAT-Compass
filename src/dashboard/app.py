@@ -61,8 +61,9 @@ from csat.core.exporters.dashboard_exporter import (  # noqa: E402
 )
 from csat.core.loaders import get_loader  # noqa: E402
 from csat.i18n import load_translations  # noqa: E402
-from csat.pillars.zorgi.analyser import ZorgiAnalyser  # noqa: E402
-from csat.pillars.zorgi.result import ZorgiResult  # noqa: E402
+from csat.pillars.zorgi.result import (  # noqa: E402
+    ZorgiResult,  # noqa: F401 — bewaard voor toekomstige ZORGI-uitbreidingen
+)
 from csat.utils.branding import (  # noqa: E402
     apply_plotly_theme,
     inject_css,
@@ -306,13 +307,12 @@ def _render_sidebar(
         for k in pillar_options:
             label_name = "ZORGI" if k == "zorgi" else PILLAR_REGISTRY[k]["name"]
             pillar_labels[k] = label_name if k in _ACTIVE_PILLARS else f"{label_name} 🚧"
-        _demo_default = "pharma" if _is_demo else "zorgi"
-        if "selected_pillar" not in st.session_state:
-            st.session_state["selected_pillar"] = _demo_default
-        _saved_pillar = st.session_state.get("selected_pillar", _demo_default)
-        if _is_demo and _saved_pillar not in _ACTIVE_PILLARS:
-            _saved_pillar = _demo_default
-            st.session_state["selected_pillar"] = _demo_default
+        _default_pillar = "zorgi"
+        _saved_pillar = st.session_state.get("selected_pillar", _default_pillar)
+        # Forceer standaard naar ZORGI als opgeslagen waarde niet (meer) geldig is
+        if _saved_pillar not in pillar_options or _saved_pillar not in _ACTIVE_PILLARS:
+            _saved_pillar = _default_pillar
+        st.session_state["selected_pillar"] = _saved_pillar
         _pillar_idx = pillar_options.index(_saved_pillar) if _saved_pillar in pillar_options else 0
         selected_pillar = st.radio(
             d["pillar_select"],
@@ -371,7 +371,6 @@ def _render_sidebar(
                 _new_d["tab_response"],
                 _new_d["tab_hospitals"],
                 _new_d["tab_targets"],
-                "DEV Tickets & Prioriteit",
             ]
             if 0 <= _tab_idx < len(_new_labels):
                 st.session_state["zorgi_tabs"] = _new_labels[_tab_idx]
@@ -978,18 +977,19 @@ def _chart_response_time(data: DashboardData, t: dict, lang: str = "nl") -> go.F
     return apply_plotly_theme(fig)
 
 
-def _chart_hospitals(data: DashboardData, t: dict) -> go.Figure:
+def _chart_hospitals(data: DashboardData, t: dict) -> go.Figure:  # noqa: C901
     """Horizontale bar chart: score per ziekenhuis (bottom10 + attention + top10), kleur op score."""
     d = t["dashboard"]
 
     # Combineer alle drie lijsten, dedupliceer op ziekenhuisnaam
-    all_zh: dict[str, tuple[float, int]] = {}  # hospital -> (score, tickets)
+    # Tuple: (score, tickets, dominant_pillar, pillar_tickets)
+    all_zh: dict[str, tuple[float, int, str, dict]] = {}
     for h in data.hospital_bottom10 or []:
-        all_zh[h.hospital] = (h.score, h.tickets)
+        all_zh[h.hospital] = (h.score, h.tickets, h.pillar, h.pillar_tickets)
     for h in data.hospital_attention or []:
-        all_zh[h.hospital] = (h.score, h.tickets)
+        all_zh[h.hospital] = (h.score, h.tickets, h.pillar, h.pillar_tickets)
     for h in data.hospital_top10 or []:
-        all_zh[h.hospital] = (h.score, h.tickets)
+        all_zh[h.hospital] = (h.score, h.tickets, h.pillar, h.pillar_tickets)
 
     if not all_zh:
         return go.Figure()
@@ -999,6 +999,26 @@ def _chart_hospitals(data: DashboardData, t: dict) -> go.Figure:
     hospitals = [x[0] for x in sorted_zh]
     scores = [x[1][0] for x in sorted_zh]
     tickets_list = [x[1][1] for x in sorted_zh]
+    dominant_pillars = [x[1][2] for x in sorted_zh]
+    pillar_tks_list = [x[1][3] for x in sorted_zh]
+
+    # Hover-tooltip: dominante pijler + volledige per-pijler ticket-uitsplitsing
+    def _hover(hosp: str, sc: float, tk: int, dominant: str, ptks: dict) -> str:
+        base = f"<b>{hosp}</b><br>{sc:.2f}★ &nbsp;·&nbsp; {tk} t"
+        if dominant:
+            base += f"<br><b>Score-pijler: {dominant}</b>"
+        if ptks:
+            base += "<br>Alle tickets:<br>" + "<br>".join(
+                f"&nbsp;&nbsp;{p}: {n} t" for p, n in sorted(ptks.items(), key=lambda x: -x[1])
+            )
+        return base + "<extra></extra>"
+
+    hover_texts = [
+        _hover(h, s, tk, dp, ptks)
+        for h, s, tk, dp, ptks in zip(
+            hospitals, scores, tickets_list, dominant_pillars, pillar_tks_list, strict=False
+        )
+    ]
 
     # Kleur op drempelwaarden
     def _zh_color(s: float) -> str:
@@ -1012,23 +1032,33 @@ def _chart_hospitals(data: DashboardData, t: dict) -> go.Figure:
 
     fig = go.Figure()
 
-    # Laag 1 — gekleurde balken met ticketcount IN de balk (wit)
+    # Laag 1 — gekleurde balken: tickets + pijler tab-uitgelijnd IN de balk
+    # Monospace font + rechts-uitgevuld ticketaantal → pijler altijd op zelfde kolom
+    def _clean_badge(b: str) -> str:
+        """Verwijder superscript-tekens (²·⁰ e.d.) uit pijlernaam voor balktext."""
+        _superscripts = "⁰¹²³⁴⁵⁶⁷⁸⁹·ⁿ"
+        return b.rstrip(_superscripts).rstrip()
+
+    inner_labels = [
+        f"  {min(tk, 99):>2} t   {_clean_badge(dp)}" if dp else f"  {min(tk, 99):>2} t  "
+        for tk, dp in zip(tickets_list, dominant_pillars, strict=False)
+    ]
     fig.add_trace(
         go.Bar(
             y=hospitals,
             x=scores,
             orientation="h",
             marker_color=colors,
-            text=[f"   {tk} t" for tk in tickets_list],
+            text=inner_labels,
             textposition="inside",
-            textfont={"color": "white", "size": 11},
+            textfont={"color": "white", "size": 10, "family": "Courier New, monospace"},
             insidetextanchor="start",
-            hovertemplate="%{y}: %{x:.2f}★ (%{text} tickets)<extra></extra>",
+            hovertemplate=hover_texts,
             showlegend=False,
         )
     )
 
-    # Laag 2 — transparante balk met score BUITEN de balk
+    # Laag 2 — transparante balk met score BUITEN de balk (rechts)
     fig.add_trace(
         go.Bar(
             y=hospitals,
@@ -1321,13 +1351,19 @@ def _zh_signal_card(zh: ZhSignalEntry) -> str:
         bar_color = ZORGI_RED
     bar_width = min(zh.score / 5.0 * 100, 100)
     hospital_safe = html.escape(zh.hospital)
-    ticket_label = (
-        "ticket" if zh.tickets == 1 else "tickets"
-    )  # 0 → tickets, 1 → ticket, >1 → tickets
+    ticket_label = "ticket" if zh.tickets == 1 else "tickets"
+    # Pillar-badge — alleen zichtbaar als zh.pillar gevuld is (ZORGI cross-pijler)
+    pillar_badge = (
+        f"<span style='background:{ZORGI_DARK_BLUE};color:#fff;font-size:0.68rem;"
+        f"font-weight:700;padding:1px 6px;border-radius:3px;margin-left:6px;"
+        f"vertical-align:middle;letter-spacing:0.03em'>{html.escape(zh.pillar)}</span>"
+        if zh.pillar
+        else ""
+    )
     return (
         f'<div class="zh-signal-card" style="border-left-color:{border_color}">'
         f'<div style="font-weight:700;font-size:0.9rem;color:{ZORGI_DARK_BLUE}">'
-        f"{hospital_safe}"
+        f"{hospital_safe}{pillar_badge}"
         f"</div>"
         f'<div style="font-size:0.82rem;color:{ZORGI_GREY_BLUE};margin-top:2px">'
         f"{zh.score:.2f}★".replace(".", ",")
@@ -2066,7 +2102,7 @@ def _tab_tickets(data: DashboardData, t: dict, lang: str) -> None:  # noqa: C901
             )
 
 
-def _tab_response(data: DashboardData, t: dict, lang: str) -> None:
+def _tab_response(data: DashboardData, t: dict, lang: str) -> None:  # noqa: C901
     """Tab 4 — Responstijd: statistieken + correlatie-panel + lijn-grafiek per score-niveau."""
     d = t["dashboard"]
 
@@ -2108,15 +2144,122 @@ def _tab_response(data: DashboardData, t: dict, lang: str) -> None:
     b_corr = data.baseline_correlation
     c_corr = data.current_correlation
 
+    def _corr_interpret(r: float | None, lang: str) -> tuple[str, str]:
+        """
+        Genereer dynamische titel + body op basis van de werkelijke r-waarde.
+
+        r < -0.1  → negatieve correlatie: wachttijd schaadt score
+        r > +0.1  → positieve correlatie: langere tickets scoren hoger (kwaliteitspatroon)
+        -0.1..0.1 → verwaarloosbare correlatie: geen lineair verband
+        """
+        if r is None:
+            _na = "Geen data" if lang == "nl" else "Aucune donnée"
+            _msg = (
+                "Onvoldoende data om correlatie te berekenen."
+                if lang == "nl"
+                else "Données insuffisantes pour calculer la corrélation."
+            )
+            return _na, _msg
+        r_str = f"{r:.3f}".replace(".", ",")
+        if r < -0.1:
+            _title = "↓ Wachttijd schaadt score" if lang == "nl" else "↓ Délai nuit au score"
+            _body = (
+                f"Negatieve correlatie (r={r_str}): langere wachttijden leiden "
+                f"aantoonbaar tot lagere scores."
+                if lang == "nl"
+                else f"Corrélation négative (r={r_str}) : des délais plus longs "
+                f"entraînent des scores plus faibles."
+            )
+        elif r > 0.1:
+            _title = (
+                "↑ Omgekeerd patroon: complexe tickets scoren hoger"
+                if lang == "nl"
+                else "↑ Modèle inversé : tickets complexes mieux notés"
+            )
+            _body = (
+                f"Positieve correlatie (r={r_str}): langere wachttijden gaan samen met "
+                f"hogere scores. Mogelijk zijn complexere issues tijdsintensief maar worden "
+                f"ze grondiger opgelost — of worden snelle sluitingen net laag beoordeeld."
+                if lang == "nl"
+                else f"Corrélation positive (r={r_str}) : des délais plus longs "
+                f"sont associés à de meilleurs scores. Les problèmes complexes prennent "
+                f"plus de temps mais sont mieux résolus — ou les clôtures rapides "
+                f"reçoivent de mauvaises notes."
+            )
+        else:
+            _title = "→ Geen lineair verband" if lang == "nl" else "→ Aucune relation linéaire"
+            _body = (
+                f"Verwaarloosbare correlatie (r={r_str}): responstijd verklaart "
+                f"de scorevariatie niet."
+                if lang == "nl"
+                else f"Corrélation négligeable (r={r_str}) : le délai n'explique "
+                f"pas la variation des scores."
+            )
+        return _title, _body
+
+    def _corr_conclusion(b: float | None, c: float | None, lang: str) -> str:
+        """Adaptieve conclusie op basis van richting-omslag baseline → huidig."""
+        if b is None or c is None:
+            return (
+                d.get("corr_conclusion_body", "Onvoldoende data voor conclusie.")
+                if lang == "nl"
+                else "Données insuffisantes pour conclure."
+            )
+        omslag = (b < -0.1 and c > 0.1) or (b > 0.1 and c < -0.1)
+        stabiel_negatief = b < -0.1 and c < -0.1
+        stabiel_positief = b > 0.1 and c > 0.1
+        if omslag:
+            return (
+                "Correlatie-ommekeer vastgesteld: het dominante probleem is verschoven. "
+                "SLA-monitoring uitbreiden met kwaliteitsmetingen — niet alleen "
+                "responstijd maar ook oplossingsgraad bewaken."
+                if lang == "nl"
+                else "Inversion de corrélation détectée : le problème dominant a changé. "
+                "Étendre le suivi SLA aux mesures de qualité — surveiller non seulement "
+                "le délai mais aussi le taux de résolution."
+            )
+        if stabiel_negatief:
+            return (
+                "Wachttijdeffect stabiel aanwezig. SLA-naleving bewaken en "
+                "responstijddrempels aanscherpen."
+                if lang == "nl"
+                else "Effet délai stable. Surveiller le respect des SLA et renforcer "
+                "les seuils de délai."
+            )
+        if stabiel_positief:
+            return (
+                "Omgekeerd wachttijdpatroon stabiel aanwezig: complexere tickets vragen "
+                "meer tijd maar scoren hoger. Focus op oplossingsgraad en vermijd "
+                "voorbarige ticket-sluiting."
+                if lang == "nl"
+                else "Modèle inversé stable : les tickets complexes prennent plus de temps "
+                "mais obtiennent de meilleures notes. Focalisez-vous sur le taux de "
+                "résolution et évitez les clôtures prématurées."
+            )
+        return (
+            d.get(
+                "corr_conclusion_body",
+                "Geen eenduidig patroon. Combineer responstijd- en kwaliteitsmonitoring.",
+            )
+            if lang == "nl"
+            else "Aucun schéma clair. Combinez le suivi des délais et de la qualité."
+        )
+
+    _bl_year = str(data.current_year - 1)
+    _cu_label = data.current_label or str(data.current_year)
+    _b_title, _b_body = _corr_interpret(b_corr, lang)
+    _c_title, _c_body = _corr_interpret(c_corr, lang)
+    _concl = _corr_conclusion(b_corr, c_corr, lang)
+
     with col1, st.container(border=True):
-        st.markdown(f"**{d['corr_2025_title']}**")
-        st.markdown(d["corr_2025_body"].format(r=f"{b_corr:.3f}" if b_corr is not None else "N/A"))
+        st.markdown(f"**{_bl_year} — {_b_title}**")
+        st.markdown(_b_body)
     with col2, st.container(border=True):
-        st.markdown(f"**{d['corr_q1_title']}**")
-        st.markdown(d["corr_q1_body"].format(r=f"{c_corr:.3f}" if c_corr is not None else "N/A"))
+        st.markdown(f"**{_cu_label} — {_c_title}**")
+        st.markdown(_c_body)
     with col3, st.container(border=True):
         st.markdown(f"**{d['corr_conclusion_title']}**")
-        st.markdown(d["corr_conclusion_body"])
+        st.markdown(_concl)
 
     st.divider()
 
@@ -2124,6 +2267,39 @@ def _tab_response(data: DashboardData, t: dict, lang: str) -> None:
     st.markdown(f"#### {d.get('response_chart_title', 'Gem. responstijd per score-niveau')}")
     if data.response_time_by_score:
         st.plotly_chart(_chart_response_time(data, t), width="stretch")
+        # ZORGI: pijler-chips per score-niveau (enkel als breakdown beschikbaar)
+        if data.score_pillar_breakdown:
+            _chips_title = (
+                "Ticketverdeling per score-niveau en pijler"
+                if lang == "nl"
+                else "Répartition des tickets par niveau de score et pilier"
+            )
+            st.markdown(
+                f"<p style='font-size:0.82rem;color:#6b7a99;margin:0.2rem 0 0.4rem 0'>"
+                f"<em>{_chips_title}</em></p>",
+                unsafe_allow_html=True,
+            )
+            _chip_css = (
+                "display:inline-block;background:#003a70;color:#fff;"
+                "font-size:0.72rem;font-weight:700;padding:2px 8px;"
+                "border-radius:12px;margin:2px 4px 2px 0;"
+                "letter-spacing:0.03em;font-family:Poppins,Verdana,sans-serif"
+            )
+            _chip_html = "<div style='margin-bottom:0.6rem'>"
+            for _sc_lv in sorted(data.score_pillar_breakdown.keys()):
+                _pil_map = data.score_pillar_breakdown[_sc_lv]
+                _total = sum(_pil_map.values())
+                _chips = "".join(
+                    f"<span style='{_chip_css}'>{html.escape(p)} {n}t</span>"
+                    for p, n in sorted(_pil_map.items(), key=lambda x: -x[1])
+                )
+                _chip_html += (
+                    f"<span style='font-size:0.82rem;font-weight:700;"
+                    f"color:#003a70;margin-right:6px'>{_sc_lv}★ ({_total}t)</span>"
+                    f"{_chips}<br>"
+                )
+            _chip_html += "</div>"
+            st.markdown(_chip_html, unsafe_allow_html=True)
     else:
         st.info(d["no_data"])
 
@@ -2505,7 +2681,7 @@ def _render_migration_tables(
         st.info(d.get("hospital_no_new", "Geen nieuwe ziekenhuizen."))
 
 
-def _tab_hospitals(data: DashboardData, t: dict, lang: str) -> None:
+def _tab_hospitals(data: DashboardData, t: dict, lang: str) -> None:  # noqa: C901
     """Tab 5 — Ziekenhuizen: bar chart + bottom10/attention/top10 + evolutie/migratie tabellen."""
     d = t["dashboard"]
     bl = data.baseline_label  # bv. "2025"
@@ -2521,9 +2697,12 @@ def _tab_hospitals(data: DashboardData, t: dict, lang: str) -> None:
         )
         st.plotly_chart(_chart_hospitals(data, t), width="stretch")
     st.markdown(
-        f"<p style='font-size:0.78rem;color:#5f8495;margin-top:-1.2rem;margin-bottom:2.5rem'>"
+        f"<p style='font-size:0.78rem;color:#5f8495;margin-top:-1.2rem;margin-bottom:0.1rem'>"
         f"<span style='color:{ZORGI_RED};font-weight:700'>- - -</span> "
-        f"{d.get('hospital_disengagement_caption', '')}</p>",
+        f"{d.get('hospital_disengagement_caption', '')}</p>"
+        f"<p style='font-size:0.78rem;color:#5f8495;margin-top:0.1rem;margin-bottom:2.5rem'>"
+        f"<span style='color:{ZORGI_GREY_BLUE};font-weight:700'>- - -</span> "
+        f"{d.get('hospital_target_caption', '4,0★ kwaliteitsdrempel')}</p>",
         unsafe_allow_html=True,
     )
 
@@ -2531,6 +2710,25 @@ def _tab_hospitals(data: DashboardData, t: dict, lang: str) -> None:
         "<hr style='margin:0 0 0.8rem 0;border:none;border-top:1px solid #e0e8f0'>",
         unsafe_allow_html=True,
     )
+
+    # Pijlerbadge-kolom tonen als minstens 1 entry een pillar-badge heeft (ZORGI cross-pijler)
+    _has_pillar_badge = any(
+        h.pillar
+        for lst in [data.hospital_bottom10, data.hospital_attention, data.hospital_top10]
+        for h in lst
+    )
+    _col_pillar = "Pijler" if lang == "nl" else "Pilier"
+
+    def _zh_row(h: ZhSignalEntry) -> dict:
+        """Bouw een tabelrij voor een ZhSignalEntry — met optionele pijlerbadge."""
+        row: dict = {
+            d["col_hospital"]: h.hospital,
+            d["col_score"]: f"{h.score:.2f}★",
+            d["col_tickets"]: str(h.tickets),
+        }
+        if _has_pillar_badge:
+            row[_col_pillar] = h.pillar or "—"
+        return row
 
     # --- A: Bottom 10 (< 3,0★) ---
     if data.hospital_bottom10:
@@ -2542,16 +2740,7 @@ def _tab_hospitals(data: DashboardData, t: dict, lang: str) -> None:
         ]
         _dis_footer = "  |  ".join(_dis_lines) if _dis_lines else ""
         _render_sortable_table(
-            pd.DataFrame(
-                [
-                    {
-                        d["col_hospital"]: h.hospital,
-                        d["col_score"]: f"{h.score:.2f}★",
-                        d["col_tickets"]: str(h.tickets),
-                    }
-                    for h in data.hospital_bottom10
-                ]
-            ),
+            pd.DataFrame([_zh_row(h) for h in data.hospital_bottom10]),
             title=f"🔴 {d['hospital_bottom10_title']}",
             export_filename=f"bottom10-{cu}.csv",
             footer_text=_dis_footer,
@@ -2567,16 +2756,7 @@ def _tab_hospitals(data: DashboardData, t: dict, lang: str) -> None:
     # --- B: Aandachtsaccounts (≥ 3,0★ & < 4,0★) ---
     if data.hospital_attention:
         _render_sortable_table(
-            pd.DataFrame(
-                [
-                    {
-                        d["col_hospital"]: h.hospital,
-                        d["col_score"]: f"{h.score:.2f}★",
-                        d["col_tickets"]: str(h.tickets),
-                    }
-                    for h in data.hospital_attention
-                ]
-            ),
+            pd.DataFrame([_zh_row(h) for h in data.hospital_attention]),
             title=f"🟡 {d['hospital_attention_title']}",
             export_filename=f"attention-{cu}.csv",
         )
@@ -2590,20 +2770,13 @@ def _tab_hospitals(data: DashboardData, t: dict, lang: str) -> None:
 
     # --- C: Top 10 (≥ 4,0★) ---
     if data.hospital_top10:
+        # Voor ZORGI: geen minimum-ticket drempel (gewogen gemiddelde, alle ZHen tellen mee)
+        _top10_footnote = "" if data.pillar == "zorgi" else d["hospital_top10_footnote"]
         _render_sortable_table(
-            pd.DataFrame(
-                [
-                    {
-                        d["col_hospital"]: h.hospital,
-                        d["col_score"]: f"{h.score:.2f}★",
-                        d["col_tickets"]: str(h.tickets),
-                    }
-                    for h in data.hospital_top10
-                ]
-            ),
+            pd.DataFrame([_zh_row(h) for h in data.hospital_top10]),
             title=f"🟢 {d['hospital_top10_title']}",
             export_filename=f"top10-{cu}.csv",
-            footer_text=d["hospital_top10_footnote"],
+            footer_text=_top10_footnote,
         )
     else:
         st.info(d["no_data"])
@@ -2867,6 +3040,12 @@ def render_kpi_targets(  # noqa: C901
 
     def _fmt_star(v: float) -> str:
         return f"{v:.2f}★".replace(".", ",")
+
+    def _delta_s(v):
+        return f"{v:+.2f}★" if v is not None else "—"
+
+    def _delta_n(v):
+        return f"{v:+.1f} ppt" if v is not None else "—"
 
     # --- Rijstructuur ---
     rows: list[dict] = []
@@ -3327,6 +3506,7 @@ def _build_issue_type_chart(
             "xanchor": "center",
             "x": 0.5,
             "itemsizing": "constant",
+            "traceorder": "normal",
         },
         margin={"t": _margin_t, "b": 0, "r": 10},
         modebar_remove=["pan2d", "autoScale2d"],
@@ -3479,6 +3659,7 @@ def _build_priority_chart(df_comparison, prev_label: str = "2025", lang: str = "
             "xanchor": "center",
             "x": 0.5,
             "itemsizing": "constant",
+            "traceorder": "normal",
         },
         margin={"t": 36, "b": 0, "r": 60},
         modebar_remove=["pan2d", "autoScale2d"],
@@ -3859,249 +4040,6 @@ def render_tab_tickets_prioriteit(
 
 
 # ---------------------------------------------------------------------------
-# ---------------------------------------------------------------------------
-# ZORGI — organisatiebrede aggregatie dashboard-tab (Fase 6b)
-# ---------------------------------------------------------------------------
-
-
-def _render_zorgi_tab(zorgi_result: ZorgiResult, t: dict, lang: str) -> None:  # noqa: C901
-    """
-    Rendert de ZORGI executive summary tab.
-
-    Secties:
-    1. KPI-kaarten (organisatie-breed, gewogen)
-    2. Pijler-vergelijking (horizontale bar chart)
-    3. Trend-tabel per pijler
-    4. Aandachtspunten
-    """
-    zg = t.get("zorgi", {})
-
-    # ── Header ──────────────────────────────────────────────────────────────
-    st.markdown(
-        f"<h2 style='color:{ZORGI_DARK_BLUE};margin-bottom:0.2rem'>{zg.get('page_title', 'ZORGI')}</h2>"
-        f"<p style='color:{ZORGI_GREY_BLUE};margin-top:0'>{zg.get('page_subtitle', '')}</p>",
-        unsafe_allow_html=True,
-    )
-
-    # ── Sectie 1: KPI-kaarten ───────────────────────────────────────────────
-    st.markdown(f"#### {zg.get('section_kpi', 'KPI')}")
-    col1, col2, col3, col4, col5 = st.columns(5)
-
-    def _delta_str(val: float) -> str:
-        sign = "+" if val > 0 else ""
-        return f"{sign}{val:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
-
-    with col1:
-        delta_label = _delta_str(zorgi_result.org_delta_avg_score)
-        st.metric(
-            zg.get("kpi_avg_score", "Gem. score"),
-            f"{zorgi_result.org_avg_score:,.2f}★".replace(",", "X")
-            .replace(".", ",")
-            .replace("X", "."),
-            delta=delta_label,
-        )
-    with col2:
-        st.metric(
-            zg.get("kpi_pct_positive", "% Positief"),
-            f"{zorgi_result.org_pct_positive:,.1f}%".replace(",", "X")
-            .replace(".", ",")
-            .replace("X", "."),
-        )
-    with col3:
-        st.metric(
-            zg.get("kpi_pct_negative", "% Negatief"),
-            f"{zorgi_result.org_pct_negative:,.1f}%".replace(",", "X")
-            .replace(".", ",")
-            .replace("X", "."),
-        )
-    with col4:
-        st.metric(
-            zg.get("kpi_total_tickets", "Tickets"),
-            f"{zorgi_result.org_total_tickets:,}".replace(",", "."),
-        )
-    with col5:
-        st.metric(
-            zg.get("kpi_n_hospitals", "Ziekenhuizen"),
-            f"{zorgi_result.org_n_hospitals:,}".replace(",", "."),
-        )
-
-    st.divider()
-
-    # ── Sectie 2: Pijler-vergelijking ───────────────────────────────────────
-    valid_summaries = [s for s in zorgi_result.pillar_summaries.values() if s is not None]
-    if not valid_summaries:
-        st.info(zg.get("no_data", "Geen data beschikbaar."))
-        return
-
-    st.markdown(f"#### {zg.get('section_pillar_comparison', 'Pijler-vergelijking')}")
-
-    pillar_names = [s.pillar.upper().replace("_", " ") for s in valid_summaries]
-    scores = [s.current_avg_score for s in valid_summaries]
-    bar_colors = [ZORGI_FUNC_POSITIVE if sc >= AVG_SCORE_MIN else ZORGI_RED for sc in scores]
-
-    fig_compare = go.Figure(
-        go.Bar(
-            x=scores,
-            y=pillar_names,
-            orientation="h",
-            marker_color=bar_colors,
-            text=[f"{sc:.2f}★" for sc in scores],
-            textposition="outside",
-        )
-    )
-    fig_compare.add_vline(x=AVG_SCORE_MIN, line_dash="dash", line_color=ZORGI_GREY_BLUE)
-    fig_compare.update_layout(
-        height=260,
-        margin={"l": 10, "r": 80, "t": 20, "b": 20},
-        xaxis={"range": [0, 5.5], "title": ""},
-        yaxis={"title": ""},
-        plot_bgcolor="#ffffff",
-        paper_bgcolor="#ffffff",
-    )
-    apply_plotly_theme(fig_compare)
-    st.plotly_chart(fig_compare, use_container_width=True)
-
-    st.divider()
-
-    # ── Sectie 3: Trend-tabel ───────────────────────────────────────────────
-    st.markdown(f"#### {zg.get('section_trend', 'Trend per pijler')}")
-
-    trend_icons = {
-        "improving": zg.get("trend_improving", "↑"),
-        "stable": zg.get("trend_stable", "→"),
-        "declining": zg.get("trend_declining", "↓"),
-    }
-    trend_colors = {
-        "improving": ZORGI_FUNC_POSITIVE,
-        "stable": ZORGI_GREY_BLUE,
-        "declining": ZORGI_RED,
-    }
-
-    col_pillar = zg.get("col_pillar", "Pijler")
-    col_current = zg.get("col_current_score", "Score").format(year=zorgi_result.current_label)
-    col_baseline = zg.get("col_baseline_score", "Baseline")
-    col_delta = zg.get("col_delta", "Δ")
-    col_pct_pos = zg.get("col_pct_positive", "% Positief")
-    col_pct_neg = zg.get("col_pct_negative", "% Negatief")
-    col_hc = zg.get("col_hc_ratio", "H/C %")
-    col_tickets = zg.get("col_tickets", "Tickets")
-    col_trend = zg.get("col_trend", "Trend")
-
-    header_cells = [
-        col_pillar,
-        col_current,
-        col_baseline,
-        col_delta,
-        col_pct_pos,
-        col_pct_neg,
-        col_hc,
-        col_tickets,
-        col_trend,
-    ]
-    header_html = "".join(
-        f"<th style='background:{ZORGI_DARK_BLUE};color:#fff;padding:6px 10px;"
-        f"text-align:{'left' if i == 0 else 'right'};white-space:nowrap'>{h}</th>"
-        for i, h in enumerate(header_cells)
-    )
-
-    rows_html = ""
-    for idx, s in enumerate(valid_summaries):
-        bg = "#ffffff" if idx % 2 == 0 else ZORGI_ULTRA_LIGHT
-        trend_icon = trend_icons.get(s.trend, "→")
-        trend_color = trend_colors.get(s.trend, ZORGI_GREY_BLUE)
-        delta_color = (
-            ZORGI_FUNC_POSITIVE
-            if s.delta_avg_score > 0
-            else (ZORGI_RED if s.delta_avg_score < 0 else ZORGI_GREY_BLUE)
-        )
-        sign = "+" if s.delta_avg_score > 0 else ""
-        cells = [
-            f"<strong>{s.pillar.upper().replace('_', ' ')}</strong>",
-            f"{s.current_avg_score:.2f}★",
-            f"{s.baseline_avg_score:.2f}★",
-            f"<span style='color:{delta_color}'>{sign}{s.delta_avg_score:.2f}</span>",
-            f"{s.current_pct_positive:.1f}%",
-            f"{s.current_pct_negative:.1f}%",
-            f"{s.current_hc_ratio:.1f}%",
-            f"{s.current_total:,}".replace(",", "."),
-            f"<span style='color:{trend_color};font-weight:700'>{trend_icon}</span>",
-        ]
-        row_html = "".join(
-            f"<td style='padding:5px 10px;background:{bg};"
-            f"text-align:{'left' if j == 0 else 'right'}'>{c}</td>"
-            for j, c in enumerate(cells)
-        )
-        rows_html += f"<tr>{row_html}</tr>"
-
-    table_html = (
-        f"<table style='width:100%;border-collapse:collapse;font-size:0.88rem'>"
-        f"<thead><tr>{header_html}</tr></thead>"
-        f"<tbody>{rows_html}</tbody></table>"
-    )
-    st.markdown(table_html, unsafe_allow_html=True)
-
-    # Trendtelling samenvatting
-    summary_txt = zg.get("pillars_summary", "").format(
-        improving=zorgi_result.pillars_improving,
-        stable=zorgi_result.pillars_stable,
-        declining=zorgi_result.pillars_declining,
-    )
-    st.markdown(
-        f"<p style='color:{ZORGI_GREY_BLUE};font-size:0.82rem;margin-top:0.4rem'>{summary_txt}</p>",
-        unsafe_allow_html=True,
-    )
-
-    st.divider()
-
-    # ── Sectie 4: Aandachtspunten ──────────────────────────────────────────
-    st.markdown(f"#### {zg.get('section_attention', 'Aandachtspunten')}")
-
-    attention_items: list[str] = []
-
-    # Best/worst pijler
-    if zorgi_result.best_pillar:
-        attention_items.append(
-            f"🥇 **{zg.get('best_pillar', 'Beste pijler')}:** "
-            f"{zorgi_result.best_pillar.upper().replace('_', ' ')}"
-        )
-    if zorgi_result.worst_pillar and zorgi_result.worst_pillar != zorgi_result.best_pillar:
-        attention_items.append(
-            f"⚠️ **{zg.get('worst_pillar', 'Slechtste pijler')}:** "
-            f"{zorgi_result.worst_pillar.upper().replace('_', ' ')}"
-        )
-
-    # Meest dalende pijler
-    if zorgi_result.pillar_most_declining:
-        declining_summary = next(
-            (s for s in valid_summaries if s.pillar == zorgi_result.pillar_most_declining), None
-        )
-        if declining_summary and declining_summary.delta_avg_score < 0:
-            note = zg.get("attention_note_declining", "").format(
-                pillar=zorgi_result.pillar_most_declining.upper().replace("_", " "),
-                delta=f"{declining_summary.delta_avg_score:.2f}",
-            )
-            attention_items.append(f"📉 {note}")
-
-    # Hoogste H/C ratio
-    if zorgi_result.pillar_highest_hc:
-        hc_summary = next(
-            (s for s in valid_summaries if s.pillar == zorgi_result.pillar_highest_hc), None
-        )
-        if hc_summary:
-            note = zg.get("attention_note_hc", "").format(
-                pillar=zorgi_result.pillar_highest_hc.upper().replace("_", " "),
-                value=f"{hc_summary.current_hc_ratio:.1f}",
-            )
-            attention_items.append(f"🔴 {note}")
-
-    if attention_items:
-        for item in attention_items:
-            st.markdown(item)
-    else:
-        st.success("✅ Geen bijzondere aandachtspunten.")
-
-
-# ---------------------------------------------------------------------------
 # Coming soon placeholder (niet-actieve pijlers)
 # ---------------------------------------------------------------------------
 
@@ -4136,7 +4074,7 @@ def main() -> None:  # noqa: C901
     if "lang" not in st.session_state:
         st.session_state["lang"] = "nl"
     if "selected_pillar" not in st.session_state:
-        st.session_state["selected_pillar"] = "pharma" if not DASHBOARD_PROD_MODE else "zorgi"
+        st.session_state["selected_pillar"] = "zorgi"
     if "selected_mode_key" not in st.session_state:
         st.session_state["selected_mode_key"] = "full"
 
@@ -4184,47 +4122,7 @@ def main() -> None:  # noqa: C901
         inject_sidebar_toggle()
         return
 
-    # ── ZORGI pijler — aggregeer de 4 sub-pijlers ───────────────────────────
-    if selected_pillar == "zorgi":
-        zorgi_pillar_name = PILLAR_REGISTRY["zorgi"].get("report_name", "ZORGI")
-        render_topbar(
-            _topbar,
-            today_str,
-            prod_mode=DASHBOARD_PROD_MODE,
-            pillar_name=zorgi_pillar_name,
-            version=_APP_VERSION,
-        )
-        with st.spinner("ZORGI aggregatie laden…"):
-            _sub_pillars = [k for k in _ACTIVE_PILLARS if k != "zorgi"]
-            pillar_results: dict = {}
-            for _sp in _sub_pillars:
-                try:
-                    if selected_hospitals:
-                        _df_sp = _df_raw[_df_raw["hospital"].isin(selected_hospitals)]
-                        pillar_results[_sp] = _run_analysis_on_df(
-                            _df_sp,
-                            baseline_year=_BASELINE_YEAR,
-                            current_year=last_year,
-                            current_month=last_month,
-                            pillar=_sp,
-                        )
-                    else:
-                        pillar_results[_sp] = _run_analysis(
-                            baseline_year=_BASELINE_YEAR,
-                            current_year=last_year,
-                            current_month=last_month,
-                            pillar=_sp,
-                        )
-                except Exception:  # noqa: BLE001
-                    pillar_results[_sp] = None
-            zorgi_result = ZorgiAnalyser(pillar_results).aggregate()
-        _render_zorgi_tab(zorgi_result, t, lang)
-        inject_tab_scroll_reset()
-        inject_iframe_resize()
-        inject_sidebar_toggle()
-        return
-
-    # PHARMA data laden en analyseren
+    # Data laden en analyseren (alle pijlers incl. ZORGI — zelfde pad)
     with st.spinner("Data laden…"):
         try:
             if selected_hospitals:
@@ -4251,6 +4149,109 @@ def main() -> None:  # noqa: C901
 
     # Dashboard-data voorbereiden (snel, niet gecached)
     data = DashboardExporter.prepare(result, window_start)
+
+    # ── ZORGI: cross-pijler signaal — overschrijf zh_bottom3 / zh_attention_list / zh_top3
+    # Per sub-pijler de slechte/aandachts/beste ZHen bepalen.
+    # Deduplicatie: ziekenhuis dat in 2+ pijlers voorkomt wordt slechts 1x opgenomen,
+    # met de meest extreme score (laagste voor worst/attn, hoogste voor best) en de
+    # bijhorende pijlerbadge. ZORGI-score = gewogen gemiddelde over alle pijlers.
+    if selected_pillar == "zorgi":
+        _sub_pillars = [k for k in _ACTIVE_PILLARS if k != "zorgi"]
+        # Per ZH: per-pijler (score, tickets) verzamelen voor gewogen gemiddelde
+        _hospital_data: dict[str, dict[str, tuple[float, int]]] = {}
+        # Tab 4: ticket-breakdown per score-niveau per pijler (chips)
+        _score_pbd: dict[int, dict[str, int]] = {}
+        # Tab 5: per-ZH per-pijler ticket-counts (chips in grafiek)
+        _zh_pillar_tks: dict[str, dict[str, int]] = {}
+        for _sp in _sub_pillars:
+            try:
+                if selected_hospitals:
+                    _df_sp = _df_raw[_df_raw["hospital"].isin(selected_hospitals)]
+                    _sp_result = _run_analysis_on_df(
+                        _df_sp,
+                        baseline_year=_BASELINE_YEAR,
+                        current_year=last_year,
+                        current_month=last_month,
+                        pillar=_sp,
+                    )
+                else:
+                    _sp_result = _run_analysis(
+                        baseline_year=_BASELINE_YEAR,
+                        current_year=last_year,
+                        current_month=last_month,
+                        pillar=_sp,
+                    )
+            except Exception:  # noqa: BLE001, S112
+                continue
+            _badge = PILLAR_REGISTRY[_sp]["name"]
+            # Tab 4: aggregeer ticket-counts per score-niveau per pijler (chips)
+            for _sc_lv, _rt_row in _sp_result.response_time_by_score.items():
+                if _rt_row.current_count > 0:
+                    _score_pbd.setdefault(_sc_lv, {})
+                    _score_pbd[_sc_lv][_badge] = (
+                        _score_pbd[_sc_lv].get(_badge, 0) + _rt_row.current_count
+                    )
+            for _hc in _sp_result.hospital_comparison:
+                if _hc.current_score is None or _hc.current_total == 0:
+                    continue
+                _zh = _hc.hospital
+                _sc = _hc.current_score
+                _tk = _hc.current_total
+                # Per ZH per pijler bijhouden voor gewogen gemiddelde
+                _hospital_data.setdefault(_zh, {})
+                _hospital_data[_zh][_badge] = (_sc, _tk)
+                # Tab 5 chips: alle tickets per pijler per ZH bijhouden
+                _zh_pillar_tks.setdefault(_zh, {})
+                _zh_pillar_tks[_zh][_badge] = _zh_pillar_tks[_zh].get(_badge, 0) + _tk
+
+        # Na de loop: gewogen gemiddelde berekenen per ZH en categoriseren
+        _map_worst: dict[str, ZhSignalEntry] = {}
+        _map_attn: dict[str, ZhSignalEntry] = {}
+        _map_best: dict[str, ZhSignalEntry] = {}
+        for _zh, _pdata in _hospital_data.items():
+            _total_tk = sum(_tk for _sc, _tk in _pdata.values())
+            if _total_tk == 0:
+                continue
+            _wavg = sum(_sc * _tk for _sc, _tk in _pdata.values()) / _total_tk
+            _wavg = round(_wavg, 2)
+            # Zwakste pijler als badge (actie-indicator)
+            _weak_badge = min(_pdata.items(), key=lambda x: x[1][0])[0]
+            _entry = ZhSignalEntry(
+                hospital=_zh,
+                score=_wavg,
+                tickets=_total_tk,
+                disengagement_risk=_wavg < 2.5 and _total_tk < 6,
+                pillar=_weak_badge,
+            )
+            if _wavg < 3.0:
+                _map_worst[_zh] = _entry
+            elif _wavg < 4.0:
+                _map_attn[_zh] = _entry
+            else:
+                _map_best[_zh] = _entry
+        # Sorteer en beperk tot top 3 — elk ZH slechts 1x
+        _cross_worst = sorted(_map_worst.values(), key=lambda x: (x.score, -x.tickets))
+        _cross_attn = sorted(_map_attn.values(), key=lambda x: (x.score, -x.tickets))
+        _cross_best = sorted(_map_best.values(), key=lambda x: (-x.score, -x.tickets))
+        data.zh_bottom3 = _cross_worst[:3]
+        data.zh_attention_list = _cross_attn[:3]
+        data.zh_top3 = _cross_best[:3]
+        # Tegel 8: unieke ZHen (per definitie al 1x per ZH door dict-structuur)
+        data.kpi_critical_accounts = len(_map_worst)
+        data.kpi_attention_accounts = len(_map_attn)
+        data.kpi_critical_account_names = sorted(_map_worst.keys())
+        # Tab 5 Ziekenhuizen: per-pijler worst-case (zelfde logica als Samenvatting)
+        data.hospital_bottom10 = sorted(_map_worst.values(), key=lambda x: (x.score, -x.tickets))[
+            :10
+        ]
+        data.hospital_attention = sorted(_map_attn.values(), key=lambda x: (x.score, -x.tickets))
+        data.hospital_top10 = sorted(_map_best.values(), key=lambda x: (-x.score, -x.tickets))[:10]
+        # Vul pillar_tickets in op elke ZhSignalEntry (grafiek chips)
+        for _lst in [data.hospital_bottom10, data.hospital_attention, data.hospital_top10]:
+            for _entry in _lst:
+                _entry.pillar_tickets = _zh_pillar_tks.get(_entry.hospital, {})
+        # Tab 4: pijler-chips per score-niveau
+        data.score_pillar_breakdown = _score_pbd
 
     # Topbar bijwerken met pijler- en periodeinfo
     _cur_label = period_label(f"{last_year}-{last_month:02d}", lang=lang)

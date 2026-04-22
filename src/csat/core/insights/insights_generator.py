@@ -1500,7 +1500,7 @@ class InsightsGenerator:
             pattern = "|".join(re.escape(kw) for kw in keywords)
             hits = neg["comment"].fillna("").str.lower().str.contains(pattern, regex=True)
             pct = round(hits.sum() / n * 100, 1)
-            if pct > 0:
+            if pct > 0:  # Toon alle thema's met minstens 1 hit; display toont 1 decimaal
                 labels_nl = _theme_labels_nl
                 labels_fr = _theme_labels_fr
                 naam = self._ls(
@@ -1509,8 +1509,8 @@ class InsightsGenerator:
                 )
                 actie = THEME_ACTION_HINTS.get(theme_key, "")
                 beschrijving = self._ls(
-                    f"{pct:.0f}% van negatieve tickets — {actie}",
-                    f"{pct:.0f}% des tickets négatifs — {actie}",
+                    f"{pct:.1f}% van negatieve tickets — {actie}",
+                    f"{pct:.1f}% des tickets négatifs — {actie}",
                 )
                 results.append({"naam": naam, "beschrijving": beschrijving, "pct": pct})
 

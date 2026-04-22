@@ -3,6 +3,249 @@
 Alle noemenswaardige wijzigingen aan dit project worden hier gedocumenteerd.
 Formaat gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.0.0/).
 
+## [0.7.21] — 22/04/2026
+
+### Gewijzigd
+
+- `src/dashboard/app.py` — `_chart_hospitals()`: superscript-tekens (`²·⁰`) verwijderd uit pijlerbadge in balktext via `_clean_badge()` — enkel in de grafiek, elders blijft `ERP4HC²·⁰` behouden
+
+## [0.7.20] — 22/04/2026
+
+### Gewijzigd
+
+- `src/dashboard/app.py` — `_chart_hospitals()`: balktext tab-stop hersteld met 2-cijferige rechts-uitvulling (`{tk:>2}`, max 99) zodat pijlernaam altijd op vaste kolom 7 begint
+
+## [0.7.19] — 22/04/2026
+
+### Gewijzigd
+
+- `src/dashboard/app.py` — `_chart_hospitals()`: balktext formaat terug naar `"  xx t   PIJLER"` met spatie voor én na `t`
+
+## [0.7.18] — 22/04/2026
+
+### Gewijzigd
+
+- `src/dashboard/app.py` — `_chart_hospitals()`: balktext formaat aangepast naar `"xx t  PIJLER"` zonder rechts-uitvulling (`{tk:>3}` → `{tk}`)
+
+## [0.7.17] — 22/04/2026
+
+### Gewijzigd
+
+- `src/dashboard/app.py` — `_chart_hospitals()`: balktext formaat aangepast
+  van `"  10t  PHARMA"` naar `"   10 t  PHARMA"` (spatie tussen getal en "t").
+
+## [0.7.16] — 22/04/2026
+
+### Gewijzigd
+
+- `src/dashboard/app.py` — `_chart_hospitals()`: balktext gebruikt nu
+  `"Courier New, monospace"` font met rechts-uitgevuld ticketaantal (`{tk:>3}t`).
+  Hierdoor staat de pijlernaam in alle balken op exact dezelfde kolompositie
+  (tab-principe). Formaat: `"   10t  PHARMA"` / `"    3t  ERP4HC"`.
+
+## [0.7.15] — 22/04/2026
+
+### Gewijzigd
+
+- `src/dashboard/app.py` — `_chart_hospitals()`: tickets + pijler terug als
+  één tekst op `insidetextanchor="start"` — formaat `"   10 t  PHARMA"`.
+  Alle balken starten op dezelfde vaste afstand van de balkrand (visueel
+  consistent). Aparte end-trace verwijderd.
+- `src/dashboard/app.py` — `_tab_hospitals()`: witruimte tussen Disengagement-
+  en Kwaliteitsdrempel-caption teruggebracht (`margin-bottom:0.1rem` /
+  `margin-top:0.1rem`) zodat de twee regels dichter bij elkaar staan.
+
+## [0.7.14] — 22/04/2026
+
+### Gewijzigd
+
+- `src/dashboard/app.py` — `_chart_hospitals()`: pijler-label blijft **binnen**
+  de balk maar is nu verticaal uitgelijnd via `insidetextanchor="end"` (rechts
+  in de balk). Tickets blijven links (`insidetextanchor="start"`). Aparte
+  transparante trace (Laag 2) voor de pijler, zodat beide labels onafhankelijk
+  gepositioneerd zijn ongeacht balkbreedte.
+- `src/dashboard/app.py` — `_tab_hospitals()`: kwaliteitsdrempel-caption
+  staat nu op een **aparte regel** ónder de Disengagement-caption
+  (was: op dezelfde regel naast elkaar).
+
+## [0.7.13] — 22/04/2026
+
+### Gewijzigd
+
+- `src/dashboard/app.py` — `_chart_hospitals()`: pijler-label verplaatst van
+  **binnen** de balk naar **buiten** (naast de score). Formaat: `5.00★  PHARMA`.
+  Ticket-count blijft alleen binnen de balk: `   10 t`. Hierdoor is de pijler
+  altijd leesbaar ongeacht de balkbreedte.
+- `src/dashboard/app.py` — `_tab_hospitals()`: caption onder de grafiek uitgebreid
+  met de grijze stippellijn: `- - - Kwaliteitsdrempel (4,0★)`.
+- `src/dashboard/app.py` — `_tab_hospitals()`: voetnoot "min. 5 tickets"
+  wordt **niet** getoond voor ZORGI (de gewogen gemiddelde logica heeft geen
+  minimum-ticket drempel). Andere pijlers: voetnoot ongewijzigd.
+
+### Toegevoegd
+
+- `src/csat/i18n/nl.json` + `fr.json`: nieuwe sleutel `hospital_target_caption`
+  voor de grijze 4,0★-drempellijn beschrijving (NL + FR).
+
+## [0.7.12] — 22/04/2026
+
+### Gewijzigd
+
+- `src/dashboard/app.py` — ZORGI ZH-aggregatie fundamenteel herzien:
+  **was:** laagste per-pillar score als ZH-score (worst-case, misleidend)
+  **nu:** **gewogen gemiddelde** over alle pijlers als ZH-score.
+  Voorbeeld: BONHEIDEN_IMELDA PHARMA 3t×3.00★ + ERP4HC 2t×5.00★
+  → ZORGI-score = (9+10)/5 = **3.80★** (aandacht) ipv 3.00★ (kritiek).
+  - Badge = **zwakste pijler** (actie-indicator: waar verbetering nodig is)
+  - Categorisatie (rood/oranje/groen) op gewogen gemiddelde
+  - `_hospital_data` dict verzamelt per-pijler (score, tickets) vóór de
+    gewogen gemiddelde berekening — volledige separatie data vs. weergave
+
+## [0.7.11] — 22/04/2026
+
+### Gewijzigd
+
+- `src/dashboard/app.py` — `_chart_hospitals()`: balk-label toont nu uitsluitend
+  de **dominante pijler** (de pijler die de getoonde score bepaalt, = `h.pillar`),
+  niet langer alle pijlers met tickets. Formaat: `"   10 t     PHARMA"`.
+  Hover-tooltip toont nog steeds de volledige ticket-uitsplitsing per pijler
+  als extra context.
+
+## [0.7.10] — 22/04/2026
+
+### Verwijderd
+
+- `src/dashboard/app.py` — tijdelijke DEBUG `st.caption` in `_tab_hospitals()` verwijderd
+  (diagnose WAREGEM_OLVLOURDES afgerond — ZH staat correct op positie #3 in Top 10).
+- `WIP/trace_waregem.py` — tijdelijk diagnosescript verwijderd.
+
+## [0.7.9] — 22/04/2026
+
+### Opgelost
+
+- `src/dashboard/app.py` — ZORGI loop `main()`: `KeyError` op `_zh_pillar_tks[_zh]`
+  in de per-ZH per-pijler ticket-aggregatie. Oorzaak: Python evalueert de rechterkant
+  van een toewijzing vóór de linkerkant — `_zh_pillar_tks[_zh].get(...)` werd aangeroepen
+  vóórdat `setdefault` de sleutel had aangemaakt.
+  Fix: `setdefault` op aparte regel gezet zodat de lege dict gegarandeerd bestaat
+  vóór de `get`-aanroep.
+
+## [0.7.8] — 22/04/2026
+
+### Toegevoegd
+
+- `src/csat/core/exporters/dashboard_exporter.py` — `ZhSignalEntry`: nieuw veld
+  `pillar_tickets: dict` voor per-pijler ticket-breakdown per ziekenhuis (ZORGI).
+- `src/csat/core/exporters/dashboard_exporter.py` — `DashboardData`: nieuw veld
+  `score_pillar_breakdown: dict[int, dict[str, int]]` voor ZORGI cross-pijler
+  ticket-verdeling per score-niveau (1–5★) per pijler-badge (Tab 4).
+- `src/dashboard/app.py` — ZORGI loop in `main()`: bouwt `_zh_pillar_tks`
+  (per-ZH per-pijler ticket-counts) en vult `pillar_tickets` in op elke
+  `ZhSignalEntry` in `hospital_bottom10/attention/top10`.
+- `src/dashboard/app.py` — `_chart_hospitals()`: balk-label toont voor ZORGI
+  de per-pijler breakdown: `"   12 t     CARE 8t  ·  PHARMA 4t"`. Hover-tooltip
+  toont de volledige pijler-uitsplitsing. Voor andere pijlers: geen wijziging.
+
+### Opgelost
+
+- `src/dashboard/app.py` — standaard opstartpijler: lijn 3988 (`main()` initialisatie)
+  corrigeerde hardcoded `"pharma"` in demo-modus naar altijd `"zorgi"`.
+- `src/dashboard/app.py` — ZORGI Top 10 ziekenhuizen: ZH met 5★ in PHARMA maar
+  3–4★ in andere pijler → gemengd profiel, nu correct opgenomen in `_map_best`.
+
+## [0.7.7] — 22/04/2026
+
+### Opgelost
+
+- `src/csat/core/insights/insights_generator.py` — `_generate_feedback_themes()`:
+  drempel teruggebracht van `>= 1.0` naar `> 0`. De 1%-drempel zorgde ervoor dat
+  ZORGI (grotere gecombineerde noemer) minder thema's toonde dan individuele pijlers.
+  De `{pct:.1f}%`-weergave (1 decimaal) blijft behouden: "0,2%" is eerlijk
+  en vermijdt de vorige verwarring van de afgeronde "0%"-weergave.
+
+## [0.7.6] — 22/04/2026
+
+### Opgelost
+
+- `src/csat/core/insights/insights_generator.py` — `_generate_feedback_themes()`:
+  drempel verhoogd van `pct > 0` naar `pct >= 1.0` om misleidende "0%"-weergave
+  te vermijden. Een thema met 1 hit op 500 negatieve tickets (= 0,2%) heeft geen
+  signaalwaarde en wordt nu verborgen.
+  Weergaveformaat bijgewerkt van `{pct:.0f}%` naar `{pct:.1f}%` zodat waarden
+  zoals 1,4% correct leesbaar zijn (was: "1%", nu: "1,4%").
+
+## [0.7.5] — 22/04/2026
+
+### Opgelost
+
+- `src/dashboard/app.py` — ZORGI cross-pijler signaal: deduplicatie hersteld.
+  Vorige implementatie gebruikte `pillar|hospital` als sleutel waardoor een ZH dat
+  in 2 pijlers voorkomt tweemaal in de signaalkaarten kon verschijnen.
+  Nieuwe implementatie gebruikt `dict[hospital → ZhSignalEntry]`:
+  elk ziekenhuis verschijnt maximaal 1x, met de meest extreme score en bijhorende badge.
+  Escalatielogica: als een ZH al in `_map_attn` staat maar in een andere pijler < 3,0★
+  scoort, wordt het verplaatst naar `_map_worst` (en vice versa voor best → attn → worst).
+  Teller `kpi_critical_accounts` / `kpi_attention_accounts` correct via dict-lengte.
+
+## [0.7.4] — 22/04/2026
+
+### Opgelost
+
+- `src/dashboard/app.py` — Tegel 8 (Ziekenhuizen: kritiek · aandacht) toonde verkeerde
+  telwaarden voor ZORGI: `kpi_critical_accounts`, `kpi_attention_accounts` en
+  `kpi_critical_account_names` werden overschreven op basis van de cross-pijler lijsten.
+  Unieke ziekenhuizen worden geteld over alle sub-pijlers (een ZH dat in 2 pijlers
+  slecht scoort telt als 1 kritiek ziekenhuis, niet als 2).
+
+## [0.7.3] — 22/04/2026
+
+### Toegevoegd
+
+- `src/csat/core/exporters/dashboard_exporter.py` — `ZhSignalEntry` uitgebreid met
+  optioneel `pillar: str = ""` veld voor cross-pijler badge (ZORGI)
+- `src/dashboard/app.py` — ZORGI cross-pijler signaallogica in `main()`:
+  na `DashboardExporter.prepare()` worden `zh_bottom3`, `zh_attention_list` en `zh_top3`
+  overschreven met per-sub-pijler resultaten. Elk signaalkaartje toont een pijlerbadge
+  (bv. `PHARMA`, `CARE`) zodat de signaaloorsprong direct zichtbaar is.
+  Sleuteleigenschap: een ZH dat in ERP4HC 1,0★ scoort maar CARE 4,8★ verschijnt
+  nu correct in "Top 3 minst" met badge `ERP4HC²·⁰`
+- `src/dashboard/app.py` — `_zh_signal_card()` uitgebreid: toont een donkerblauw
+  pijler-badge naast de ziekenhuisnaam wanneer `zh.pillar` gevuld is
+
+## [0.7.2] — 22/04/2026
+
+### Gewijzigd
+
+- `src/dashboard/app.py` — ZORGI omgezet naar volledige analogie van de 4 sub-pijlers:
+  - Speciale ZORGI-aggregatiebranch verwijderd uit `main()` — ZORGI loopt nu via
+    hetzelfde code-pad als PHARMA/CARE/CARE ADMIN/ERP4HC
+  - `EvolutionAnalyser` filtert op alle 4 product-domeinen gecombineerd
+    (`PHARMA · CARE · CARE ADMIN · ERP`) via bestaande `pillars.py`-config
+  - Dezelfde 6 tabbladen (Samenvatting, Tijdlijn, Tickets & Prioriteit, Responstijd,
+    Ziekenhuizen, KPI Targets) — geen aangepaste ZORGI-specifieke rendering meer
+  - Dead-code verwijderd: `_render_zorgi_tab()`, `_zorgi_tab_samenvatting()`,
+    `_zorgi_tab_trendoverzicht()`, `_zorgi_tab_aandachtspunten()`
+  - `ZorgiAnalyser`-import verwijderd; `ZorgiResult`-import behouden (toekomstig gebruik)
+  - Sidebar taalwissel: 7e DEV-label verwijderd uit `_new_labels` lijst
+
+### Verwijderd
+
+- `src/dashboard/app.py` — ZORGI-specifieke subtab-functies (4 functies, ~260 lijnen)
+
+## [0.7.1] — 22/04/2026
+
+### Gewijzigd
+
+- `src/dashboard/app.py` — `_render_zorgi_tab()` gerefactord naar 3 tabbladen:
+  `Samenvatting` (KPI-kaarten + Pijler-vergelijking), `Trendoverzicht` (trendtabel per pijler),
+  `Aandachtspunten` (beste/slechtste pijler, dalende pijler, H/C ratio).
+  Inhoud opgesplitst in 3 private sub-functies: `_zorgi_tab_samenvatting()`,
+  `_zorgi_tab_trendoverzicht()`, `_zorgi_tab_aandachtspunten()`.
+  Tab-state bewaard via `st.session_state["_zorgi_inner_tab_idx"]` (taalwissel-bestendig).
+- `src/csat/i18n/nl.json` — 3 tab-labels toegevoegd aan `zorgi`-sectie:
+  `tab_samenvatting`, `tab_trendoverzicht`, `tab_aandachtspunten`
+- `src/csat/i18n/fr.json` — idem (Franstalige equivalenten)
+
 ## [0.7.0] — 22/04/2026
 
 ### Toegevoegd
