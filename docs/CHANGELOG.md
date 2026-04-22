@@ -3,6 +3,17 @@
 Alle noemenswaardige wijzigingen aan dit project worden hier gedocumenteerd.
 Formaat gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.0.0/).
 
+## [0.7.22] — 22/04/2026
+
+### Opgelost
+
+- `docs/CHANGELOG.md` — MD038: spaties in code-span (`` `   10 t` `` → `` `10 t` ``)
+- `docs/02-tactisch/fasen/fase6-zorgi-aggregatie.md` — MD051: ongeldig anchor in inhoudsopgave
+- `docs/02-tactisch/fasen/fase6-zorgi-aggregatie.md` — MD032: lege regels ontbraken rond lijsten
+- `docs/02-tactisch/fasen/fase6-zorgi-aggregatie.md` — MD040: code-block zonder taalspecificatie
+- `docs/02-tactisch/fasen/fase6-zorgi-aggregatie.md` — MD012: meerdere opeenvolgende lege regels (CRLF)
+- GitHub CI Markdown Lint check slaagt nu op alle 53 `.md`-bestanden
+
 ## [0.7.21] — 22/04/2026
 
 ### Gewijzigd
