@@ -17,7 +17,7 @@
 
 1. [Context & Doelstelling](#1-context--doelstelling)
 2. [Architectuurprincipe](#2-architectuurprincipe)
-3. [Huidige toestand](#3-huidige-toestand)
+3. [Huidige toestand](#3-huidige-toestand-per-21042026)
 4. [Deliverables Fase 6](#4-deliverables-fase-6)
 5. [Technische specificatie](#5-technische-specificatie)
 6. [Dashboard — ZORGI-tab](#6-dashboard--zorgi-tab)
@@ -33,11 +33,13 @@ ZORGI is de **centrale pijler** die de 4 pillar-analysers (PHARMA, CARE, CARE AD
 combineert tot een organisatiebrede CSAT-weergave. Zie projectplan §2 + §4.3.
 
 **Doel van Fase 6:**
+
 - Een ZORGI-analyser die de output van de 4 pijlers aggregeert
 - Een ZORGI dashboard-tab die de organisatiebrede scores toont
 - Optioneel: een ZORGI-rapport (NL + FR) als executive summary
 
 **Doelgroep output:**
+
 - CEO Eric (executive samenvatting — geen technische details)
 - COO Christian (operationele KPI's — vergelijking pijlers)
 - Intern PHARMA-team (context voor eigen pijler t.o.v. organisatie)
@@ -184,7 +186,7 @@ De ZORGI-tab toont een **organisatiebrede samenvatting** — compacter dan een p
 
 **Sectie 2 — Pijler-vergelijking (horizontale bar chart)**
 
-```
+```text
 PHARMA      ████████████ 4,55★
 CARE        ██████████   4,20★
 CARE ADMIN  █████████    4,10★
