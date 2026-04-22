@@ -74,7 +74,7 @@ Formaat gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.0.0/).
 
 - `src/dashboard/app.py` — `_chart_hospitals()`: pijler-label verplaatst van
   **binnen** de balk naar **buiten** (naast de score). Formaat: `5.00★  PHARMA`.
-  Ticket-count blijft alleen binnen de balk: `   10 t`. Hierdoor is de pijler
+  Ticket-count blijft alleen binnen de balk: `10 t`. Hierdoor is de pijler
   altijd leesbaar ongeacht de balkbreedte.
 - `src/dashboard/app.py` — `_tab_hospitals()`: caption onder de grafiek uitgebreid
   met de grijze stippellijn: `- - - Kwaliteitsdrempel (4,0★)`.
