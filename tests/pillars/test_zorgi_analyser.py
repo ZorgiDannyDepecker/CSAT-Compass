@@ -182,7 +182,7 @@ class TestZorgiAnalyserGewogenGemiddelde:
             "pharma": _make_evolution_result("pharma", 100, 4.0, 4.0),
             "care": _make_evolution_result("care", 100, 3.0, 3.0),
         }
-        analyser = ZorgiAnalyser(results)
+        analyser = ZorgiAnalyser(results)  # type: ignore[arg-type]
         result = analyser.aggregate()
         assert result.org_avg_score == pytest.approx(3.50, abs=0.01)
 
@@ -195,7 +195,7 @@ class TestZorgiAnalyserGewogenGemiddelde:
             "pharma": _make_evolution_result("pharma", 200, 4.0, 4.0),
             "care": _make_evolution_result("care", 100, 3.0, 3.0),
         }
-        analyser = ZorgiAnalyser(results)
+        analyser = ZorgiAnalyser(results)  # type: ignore[arg-type]
         result = analyser.aggregate()
         expected = (200 * 4.0 + 100 * 3.0) / 300
         assert result.org_avg_score == pytest.approx(expected, abs=0.01)
