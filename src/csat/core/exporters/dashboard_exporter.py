@@ -164,6 +164,10 @@ class DashboardData:
     # Structuur: {score_level: {"PHARMA": 8, "CARE": 4, ...}}
     score_pillar_breakdown: dict[int, dict[str, int]] = field(default_factory=dict)
 
+    # --- ZORGI cross-pijler: per-ZH per-pijler (score, tickets) matrix (Tab 5 tabel) ---
+    # Structuur: {hospital: {"PHARMA": (4.55, 10), "CARE": (3.80, 5), ...}}
+    hospital_pillar_matrix: dict[str, dict[str, tuple[float, int]]] = field(default_factory=dict)
+
     # --- Ruwe resultaten (voor geavanceerd gebruik in app.py) ---
     raw: EvolutionResult | None = None
 

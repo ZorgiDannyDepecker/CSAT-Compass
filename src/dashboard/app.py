@@ -2903,6 +2903,57 @@ def _tab_hospitals(data: DashboardData, t: dict, lang: str) -> None:  # noqa: C9
         export_filename=f"ziekenhuizen-volledig-{cu}.csv",
     )
 
+    # --- H: ZORGI Pijler-breakdown per ziekenhuis (enkel ZORGI) ---
+    if data.hospital_pillar_matrix:
+        # Bepaal beschikbare pijlers in vaste volgorde (badge-namen uit PILLAR_REGISTRY)
+        _pijler_volgorde = ["CARE", "CARE ADMIN", "ERP4HC²·⁰", "PHARMA"]
+        _aanwezige_pijlers = [
+            p for p in _pijler_volgorde if any(p in v for v in data.hospital_pillar_matrix.values())
+        ]
+        if _aanwezige_pijlers:
+            st.markdown(
+                "<hr style='margin:2.1rem 0 0.8rem 0;border:none;border-top:1px solid #e0e8f0'>",
+                unsafe_allow_html=True,
+            )
+            _breakdown_title = (
+                f"📊 Pijler-breakdown per ziekenhuis — {cu}"
+                if lang == "nl"
+                else f"📊 Ventilation par pilier et hôpital — {cu}"
+            )
+            _col_zh = d.get("col_hospital", "Ziekenhuis")
+            # ZORGI-kolom gecombineerd: "x.xx★ · xx t"
+            _col_zorgi = "ZORGI"
+
+            def _fmt(sc: float, tk: int) -> str:
+                """Formatteer als 'x.xx★ · xx t' met tab-uitlijning (max 99 tickets)."""
+                _tk_str = f"{tk:2d} t" if tk <= 99 else f"{tk} t"
+                return f"{sc:.2f}★ · {_tk_str}"
+
+            _breakdown_rows = []
+            for _zh, _pdata in sorted(data.hospital_pillar_matrix.items()):
+                _total_tk = sum(tk for _, tk in _pdata.values())
+                _wavg = (
+                    sum(sc * tk for sc, tk in _pdata.values()) / _total_tk if _total_tk > 0 else 0.0
+                )
+                # ZORGI gecombineerd vooraan (score + totaal tickets)
+                _zorgi_str = _fmt(_wavg, _total_tk)
+                _row: dict = {_col_zh: _zh, _col_zorgi: _zorgi_str}
+                for _p in _aanwezige_pijlers:
+                    if _p in _pdata:
+                        _sc, _tk = _pdata[_p]
+                        _row[_p] = _fmt(_sc, _tk)
+                    else:
+                        _row[_p] = "—"
+                _breakdown_rows.append(_row)
+
+            _df_breakdown = pd.DataFrame(_breakdown_rows)
+            _render_sortable_table(
+                _df_breakdown,
+                title=f"{_breakdown_title} ({len(_breakdown_rows)})",
+                max_body_height=16 * 36 + 62 + 8,
+                export_filename=f"zorgi-pijler-breakdown-{cu}.csv",
+            )
+
 
 def render_kpi_targets(  # noqa: C901
     df_huidig: pd.DataFrame,
@@ -4252,6 +4303,8 @@ def main() -> None:  # noqa: C901
                 _entry.pillar_tickets = _zh_pillar_tks.get(_entry.hospital, {})
         # Tab 4: pijler-chips per score-niveau
         data.score_pillar_breakdown = _score_pbd
+        # Tab 5: per-ZH per-pijler matrix (compacte tabel)
+        data.hospital_pillar_matrix = _hospital_data
 
     # Topbar bijwerken met pijler- en periodeinfo
     _cur_label = period_label(f"{last_year}-{last_month:02d}", lang=lang)

@@ -3,6 +3,34 @@
 Alle noemenswaardige wijzigingen aan dit project worden hier gedocumenteerd.
 Formaat gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.0.0/).
 
+## [0.7.25] — 22/04/2026
+
+### Gewijzigd
+
+- `src/dashboard/app.py` — Pijler-breakdown tabel (sectie H):
+  - Kolomkop `"ZORGI 2026"` → `"ZORGI"` (jaar hoort in de tabeltitel, niet in de kolomkop)
+  - Pijlervolgorde alfabetisch conform Instellingen: CARE · CARE ADMIN · ERP4HC²·⁰ · PHARMA
+
+## [0.7.24] — 22/04/2026
+
+### Gewijzigd
+
+- `src/dashboard/app.py` — Pijler-breakdown tabel (sectie H):
+  - ERP4HC badge gecorrigeerd van `"ERP4HC"` → `"ERP4HC²·⁰"` (was volledig afwezig)
+  - ZORGI-kolom (`x.xx★ · xx t`) gecombineerd en vooraan geplaatst (kolom 2, na ZH-naam)
+  - Aparte `Score★` en `ZORGI 2026`-kolommen samengevoegd tot één `ZORGI 2026`-kolom
+  - Tabeltitel bevat nu het huidig jaar (bv. `— 2026`) als context voor de gebruiker
+
+## [0.7.23] — 22/04/2026
+
+### Toegevoegd
+
+- `src/csat/core/exporters/dashboard_exporter.py` — nieuw veld `hospital_pillar_matrix`
+  (`dict[str, dict[str, tuple[float, int]]]`) op `DashboardData` voor ZORGI pijler-breakdown
+- `src/dashboard/app.py` — ZORGI pijler-breakdown tabel (sectie H) onder "Volledig
+  ziekenhuizenoverzicht": 7 kolommen per ZH — pijler `x.xx★ · xx t` + ZORGI-totaal + Score★
+  Formaat: `"3.00★ · 3 t"` met vaste uitlijning (max 99 t); sorteerbaar + exporteerbaar CSV
+
 ## [0.7.22] — 22/04/2026
 
 ### Opgelost
