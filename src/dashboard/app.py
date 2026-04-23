@@ -1800,6 +1800,139 @@ def render_kerncijfers_vergelijking(  # noqa: C901
         )
 
 
+def _render_pillar_comparison(data: DashboardData, t: dict) -> None:
+    """Render pijler-vergelijkingstabel + trendoverzicht (Tab 1 — enkel ZORGI).
+
+    Toont per sub-pijler: score, baseline, Δ, % positief/negatief, H/C %, tickets, trend.
+    Gevolgd door een samenvattelregel (X stijgend · Y stabiel · Z dalend) en aandachtspunten.
+    """
+    rows = data.pillar_comparison_rows
+    if not rows:
+        return
+    d = t["dashboard"]
+    _yr = str(data.current_year)
+
+    # Trend-kleuren
+    _CLR_UP = ZORGI_FUNC_POSITIVE  # noqa: N806
+    _CLR_DOWN = ZORGI_RED  # noqa: N806
+    _CLR_STABLE = ZORGI_GREY_BLUE  # noqa: N806
+
+    def _trend_badge(trend: str) -> str:
+        if trend == "up":
+            lbl = d.get("pillar_trend_up", "↑ Stijgend")
+            return f"<span style='color:{_CLR_UP};font-weight:600'>{lbl}</span>"
+        if trend == "down":
+            lbl = d.get("pillar_trend_down", "↓ Dalend")
+            return f"<span style='color:{_CLR_DOWN};font-weight:600'>{lbl}</span>"
+        lbl = d.get("pillar_trend_stable", "→ Stabiel")
+        return f"<span style='color:{_CLR_STABLE};font-weight:600'>{lbl}</span>"
+
+    def _delta_clr(delta: float) -> str:
+        return _CLR_UP if delta > 0.05 else (_CLR_DOWN if delta < -0.05 else _CLR_STABLE)
+
+    # Kolomkoppen via i18n
+    col_score = d.get("pillar_col_score", "Score {year}").format(year=_yr)
+    col_baseline = d.get("pillar_col_baseline", "Baseline")
+    col_delta = d.get("pillar_col_delta", "\u0394 Score")
+    col_pos = d.get("pillar_col_pct_pos", "% Positief")
+    col_neg = d.get("pillar_col_pct_neg", "% Negatief")
+    col_hc = d.get("pillar_col_hc", "H/C %")
+    col_tk = d.get("pillar_col_tickets", "Tickets")
+    col_trend = d.get("pillar_col_trend", "Trend")
+
+    _hdr = ZORGI_DARK_BLUE
+    _border = ZORGI_ULTRA_LIGHT
+
+    def _th(txt: str) -> str:
+        return (
+            f"<th style='background:{_hdr};color:#fff;padding:7px 10px;"
+            f"text-align:left;white-space:nowrap;font-size:0.83rem'>{txt}</th>"
+        )
+
+    def _td(txt: str, extra: str = "") -> str:
+        return (
+            f"<td style='padding:6px 10px;border-bottom:1px solid {_border};"
+            f"font-size:0.87rem;{extra}'>{txt}</td>"
+        )
+
+    html = (
+        "<table style='width:100%;border-collapse:collapse'>"
+        "<thead><tr>"
+        + _th(d.get("pillar_col_pillar", "Pijler"))
+        + _th(col_score)
+        + _th(col_baseline)
+        + _th(col_delta)
+        + _th(col_pos)
+        + _th(col_neg)
+        + _th(col_hc)
+        + _th(col_tk)
+        + _th(col_trend)
+        + "</tr></thead><tbody>"
+    )
+
+    for row in rows:
+        _dc = _delta_clr(row.delta_score)
+        _badge_html = (
+            f"<span style='background:{row.pillar_color};color:#fff;padding:2px 8px;"
+            f"border-radius:4px;font-weight:600;font-size:0.82rem'>{row.pillar_name}</span>"
+        )
+        _score_str = f"{row.current_score:.2f}\u2605".replace(".", ",")
+        _base_str = f"{row.baseline_score:.2f}\u2605".replace(".", ",")
+        _sign = "+" if row.delta_score >= 0 else ""
+        _delta_str = f"{_sign}{row.delta_score:.2f}\u2605".replace(".", ",")
+        _pos_str = f"{row.pct_positive:.1f}%".replace(".", ",")
+        _neg_str = f"{row.pct_negative:.1f}%".replace(".", ",")
+        _hc_str = f"{row.hc_ratio:.1f}%".replace(".", ",")
+        html += (
+            "<tr>"
+            + _td(_badge_html)
+            + _td(_score_str, "font-weight:600")
+            + _td(_base_str)
+            + _td(f"<span style='color:{_dc};font-weight:600'>{_delta_str}</span>")
+            + _td(_pos_str)
+            + _td(_neg_str)
+            + _td(_hc_str)
+            + _td(str(row.tickets))
+            + _td(_trend_badge(row.trend))
+            + "</tr>"
+        )
+
+    html += "</tbody></table>"
+    st.markdown(html, unsafe_allow_html=True)
+
+    # Samenvattelregel
+    n_up = sum(1 for r in rows if r.trend == "up")
+    n_stable = sum(1 for r in rows if r.trend == "stable")
+    n_down = sum(1 for r in rows if r.trend == "down")
+    _summary = d.get(
+        "pillar_summary_line", "{up} stijgend \u00b7 {stable} stabiel \u00b7 {down} dalend"
+    ).format(up=n_up, stable=n_stable, down=n_down)
+    st.markdown(
+        f"<div style='margin-top:0.6rem;font-size:0.88rem;"
+        f"color:{ZORGI_GREY_BLUE};font-weight:600'>{_summary}</div>",
+        unsafe_allow_html=True,
+    )
+
+    # Aandachtspunten
+    _best = max(rows, key=lambda r: r.current_score)
+    _worst = min(rows, key=lambda r: r.current_score)
+    _hc_top = max(rows, key=lambda r: r.hc_ratio)
+    _intro = d.get("pillar_attention_intro", "Aandachtspunten")
+    _lbl_best = d.get("pillar_best", "🥇 Beste pijler")
+    _lbl_worst = d.get("pillar_worst", "⚠️ Aandacht")
+    _lbl_hc = d.get("pillar_hc_highest", "🔴 Hoogste H/C-ratio")
+    _hc_str2 = f"{_hc_top.hc_ratio:.1f}%".replace(".", ",")
+    st.markdown(
+        f"<div style='margin-top:0.4rem;font-size:0.85rem;color:{ZORGI_GREY_BLUE}'>"
+        f"<strong>{_intro}:</strong> "
+        f"{_lbl_best}: <strong>{_best.pillar_name}</strong>"
+        f" \u00b7 {_lbl_worst}: <strong>{_worst.pillar_name}</strong>"
+        f" \u00b7 {_lbl_hc}: <strong>{_hc_top.pillar_name}</strong> ({_hc_str2})"
+        f"</div>",
+        unsafe_allow_html=True,
+    )
+
+
 def _tab_summary(data: DashboardData, t: dict, lang: str) -> None:
     d = t["dashboard"]
 
@@ -1925,7 +2058,7 @@ def _tab_summary(data: DashboardData, t: dict, lang: str) -> None:
     )
     row2[1].metric(
         label=d["kpi_responses"].format(year=_yr),
-        value=str(data.kpi_responses_total),
+        value=f"{data.kpi_responses_total} \u00b7 {data.kpi_responses_hospitals}",
         delta=_resp_delta,
         delta_color="normal",
     )
@@ -1995,6 +2128,17 @@ def _tab_summary(data: DashboardData, t: dict, lang: str) -> None:
     venster_modus = "tendens" if data.mode == "trend" else "volledig"
     df_t3_vorig, df_t3_huidig = _make_kc_dataframes(data, venster_modus)
     render_kerncijfers_vergelijking(df_t3_vorig, df_t3_huidig, venster_modus, lang)
+
+    # --- Pijler-vergelijking (enkel ZORGI) ---
+    if data.pillar_comparison_rows:
+        st.markdown(
+            "<hr style='margin:1.5rem 0 1rem 0;border:none;border-top:1px solid #e0e8f0'>",
+            unsafe_allow_html=True,
+        )
+        _yr_hdr = str(data.current_year)
+        _title_key = t["dashboard"].get("pillar_comparison_title", "Pijler-vergelijking {year}")
+        st.markdown(f"#### {_title_key.format(year=_yr_hdr)}")
+        _render_pillar_comparison(data, t)
 
 
 def _tab_timeline(data: DashboardData, t: dict, lang: str) -> None:
@@ -2183,7 +2327,7 @@ def _tab_response(data: DashboardData, t: dict, lang: str) -> None:  # noqa: C90
                 if lang == "nl"
                 else f"Corrélation positive (r={r_str}) : des délais plus longs "
                 f"sont associés à de meilleurs scores. Les problèmes complexes prennent "
-                f"plus de temps mais sont mieux résolus — ou les clôtures rapides "
+                f"plus de temps maar zijn mieux résolus — of les clôtures rapides "
                 f"reçoivent de mauvaises notes."
             )
         else:
@@ -2216,7 +2360,7 @@ def _tab_response(data: DashboardData, t: dict, lang: str) -> None:  # noqa: C90
                 if lang == "nl"
                 else "Inversion de corrélation détectée : le problème dominant a changé. "
                 "Étendre le suivi SLA aux mesures de qualité — surveiller non seulement "
-                "le délai mais aussi le taux de résolution."
+                "le délai maar ook le taux de résolution."
             )
         if stabiel_negatief:
             return (
@@ -2275,30 +2419,58 @@ def _tab_response(data: DashboardData, t: dict, lang: str) -> None:  # noqa: C90
                 else "Répartition des tickets par niveau de score et pilier"
             )
             st.markdown(
-                f"<p style='font-size:0.82rem;color:#6b7a99;margin:0.2rem 0 0.4rem 0'>"
+                f"<p style='font-size:0.82rem;color:#6b7a99;margin:0.2rem 0 0.6rem 0'>"
                 f"<em>{_chips_title}</em></p>",
                 unsafe_allow_html=True,
             )
-            _chip_css = (
-                "display:inline-block;background:#003a70;color:#fff;"
-                "font-size:0.72rem;font-weight:700;padding:2px 8px;"
-                "border-radius:12px;margin:2px 4px 2px 0;"
-                "letter-spacing:0.03em;font-family:Poppins,Verdana,sans-serif"
+            # Pijlerkleur-lookup: badge-naam → kleur (conform PILLAR_REGISTRY)
+            _badge_clr: dict[str, str] = {
+                PILLAR_REGISTRY[k]["name"]: PILLAR_REGISTRY[k].get("color", "#003a70")
+                for k in PILLAR_REGISTRY
+                if k != "zorgi"
+            }
+            # Tabel: rijen = score-niveau, 4 kolommen = chips gesorteerd meeste → minste tickets
+            _sc_levels = sorted(data.score_pillar_breakdown.keys())
+            # Max aantal pijlers over alle niveaus (doorgaans 4)
+            _max_cols = max((len(v) for v in data.score_pillar_breakdown.values()), default=4)
+            _td_css = "padding:3px 10px 3px 0;vertical-align:middle;white-space:nowrap;border:none"
+            _lbl_css = (
+                "padding:3px 14px 3px 0;font-size:0.82rem;font-weight:700;"
+                "color:#003a70;white-space:nowrap;vertical-align:middle;border:none"
             )
-            _chip_html = "<div style='margin-bottom:0.6rem'>"
-            for _sc_lv in sorted(data.score_pillar_breakdown.keys()):
+            _dash_css = "color:#bcc4d0;font-size:0.78rem"
+            _chip_html = (
+                "<table style='border-collapse:collapse;width:auto;"
+                "border:none;font-family:Poppins,Verdana,sans-serif'><tbody>"
+            )
+            for _sc_lv in _sc_levels:
                 _pil_map = data.score_pillar_breakdown[_sc_lv]
                 _total = sum(_pil_map.values())
-                _chips = "".join(
-                    f"<span style='{_chip_css}'>{html.escape(p)} {n}t</span>"
-                    for p, n in sorted(_pil_map.items(), key=lambda x: -x[1])
-                )
+                # Sorteer pijlers: meeste tickets eerst
+                _sorted_pils = sorted(_pil_map.items(), key=lambda x: -x[1])
                 _chip_html += (
-                    f"<span style='font-size:0.82rem;font-weight:700;"
-                    f"color:#003a70;margin-right:6px'>{_sc_lv}★ ({_total}t)</span>"
-                    f"{_chips}<br>"
+                    f"<tr><td style='{_lbl_css}'>{_sc_lv}★"
+                    f" <span style='font-weight:400;font-size:0.75rem;"
+                    f"color:#5f8495'>({_total}t)</span></td>"
                 )
-            _chip_html += "</div>"
+                for _idx in range(_max_cols):
+                    if _idx < len(_sorted_pils):
+                        _p, _n = _sorted_pils[_idx]
+                        _pc = _badge_clr.get(_p, "#003a70")
+                        _cell = (
+                            f"<span style='background:{_pc};color:#fff;"
+                            f"font-size:0.72rem;font-weight:700;"
+                            f"padding:2px 9px;border-radius:12px;"
+                            f"letter-spacing:0.03em;white-space:nowrap'>"
+                            f"{html.escape(_p)}"
+                            f"<span style='font-weight:400'> ({_n}t)</span>"
+                            f"</span>"
+                        )
+                    else:
+                        _cell = f"<span style='{_dash_css}'>—</span>"
+                    _chip_html += f"<td style='{_td_css}'>{_cell}</td>"
+                _chip_html += "</tr>"
+            _chip_html += "</tbody></table>"
             st.markdown(_chip_html, unsafe_allow_html=True)
     else:
         st.info(d["no_data"])
@@ -2345,7 +2517,8 @@ def _render_sortable_table(
     footer_html_raw: str = "",
     insight_html: str = "",
     col_widths: list[str] | None = None,
-    show_title: bool = True,  # False = titel weglaten uit iframe (extern via st.markdown)
+    show_title: bool = True,
+    show_filters: bool = True,  # False = filterrij verbergen (bv. bij externe st.text_input)
 ) -> None:
     """Rendert een sorteerbare HTML-tabel in een iframe met exportknop.
 
@@ -2402,7 +2575,8 @@ def _render_sortable_table(
     # topRow=31px, headerRij=33px, filterRij=30px, dataRij≈28px, border=2px
     # topRow marginBottom=4px → gap tussen topRow en scroll-wrap
     # body padding-bottom=8px; buffer=10px voor eventuele wrapping
-    content_h = 33 + 30 + n_rows * 28 + 2
+    filter_h = 34 if show_filters else 0
+    content_h = 33 + filter_h + n_rows * 28 + 2
     _scroll_needed = content_h > max_body_height
     scroll_wrap_h = max_body_height if _scroll_needed else content_h
     footer_h = 38 * len(footer_text.split("  |  ")) if footer_text else 0
@@ -2443,7 +2617,7 @@ def _render_sortable_table(
         ".top-row{display:flex;justify-content:space-between;align-items:center;"
         "margin:0 0 4px 0;gap:8px;}"
         "h4.sec-title{margin:0;font-size:24px;font-weight:700;color:#1A1A1A;"
-        "font-family:'Source Sans','Source Sans Pro','Source Sans 3',sans-serif;line-height:1.3;}"
+        "font-family:'Source Sans',sans-serif;line-height:1.3;}"
         ".export-btn{background:#003a70;color:#fff;border:none;padding:4px 14px;"
         "border-radius:4px;font-size:0.78rem;cursor:pointer;"
         "font-family:'Poppins','Verdana',sans-serif;white-space:nowrap;"
@@ -2471,15 +2645,8 @@ def _render_sortable_table(
         "vertical-align:middle;opacity:0.85;min-width:12px;}"
         "th.sorted-asc .sort-icon::after{content:'\\2191';}"
         "th.sorted-desc .sort-icon::after{content:'\\2193';}"
-        "th.sorted-asc,th.sorted-desc{background:#1a5faf;}"
-        ".filter-row td{background:#e8f0f7;padding:3px 4px;"
-        "position:sticky;top:32px;z-index:1;border-bottom:2px solid #b0c8e0;"
-        "border-right:1px solid #c8d8e8;}"
-        ".filter-row td:last-child{border-right:none;}"
-        ".filter-row input{width:100%;box-sizing:border-box;border:1px solid #b0c8e0;"
-        "border-radius:3px;padding:2px 5px;font-size:0.75rem;"
-        "font-family:'Poppins','Verdana',sans-serif;background:#fff;color:#1a1a1a;}"
-        ".filter-row input:focus{outline:none;border-color:#003a70;}"
+        "th.sorted-asc,th.sorted-desc,th.sorted-orig{background:#1a5faf;}"
+        "th.sorted-orig .sort-icon::after{content:'\\21C5';opacity:0.6;}"
         "td{padding:5px 8px;font-size:0.82rem;text-align:left;"
         "border-bottom:1px solid #e0e8f0;border-right:1px solid #d0dce8;}"
         "tr:last-child td{border-bottom:none;}"
@@ -2489,6 +2656,16 @@ def _render_sortable_table(
         ".insight-box{background:#FEF5E7;border:1px solid rgba(230,126,34,0.3);"
         "border-radius:8px;padding:8px 12px;margin-top:8px;font-size:12px;line-height:1.5;}"
         ".insight-box strong{color:#E67E22;}"
+        ".filter-row td{background:#f7fafd;padding:6px 4px 4px 4px;"
+        "position:sticky;top:33px;z-index:1;"
+        "border-bottom:1px solid #b0c8e0;border-right:1px solid #c8d8e8;}"
+        ".filter-row td:last-child{border-right:none;}"
+        ".filter-row input{width:100%;box-sizing:border-box;border:1px solid #7aaad4;"
+        "border-radius:3px;padding:2px 5px;font-size:0.78rem;background:#fff;"
+        "font-family:'Poppins','Verdana',sans-serif;color:#1a1a1a;}"
+        ".filter-row input:focus{outline:none;border-color:#003a70;"
+        "box-shadow:0 0 0 2px rgba(0,58,112,0.12);}"
+        ".filter-row input.active{background:#ddeeff;border-color:#003a70;}"
         "</style></head><body>"
         + (
             f"<div class='top-row'>"
@@ -2505,20 +2682,25 @@ def _render_sortable_table(
         + "<div class='scroll-wrap'>"
         f"<table id='t'><thead>"
         f"<tr>{th_html}</tr>"
-        f"<tr class='filter-row' id='fr'>"
-        + "".join(
-            f"<td><input type='text' placeholder='🔍' oninput='applyFilters()' "
-            f"id='fi{i}' autocomplete='off'/></td>"
-            for i in range(len(cols))
+        + (
+            "<tr class='filter-row' id='fr'>"
+            + "".join(
+                f"<td><input type='text' placeholder='🔍' "
+                f"oninput=\"applyFilters();this.classList.toggle('active',this.value!=='');\" "
+                f"id='fi{i}' autocomplete='off'/></td>"
+                for i in range(len(cols))
+            )
+            + "</tr>"
+            if show_filters
+            else ""
         )
-        + "</tr>"
-        f"</thead>"
+        + f"</thead>"
         f"<tbody>{rows_html}</tbody></table>"
         f"</div>{footer_html}"
         + (footer_html_raw if footer_html_raw else "")
         + (f"{insight_html}" if insight_html else "")
         + "<script>"
-        "var _sd=-1,_sc=true;"
+        "var _sd=-1,_sc=0,_origOrder=null;"
         "function applyFilters(){"
         "var tb=document.getElementById('t').tBodies[0];"
         "var rows=Array.from(tb.rows);"
@@ -2533,9 +2715,19 @@ def _render_sortable_table(
         "function sortBy(ci){"
         "var t=document.getElementById('t');"
         "var tb=t.tBodies[0];"
-        "var rows=Array.from(tb.rows).filter(function(r){return !r.classList.contains('hidden');});"
-        "var asc=(_sd===ci)?!_sc:true;"
-        "_sd=ci;_sc=asc;"
+        "if(_origOrder===null){"
+        "_origOrder=Array.from(tb.rows).map(function(r){return r.cloneNode(true)});}"
+        "var nextState=(_sd===ci)?((_sc+1)%3):1;"
+        "_sd=ci;_sc=nextState;"
+        "var ths=t.querySelectorAll('th');"
+        "ths.forEach(function(th){th.classList.remove('sorted-asc','sorted-desc','sorted-orig');});"
+        "if(nextState===0){"
+        "while(tb.firstChild)tb.removeChild(tb.firstChild);"
+        "_origOrder.forEach(function(r){tb.appendChild(r.cloneNode(true));});"
+        "applyFilters();"
+        "}else{"
+        "var asc=(nextState===1);"
+        "var rows=Array.from(tb.rows);"
         "rows.sort(function(a,b){"
         "var av=a.cells[ci].textContent.trim();"
         "var bv=b.cells[ci].textContent.trim();"
@@ -2546,9 +2738,7 @@ def _render_sortable_table(
         "bv.localeCompare(av,undefined,{sensitivity:'base'});"
         "});"
         "rows.forEach(function(r){tb.appendChild(r);});"
-        "var ths=document.getElementById('t').querySelectorAll('th');"
-        "ths.forEach(function(th){th.classList.remove('sorted-asc','sorted-desc');});"
-        "ths[ci].classList.add(asc?'sorted-asc':'sorted-desc');}"
+        "ths[ci].classList.add(asc?'sorted-asc':'sorted-desc');}}"
         "function selfResize(){"
         "var h=document.body.scrollHeight;"
         "try{var p=window.parent;var frames=p.document.querySelectorAll('iframe');"
@@ -2801,7 +2991,7 @@ def _tab_hospitals(data: DashboardData, t: dict, lang: str) -> None:  # noqa: C9
     col_tickets_bl = f"Tickets {_bl_label}"
     col_score_cu = f"Score {cu}"
     col_tickets_cu = f"Tickets {cu}"
-    col_delta = "\u0394"  # Δ
+    col_delta = "\u0394"  # ╬ö
 
     # --- D: Score-evolutie (grootste verschuivingen) ---
     st.markdown(
@@ -2986,7 +3176,7 @@ def render_kpi_targets(  # noqa: C901
 
     # --- Status-labels (i18n) ---
     status_map: dict[str, str] = {
-        "op_schema": status_i18n.get("op_schema", "✅"),
+        "op_schema": status_i18n.get("op_schema", "🟢"),
         "aandacht": status_i18n.get("aandacht", "⚠️"),
         "kritiek": status_i18n.get("kritiek", "🔴"),
     }
@@ -3362,7 +3552,7 @@ def render_kpi_targets(  # noqa: C901
             f"<div style='background:#d7e7f3;border-radius:6px;padding:0.7rem 1rem;"
             f"margin-top:0.8rem;color:{ZORGI_DARK_BLUE};"
             f"font-family:Poppins,Verdana,sans-serif;font-size:0.85rem;line-height:1.5'>"
-            f"💡&nbsp;{html.escape(_banner_text)}"
+            f"📊&nbsp;{html.escape(_banner_text)}"
             f"</div>",
             unsafe_allow_html=True,
         )
@@ -3946,7 +4136,7 @@ def render_tab_tickets_prioriteit(
     _ig = InsightsGenerator(i18n=_i18n, lang=lang)
     _insight_issue = _ig._generate_issue_type_insight(df_issue)
     _insight_issue_html = (
-        f"<div class='insight-box'><strong>⚠ </strong>{_insight_issue}</div>"
+        f"<div class='insight-box'><strong>⚠️ </strong>{_insight_issue}</div>"
         if _insight_issue
         else ""
     )
@@ -4033,7 +4223,7 @@ def render_tab_tickets_prioriteit(
     )
     _insight_prio = _ig._generate_priority_insight(df_prio)
     _insight_prio_html = (
-        f"<div class='insight-box'><strong>⚠ </strong>{_insight_prio}</div>"
+        f"<div class='insight-box'><strong>⚠️ </strong>{_insight_prio}</div>"
         if _insight_prio
         else ""
     )
@@ -4100,7 +4290,7 @@ def _render_coming_soon(t: dict, pillar_name: str) -> None:
     d = t["dashboard"]
     st.markdown(
         f"<div style='text-align:center;padding:3rem'>"
-        f"<h2>⏳ {pillar_name}</h2>"
+        f"<h2>🏥 {pillar_name}</h2>"
         f"<p style='font-size:1.2rem;color:{ZORGI_GREY_BLUE}'>{d['coming_soon']}</p>"
         f"</div>",
         unsafe_allow_html=True,
@@ -4174,7 +4364,7 @@ def main() -> None:  # noqa: C901
         return
 
     # Data laden en analyseren (alle pijlers incl. ZORGI — zelfde pad)
-    with st.spinner("Data laden…"):
+    with st.spinner("Data ladenΓÇª"):
         try:
             if selected_hospitals:
                 # Ziekenhuisfilter actief → gefilterde df, niet gecached
@@ -4195,7 +4385,7 @@ def main() -> None:  # noqa: C901
                     pillar=selected_pillar,
                 )
         except Exception as exc:  # noqa: BLE001
-            st.error(f"❌ Data laden mislukt: {exc}")
+            st.error(f"❗ Data laden mislukt: {exc}")
             return
 
     # Dashboard-data voorbereiden (snel, niet gecached)

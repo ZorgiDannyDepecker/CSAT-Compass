@@ -79,6 +79,23 @@ class ComparisonRow:
 
 
 @dataclass
+class PillarSummaryRow:
+    """Samenvattrij voor één pijler — voor de pijler-vergelijkingstabel in Tab 1 (ZORGI only)."""
+
+    pillar: str  # "care", "pharma", etc.
+    pillar_name: str  # "CARE", "PHARMA", etc. (korte badge-naam)
+    pillar_color: str  # pijlerkleur conform ZORGI Design System
+    current_score: float
+    baseline_score: float
+    delta_score: float
+    pct_positive: float
+    pct_negative: float
+    hc_ratio: float
+    tickets: int
+    trend: str  # "up" / "stable" / "down"
+
+
+@dataclass
 class DashboardData:
     """
     Container voor alle voorbereide Streamlit-dashboard-data (Fase 5a).
@@ -107,6 +124,8 @@ class DashboardData:
     kpi_best_month_label: str = ""
     kpi_best_month_score: float = 0.0
     kpi_responses_total: int = 0
+    # Aantal ziekenhuizen met minstens 1 ticket in het huidig jaar (2026)
+    kpi_responses_hospitals: int = 0
     kpi_streak_months: int = 0
     kpi_critical_accounts: int = 0
     kpi_attention_accounts: int = 0
@@ -167,6 +186,10 @@ class DashboardData:
     # --- ZORGI cross-pijler: per-ZH per-pijler (score, tickets) matrix (Tab 5 tabel) ---
     # Structuur: {hospital: {"PHARMA": (4.55, 10), "CARE": (3.80, 5), ...}}
     hospital_pillar_matrix: dict[str, dict[str, tuple[float, int]]] = field(default_factory=dict)
+
+    # --- ZORGI cross-pijler: vergelijkingstabel per pijler (Tab 1 Samenvatting) ---
+    # Gesorteerd alfabetisch op pillar_name — één rij per sub-pijler
+    pillar_comparison_rows: list[PillarSummaryRow] = field(default_factory=list)
 
     # --- Ruwe resultaten (voor geavanceerd gebruik in app.py) ---
     raw: EvolutionResult | None = None
@@ -243,6 +266,8 @@ class DashboardExporter:
         kpi_streak_bl_pct = cls._calc_streak_baseline_pct(result.monthly_timeline, _baseline_year)
         kpi_resp_monthly_avg = cls._calc_responses_baseline_monthly_avg(result.baseline_total)
         kpi_resp_months = len([p for p in timeline if p.total_tickets > 0])
+        # Aantal ZH met minstens 1 ticket in het huidig jaar
+        kpi_resp_hospitals = sum(1 for hc in result.hospital_comparison if hc.current_total > 0)
 
         # S2-specifieke baseline (voor Tendensvenster-vergelijking)
         if result.benchmark_h2 is not None:
@@ -305,6 +330,7 @@ class DashboardExporter:
             kpi_best_month_label=kpi_best_month_label,
             kpi_best_month_score=kpi_best_month_score,
             kpi_responses_total=result.current_total,
+            kpi_responses_hospitals=kpi_resp_hospitals,
             kpi_streak_months=kpi_streak,
             kpi_critical_accounts=kpi_critical,
             kpi_attention_accounts=kpi_attention,

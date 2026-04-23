@@ -20,6 +20,7 @@ from csat.core.analysers.evolution_result import (
 from csat.core.exporters.dashboard_exporter import (
     DashboardData,
     DashboardExporter,
+    PillarSummaryRow,
 )
 
 # ---------------------------------------------------------------------------
@@ -168,6 +169,17 @@ class TestKpiCards:
         """kpi_responses_total == current_total."""
         data = DashboardExporter.prepare(pharma_result)
         assert data.kpi_responses_total == pharma_result.current_total
+
+    def test_kpi_responses_hospitals(self, pharma_result):
+        """kpi_responses_hospitals == aantal ZH met current_total > 0."""
+        data = DashboardExporter.prepare(pharma_result)
+        expected = sum(1 for hc in pharma_result.hospital_comparison if hc.current_total > 0)
+        assert data.kpi_responses_hospitals == expected
+
+    def test_kpi_responses_hospitals_nonnegative(self, minimal_result):
+        """kpi_responses_hospitals >= 0 ook bij leeg result."""
+        data = DashboardExporter.prepare(minimal_result)
+        assert data.kpi_responses_hospitals >= 0
 
     def test_kpi_critical_accounts_nonnegative(self, pharma_result):
         """kpi_critical_accounts >= 0."""
@@ -878,3 +890,79 @@ class TestBuildHospitalAttention:
         result = DashboardExporter._build_hospital_attention(comparisons)
         # Alle 15 scores zijn >= 3.0; die met score >= 4.0 vallen buiten range
         assert len(result) == sum(1 for i in range(15) if 3.0 <= (3.0 + i * 0.05) < 4.0)
+
+
+# ---------------------------------------------------------------------------
+# Tests — PillarSummaryRow
+# ---------------------------------------------------------------------------
+
+
+class TestPillarSummaryRow:
+    """Tests voor PillarSummaryRow dataclass — veldwaarden en trend-logica."""
+
+    def _make_row(
+        self,
+        pillar: str = "pharma",
+        name: str = "PHARMA",
+        color: str = "#609fce",
+        current: float = 4.44,
+        baseline: float = 3.48,
+        pct_pos: float = 87.7,
+        pct_neg: float = 8.2,
+        hc: float = 45.2,
+        tickets: int = 73,
+        trend: str = "up",
+    ) -> PillarSummaryRow:
+        return PillarSummaryRow(
+            pillar=pillar,
+            pillar_name=name,
+            pillar_color=color,
+            current_score=current,
+            baseline_score=baseline,
+            delta_score=round(current - baseline, 2),
+            pct_positive=pct_pos,
+            pct_negative=pct_neg,
+            hc_ratio=hc,
+            tickets=tickets,
+            trend=trend,
+        )
+
+    def test_velden_correct_ingevuld(self):
+        """Alle velden worden correct opgeslagen."""
+        row = self._make_row()
+        assert row.pillar == "pharma"
+        assert row.pillar_name == "PHARMA"
+        assert row.pillar_color == "#609fce"
+        assert row.current_score == 4.44
+        assert row.baseline_score == 3.48
+        assert row.delta_score == pytest.approx(0.96, abs=0.01)
+        assert row.pct_positive == 87.7
+        assert row.pct_negative == 8.2
+        assert row.hc_ratio == 45.2
+        assert row.tickets == 73
+        assert row.trend == "up"
+
+    def test_trend_up_bij_positieve_delta(self):
+        """delta > 0.05 → trend 'up'."""
+        row = self._make_row(current=4.44, baseline=3.48, trend="up")
+        assert row.trend == "up"
+
+    def test_trend_down_bij_negatieve_delta(self):
+        """delta < -0.05 → trend 'down'."""
+        row = self._make_row(current=3.80, baseline=4.30, trend="down")
+        assert row.trend == "down"
+
+    def test_trend_stable_bij_kleine_delta(self):
+        """|delta| <= 0.05 → trend 'stable'."""
+        row = self._make_row(current=4.00, baseline=4.02, trend="stable")
+        assert row.trend == "stable"
+
+    def test_pillar_comparison_rows_leeg_zonder_zorgi(self, pharma_result):
+        """DashboardData.pillar_comparison_rows is leeg voor niet-ZORGI pijlers."""
+        data = DashboardExporter.prepare(pharma_result)
+        assert data.pillar_comparison_rows == []
+
+    def test_pillar_comparison_rows_leeg_op_minimal(self, minimal_result):
+        """pillar_comparison_rows is leeg bij minimaal result."""
+        data = DashboardExporter.prepare(minimal_result)
+        assert data.pillar_comparison_rows == []

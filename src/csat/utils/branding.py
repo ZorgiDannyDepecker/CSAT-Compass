@@ -1326,12 +1326,12 @@ def render_topbar(
     height: 110px; z-index: 100000;
     background: {ZORGI_GRADIENT_CSS};
     display: flex; align-items: center; justify-content: space-between;
-    padding: 0 28px;
+    padding: 0 1.5cm;
     box-shadow: 0 3px 14px rgba(0, 0, 0, 0.32);
     font-family: 'Poppins', Verdana, sans-serif;
 }}
 .zorgi-topbar-left {{
-    display: flex; align-items: center; gap: 1rem; padding-left: 28px;
+    display: flex; align-items: center; gap: 1rem; padding-left: 0;
 }}
 .zorgi-topbar-pillar {{
     display: flex; flex-direction: column; gap: 0.15rem;

@@ -3,6 +3,265 @@
 Alle noemenswaardige wijzigingen aan dit project worden hier gedocumenteerd.
 Formaat gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.0.0/).
 
+## [0.8.0] — 23/04/2026
+
+### Gewijzigd
+
+- `pyproject.toml` — versie bump 0.7.44 → 0.8.0 (major milestone: volledige herstel + encoding cleanup)
+
+## [0.7.44] — 23/04/2026
+
+### Gewijzigd
+
+- `src/csat/utils/branding.py` — `render_topbar()`: titelbalk vrije zijmarges op 1,5cm gezet
+  - `.zorgi-topbar` padding: `0 28px` → `0 1.5cm` (zijmarges links én rechts)
+  - `.zorgi-topbar-left` padding-left: `28px` → `0` (dubbele linkermarge verwijderd)
+
+## [0.7.43] — 23/04/2026
+
+### Opgelost
+
+- `src/dashboard/app.py` — Stray accent chars na correct geplaatste emojis verwijderd
+  - `📊è` → `📊` (Pijler-breakdown titels NL + FR, 2×)
+  - `📊ñ Export CSV` → `📤 Export CSV` (KPI-targets exportknop)
+  - `📊í&nbsp;` → `📊&nbsp;` (info banner pilaar vergelijking)
+  - `💬¡` → `🧭` (page_icon — nu passend kompas-emoji voor CSAT-Compass)
+
+## [0.7.42] — 23/04/2026
+
+### Opgelost
+
+- `src/dashboard/app.py` — Resterende emoji/symbol corrupties in _tab_hospitals-sectie gefixed
+  - `≡ƒö┤` → `🔴` (bottom10 titelregel + status_map kritiek-label)
+  - `📋í` → `🟡` (aandachtsaccounts titelregel)
+  - `📋ó` → `🟢` (top10-best titelregel)
+  - `⚠️∩╕Å` → `⚠️` (disengagement-alert footer + status_map aandacht-label)
+  - `≡ƒö┤` → `🔴` in render_kpi_targets docstring + status_map kritiek fallback
+
+## [0.7.41] — 23/04/2026
+
+### Opgelost
+
+- `src/dashboard/app.py` — Kritieke crash hersteld: `NameError: name 'main' is not defined`
+  - Oorzaak: vorige sessie `insert_edit_into_file` verwijderde alle functies na `_tab_hospitals`
+    (render_kpi_targets, _tab_targets, _build_issue_type_chart, _build_priority_chart,
+    _render_feedback_themas, render_tab_tickets_prioriteit, _render_coming_soon, main)
+  - Herstelstrategie: hybride samenvoeging — lijnen 1–2870 (huidig, met verbeteringen) +
+    git v0.7.25 vanaf `_tab_hospitals` (correcte structuur)
+- `src/dashboard/app.py` — `TypeError: cannot unpack non-iterable int object` opgelost
+  - `_tab_response` lijn 2446: `sum(_tk for _, _tk in _pil_map.values())` →
+    `sum(_pil_map.values())` (score_pillar_breakdown is `dict[int, dict[str, int]]`,
+    niet `dict[int, dict[str, tuple]]`)
+- `src/dashboard/app.py` — 125 resterende CP437 encoding corrupties hersteld in git-gedeelte
+  - `ΓöÇ` → `─` (83×, sectiekommentaarscheiders)
+  - `├⌐` → `é` (26×, Franse teksten: négatifs, amélioration, etc.)
+  - `Γü░` → `⁰` (1×, ERP4HC⁰ badge naam)
+  - `├┤` → `ô` (1×, hôpital)
+  - `Γëñ` → `≥` (2×, drempelwaarden tabellen)
+  - `├»` → `ï` (1×, beïnvloeden)
+  - Diverse emoji-patronen: 🏥, ❗, 🟢, 🎯, 📊, 📋
+
+## [0.7.40] — 23/04/2026
+
+### Gewijzigd
+
+- `src/dashboard/app.py` — `_render_sortable_table()`: zoekveldstyling verbeterd
+  - Breedte nu responsief per kolom (`width:100%` + `box-sizing:border-box`)
+  - Border dun ZORGI-blauw (`1px solid #7aaad4`)
+  - Focus-state: donkerblauwe border + subtle glow (`#003a70` + `rgba(0,58,112,0.12)`)
+  - Actief (gevuld): ZORGI lichtblauwe achtergrond (`#ddeeff`) + donkerblauwe border
+  - Filter-rij achtergrond licht grijs-blauw (`#f7fafd`) voor visuele scheiding
+
+## [0.7.39] — 23/04/2026
+
+### Opgelost
+
+- `src/dashboard/app.py` — 101 CP437-encoding corrupties hersteld in twee rondes
+
+  **Ronde 1 — emoji-corrupties (13 stuks):**
+  | Corrupt | Correct | Locaties |
+  |---|---|---|
+  | `≡ƒÄ»` (4 chars) | 🎯 | `_thema_titel_nl/fr` (2×) |
+  | `ΓÜá∩╕Å` (6 chars) | ⚠️ | status-map defaults (2×) |
+  | `ΓÜá` (3 chars) | ⚠ | insight-box HTML (2×) |
+  | `≡ƒö┤` (4 chars) | 🔴 | status "kritiek" default (2×) |
+  | `Γ£à` (3 chars) | ✅ | status "op_schema" default (1×) |
+  | `Γ¥ô` (3 chars) | ❓ | status onbekend default (1×) |
+  | `≡ƒô ñ` (4 chars) | 📤 | export CSV link (1×) |
+  | `≡ƒÆí` (4 chars) | 💡 | banner-tekst (1×) |
+  | `≡ƒº¡` (4 chars) | 🧭 | page_icon (1×) |
+
+  **Ronde 2 — symbool-corrupties (60 stuks):**
+  | Corrupt | Correct | Aantal |
+  |---|---|---|
+  | `Γÿà` | ★ | 6× |
+  | `ΓÇö` | — (em dash) | 38× |
+  | `┬╣` | ¹ (superscript) | 4× |
+  | `┬╖` | · (middle dot) | 4× |
+  | `ΓåÆ` | → (pijl) | 8× |
+
+  - Oorzaak: UTF-8 bytes van emoji en speciale symbolen (1-4 bytes) waren als CP437
+    karakter-codes opgeslagen toen het bestand in een session met verkeerde encoding werd bewerkt
+
+
+
+### Opgelost
+
+- `src/dashboard/app.py` — 28 corrupte karakters in Franstalige strings hersteld
+  - Oorzaak: UTF-8 bytes voor `é` (0xC3,0xA9) en `à` (0xC3,0xA0) waren misgelezen als CP437
+    en opgeslagen als box-drawing paren `├⌐` resp. `├á`
+  - Gevolg: titels en labels toonden bv. `Priorit├⌐`, `Négatif` → `N├⌐gatif`, `détail` → `d├⌐tail`
+  - Fix: geautomatiseerde global search-replace — 26× `é`, 2× `à` gecorrigeerd
+  - Betrokken strings: score-tabel titels, kolom labels `% Négatif` / `Δ Négatif`,
+    footnote-teksten `différence par rapport à`, signaal-teksten (`négatifs`, `fréquence`, etc.)
+
+
+
+### Opgelost
+
+- `src/dashboard/app.py` — `NameError: name 'last_year' is not defined` (en eerder `_map_best`, `_zh_pillar_tks`) in `_tab_hospitals()`
+  - Oorzaak: een volledig duplicaat van het `main()`-blok (topbar-rendering + 6-tab layout + tab-inhoud)
+    was per ongeluk in `_tab_hospitals()` terechtgekomen (lijnen 3167–3249)
+  - Dit blok refereerde aan lokale `main()`-variabelen (`last_year`, `last_month`, `today_str`,
+    `_topbar`, `selected_pillar`, `selected_hospitals`, `_df_raw`) die niet beschikbaar zijn in `_tab_hospitals`
+  - Fix: het volledige duplicate blok verwijderd uit `_tab_hospitals()`; de functie eindigt nu
+    correct na het vullen van `data.hospital_top10`
+  - De topbar-update en tab-aanmaak vinden uitsluitend plaats in `main()` (lijnen 4624–4705)
+
+
+
+### Gewijzigd
+
+- `src/dashboard/app.py` — `_render_sortable_table()`: kolomsortering uitgebreid naar 3 toestanden:
+  - **1e klik:** oplopend (↑ `sorted-asc`)
+  - **2e klik:** aflopend (↓ `sorted-desc`)
+  - **3e klik:** originele volgorde hersteld (⇅ `sorted-orig`, grijze indicator)
+  - 4e klik start de cyclus opnieuw
+  - Originele rijvolgorde wordt bij de eerste sorteerpoging opgeslagen en bij staat 0 volledig hersteld
+  - Actieve filters worden opnieuw toegepast na terugzetten naar origineel
+  - CSS: nieuwe klasse `th.sorted-orig` + `⇅`-icoon (U+21C5) toegevoegd
+
+## [0.7.35] — 23/04/2026
+
+### Toegevoegd
+
+- `src/dashboard/app.py` — `_render_sortable_table()`: zoekveldhighlight in **alle** datatabellen:
+  - Ingevuld veld krijgt klasse `active` → achtergrond `#ddeeff` (ZORGI-lichtblauw),
+    blauwe rand, blauwe vette tekst
+  - Bij leegmaken → direct terug naar wit via `transition: 0.15s`
+  - Van toepassing op alle tabellen die `_render_sortable_table()` gebruiken
+
+## [0.7.34] — 23/04/2026
+
+### Gewijzigd
+
+- `src/dashboard/app.py` — Tab 4 Responstijd: chip-legenda definitieve lay-out:
+  - Horizontale rijen: score-niveau links, chips rechts gesorteerd van meeste → minste tickets
+  - 4 vaste kolommen per rij (één per positie in rangorde); lege positie = `—` in lichtgrijs
+  - Tickets als `(Xt)` niet-bold binnen de chip (pijlernaam wel bold)
+  - Tabelranden volledig onzichtbaar (`border:none` op tabel, `<td>` en rijlabel)
+
+## [0.7.33] — 23/04/2026
+
+### Gewijzigd
+
+- `src/dashboard/app.py` — Tab 4 Responstijd: chip-legenda omgezet van verticale rij-tabel
+  naar **5-kolommentabel** (één kolom per score-niveau 1★–5★):
+  - Kolomhoofd: score-niveau + totaal tickets in kleiner grijs lettertype
+  - Chips per pijler staan verticaal gestapeld per score-kolom, elk in pillerkleur
+  - Tabel `width:auto` zodat alles zo compact mogelijk links staat
+
+## [0.7.32] — 23/04/2026
+
+### Opgelost
+
+- `src/dashboard/app.py` — dubbele tabel verwijderd: de getransponeerde versie (v0.7.30) was
+  na de revert (v0.7.31) nog als dode code aanwezig onder de herstelde horizontale tabel,
+  waardoor beide tabellen tegelijk gerenderd werden; overtollig blok (lijn 1931–2063) verwijderd
+
+## [0.7.31] — 23/04/2026
+
+### Teruggedraaid
+
+- `src/dashboard/app.py` — `_render_pillar_comparison()`: revert v0.7.30 (getransponeerde lay-out)
+  → hersteld naar horizontale tabel (v0.7.29): één rij per pijler, ZORGI-blauwe headerrij,
+  pijlerbadge in eigen kleur in eerste kolom
+
+## [0.7.30] — 23/04/2026
+
+### Gewijzigd
+
+- `src/dashboard/app.py` — `_render_pillar_comparison()`: volledig herschreven lay-out:
+  - **Getransponeerde tabel**: was 1 rij per pijler → nu 1 kolom per pijler
+  - Rijlabels (Score, Baseline, Δ, …) staan compact links; pijlerbadge als kolomhoofd direct boven eigen data
+  - Geen donkerblauwe header-balk meer — lichte rijlabels (`#5f8495`) + subtiele `border-bottom`
+  - Tabel `width:auto` → sluit aan bij content, alles links uitgelijnd
+
+## [0.7.29] — 23/04/2026
+
+### Gewijzigd
+
+- `src/dashboard/app.py` — Tab 4 pijler-chips (score-niveau legenda):
+  - Elke chip krijgt de eigen pijlerkleur (conform `PILLAR_REGISTRY`) i.p.v. uniform `#003a70`
+  - Lay-out omgezet van `<div>` met `<br>` naar `<table>`: score-niveau links uitgelijnd,
+    chips rechts — volledig verticaal uitgelijn per score-niveau
+- `src/dashboard/app.py` — Tab 1 pijler-vergelijking: linkerbalk (`border-left`) verwijderd;
+  enkel standaard `border-bottom` per rij behouden (was v0.7.28 patch)
+
+## [0.7.28] — 23/04/2026
+
+### Toegevoegd
+
+- `src/csat/core/exporters/dashboard_exporter.py` — nieuw dataclass `PillarSummaryRow`
+  (velden: pillar, pillar_name, pillar_color, current_score, baseline_score, delta_score,
+  pct_positive, pct_negative, hc_ratio, tickets, trend) + veld `pillar_comparison_rows`
+  op `DashboardData`
+- `src/dashboard/app.py` — nieuwe functie `_render_pillar_comparison()`: HTML-tabel met
+  ZORGI-kleuren (pijlerbadge, Δ-kleurcodes, trendpijlen), samenvattelregel
+  ("X stijgend · Y stabiel · Z dalend") en aandachtspunten (beste/slechtste pijler, hoogste H/C)
+- `src/csat/i18n/nl.json` + `src/csat/i18n/fr.json` — 12 nieuwe sleutels voor pijler-vergelijking
+  (`pillar_comparison_title`, `pillar_col_*`, `pillar_trend_*`, `pillar_summary_line`,
+  `pillar_attention_intro`, `pillar_best`, `pillar_worst`, `pillar_hc_highest`)
+- `tests/core/test_dashboard_exporter.py` — klasse `TestPillarSummaryRow` (+6 tests):
+  veldvalidatie, trend-logica, randgevallen leeg/minimal
+
+### Gewijzigd
+
+- `src/dashboard/app.py`:
+  - Import `PillarSummaryRow` toegevoegd
+  - ZORGI `main()`-lus: `_pillar_rows` gebouwd per sub-pijler (score, baseline, Δ, pct's,
+    H/C, tickets, trend) en na de lus toegewezen aan `data.pillar_comparison_rows`
+  - `_tab_summary()`: sectietitel + `_render_pillar_comparison()` onder kerncijfers-tabel
+    (enkel zichtbaar als `pillar_comparison_rows` niet leeg is — ZORGI only)
+
+## [0.7.27] — 23/04/2026
+
+### Toegevoegd
+
+- `src/csat/core/exporters/dashboard_exporter.py` — nieuw veld `kpi_responses_hospitals: int`
+  op `DashboardData`: telt ZH met `current_total > 0` via `hospital_comparison`
+- `tests/core/test_dashboard_exporter.py` — 2 nieuwe tests:
+  `test_kpi_responses_hospitals` + `test_kpi_responses_hospitals_nonnegative`
+
+### Gewijzigd
+
+- `src/dashboard/app.py` — tegel T6 (Responses): waarde uitgebreid van `"600"` naar `"600 · 83"`
+  (totaal tickets · ZH met 2026-tickets); label via i18n-sleutel `kpi_responses`
+- `src/csat/i18n/nl.json` — `kpi_responses`: `"Responses {year}"` → `"Responses · Ziekenhuizen {year}"`
+- `src/csat/i18n/fr.json` — `kpi_responses`: `"Réponses {year}"` → `"Réponses · Hôpitaux {year}"`
+
+## [0.7.26] — 23/04/2026
+
+### Toegevoegd
+
+- `docs/issues/resolved/DESIGN-001-pillar-breakdown-zh-scope.md` — nieuw beslissingsdocument:
+  bewuste ontwerpkeuze dat de pijler-breakdown enkel ZH met 2026-tickets toont (83 vs 107 ZH is GEEN bug)
+
+### Gewijzigd
+
+- `src/dashboard/app.py` — uitgebreide commentaar bij `_zh_pillar_tks`-declaratie: verduidelijkt
+  dat het weglaten van baseline-only ZH een expliciete ontwerpkeuze is (verwijzing naar DESIGN-001)
+
 ## [0.7.25] — 22/04/2026
 
 ### Gewijzigd
