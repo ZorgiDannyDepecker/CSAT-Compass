@@ -1,7 +1,7 @@
 # CSAT-Compass - Projectplan High-Level
 
-**Versie:** 1.7
-**Laatst bijgewerkt:** 21/04/2026
+**Versie:** 1.8
+**Laatst bijgewerkt:** 23/04/2026
 
 **Doel:** Fundament en referentiedocument voor de volledige CSAT-Compass opzet  
 **Type:** Planning  
@@ -184,7 +184,7 @@ PHARMA is de **referentie-implementatie**. Elke volgende pijler is een kopie + a
 | **Fase 5a** | Streamlit dashboard PHARMA-only | Dashboard PHARMA volledig (6 tabs, NL/FR, pijler-agnostisch) | ✅ Compleet |
 | **Fase 5b** | Dashboard UI-verfijning | Tabbalk, samenvatting-tab polish, mini-signaalkaart, vergelijkingstabel | ✅ Compleet |
 | **Fase 5c** | Streamlit dashboard overige pijlers | CARE / CARE ADMIN / ERP4HC actief in dashboard | ✅ Compleet |
-| **Fase 6** | ZORGI overall aggregatie | ZORGI-rapport + ZORGI-matrix + ZORGI dashboard tab | ⏳ Gepland |
+| **Fase 6** | ZORGI overall aggregatie | ZORGI-rapport + ZORGI-matrix + ZORGI dashboard tab | 🔄 In uitvoering |
 
 ### 6.2 Migratieaanpak
 
@@ -283,3 +283,4 @@ CSAT-Compass/
 | 1.5 | 01/04/2026 | Fase 5 opgesplitst in 5a (PHARMA dashboard) en 5b (overige pijlers); Fase 5a status → In voorbereiding; Fase 6 uitgebreid met ZORGI dashboard tab | Danny Depecker + CD |
 | 1.6 | 10/04/2026 | Fase 5a status → In uitvoering; Fase 5b hergedefinieerd als Dashboard UI-verfijning; Fase 5c hernoemd naar overige pijlers; fasering bijgewerkt (5a/5b In uitvoering) | Danny Depecker + GHC |
 | 1.7 | 21/04/2026 | Fase 4 + 5a + 5b + 5c → ✅ Compleet; outputspecificatie bijgewerkt naar 30 bestanden + pijler-submappen; bestandsnaamconventie matrix gecorrigeerd | Danny Depecker + GHC |
+| 1.8 | 23/04/2026 | Fase 6 status → 🔄 In uitvoering (ZorgiAnalyser actief, dashboard-tab In uitvoering) | Danny Depecker + GHC |

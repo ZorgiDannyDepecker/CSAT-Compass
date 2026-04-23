@@ -1,7 +1,7 @@
 # 📓 CSAT-Compass - Project Journal
 
-**Versie:** 2.8
-**Laatst bijgewerkt:** 21/04/2026
+**Versie:** 2.9
+**Laatst bijgewerkt:** 23/04/2026
 
 **Doel:** Chronologisch logboek van beslissingen, bevindingen en voortgang  
 **Type:** Reference  
@@ -36,6 +36,7 @@
 - [2026-04-19 — Fase 4 opstart: CARE / CARE ADMIN / ERP4HC](#2026-04-19--fase-4-opstart-care--care-admin--erp4hc)
 - [2026-04-20 — Fase 4 afsluiting + Fase 5b/5c dashboard uitbreiding](#2026-04-20--fase-4-afsluiting--fase-5b5c-dashboard-uitbreiding)
 - [2026-04-21 — Output-structuur, matrix-fix, documentatie-afsluiting](#2026-04-21--output-structuur-matrix-fix-documentatie-afsluiting)
+- [2026-04-23 — Crash recovery, encoding cleanup, v0.8.0](#2026-04-23--crash-recovery-encoding-cleanup-v080)
 - [Versiehistorie](#versiehistorie)
 
 ---
@@ -668,6 +669,42 @@ Project klaar voor Fase 6 (ZORGI dashboard-tab).
 
 ---
 
+## 2026-04-23 — Crash recovery, encoding cleanup, v0.8.0
+
+### Aanleiding
+
+Na de vorige sessie was `app.py` beschadigd door een `insert_edit_into_file`-operatie die alle
+functies na `_tab_hospitals` had verwijderd (`render_kpi_targets`, `_tab_targets`,
+`render_tab_tickets_prioriteit`, `_render_coming_soon`, `main`).
+
+### Beslissingen
+
+- **Herstelstrategie:** hybride samenvoeging — lijnen 1–2870 van de beschadigde file (met
+  verbeteringen: verbeterd zoekvak CSS, `show_filters` parameter) + git v0.7.25 voor de rest
+- **Major versie v0.8.0** — de combinatie van crash recovery + 250+ encoding fixes + UI-verfijning
+  rechtvaardigt een minor versiesprong
+- **CI-fix** — GitHub Actions refereerden naar `@v6` (niet-bestaand); gecorrigeerd naar
+  `checkout@v4`, `setup-python@v5`, `codecov-action@v4`
+
+### Werk uitgevoerd
+
+| Categorie | Beschrijving |
+|---|---|
+| Crash herstel | `NameError: name 'main' is not defined` — alle functies hersteld |
+| Bug fix | `TypeError: cannot unpack non-iterable int object` in `_tab_response` |
+| Encoding | 250+ CP437-corrupties opgelost (emojis, accenten, symbolen, sectiecommentaren) |
+| UI | Topbar zijmarges op 1,5cm gezet (`padding: 0 1.5cm`) |
+| CI | GitHub Actions versies gecorrigeerd (`@v6` → actuele versies) |
+| WIP-opkuis | 12 herstelscripts gearchiveerd naar `archive/WIP/20260423-crash-recovery/` |
+
+### Resultaat
+
+- App draait stabiel: alle 5 pijlers laden, ZorgiAnalyser actief
+- CI groen op Python 3.11 / 3.12 / 3.13 — alle checks passed
+- v0.8.0 gecommit en gepusht naar `origin/master`
+
+---
+
 ## Versiehistorie
 
 | Versie | Datum | Wijzigingen | Auteur               |
@@ -691,6 +728,7 @@ Project klaar voor Fase 6 (ZORGI dashboard-tab).
 | 2.6 | 19/04/2026 | Fase 4 opstart: CARE / CARE ADMIN / ERP4HC analysers + tests + dashboard-integratie (v0.6.0, 1.122 tests) | Danny Depecker + GHC |
 | 2.7 | 20/04/2026 | Fase 5b/5c verfijning: iframe-hoogte, insight_html, footer_html_raw, scrollbar >15 rijen, sidebar-ordening, hr-spacing | Danny Depecker + GHC |
 | 2.8 | 21/04/2026 | Output-structuur (pijler-submappen), matrix-bestandsnaamfix, run_monthly all-pillar matrix, documentatie-afsluiting Fase 4 | Danny Depecker + GHC |
+| 2.9 | 23/04/2026 | Crash recovery (main() hersteld), 250+ encoding fixes, topbar 1.5cm marges, CI-fix, v0.8.0, WIP gearchiveerd | Danny Depecker + GHC |
 
 ---
 *ZORGI — Danny Depecker*
