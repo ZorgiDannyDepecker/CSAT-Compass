@@ -191,4 +191,3 @@ output/
 | Versie | Datum | Wijzigingen | Auteur |
 | ------ | ---------- | --------------- | ------ |
 | 1.0 | 11/05/2026 | Initiële versie | Danny Depecker + GHC |
-
