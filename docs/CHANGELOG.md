@@ -3,6 +3,50 @@
 Alle noemenswaardige wijzigingen aan dit project worden hier gedocumenteerd.
 Formaat gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.0.0/).
 
+## [0.8.4] — 05/05/2026
+
+### Toegevoegd
+
+- `docs/03-operationeel/operations-runbook.md` — §9 Nieuw maand checklist toegevoegd: stapsgewijze procedure voor maandopstart (data run, output verificatie, PDF-conversie met PNG-vereiste, distributiematrix, dashboard, periodiek onderhoud, maand-statustracking tabel)
+
+---
+
+## [0.8.3] — 04/05/2026
+
+### Toegevoegd
+
+- `docs/03-operationeel/operations-runbook.md` — §9 Nieuw maand checklist toegevoegd: stapsgewijze procedure voor maandopstart (data run, output verificatie, PDF-conversie, distributiematrix, dashboard, periodiek onderhoud, maand-statustracking tabel)
+
+---
+
+## [0.8.2] — 26/04/2026
+
+### Toegevoegd
+
+- `pyproject.toml` — nieuw veld `release-date` onder `[project]`: vaste releasedatum (formaat `DD/MM/YYYY`) die automatisch mee bijgewerkt wordt bij versiebeheer
+- `src/csat/__init__.py` — `__release_date__` geëxporteerd naast `__version__`; leest `release-date` rechtstreeks uit `pyproject.toml` via `tomllib`, met lege-string fallback
+- `src/dashboard/app.py` — PROD-modus toont nu de vaste `release-date` uit `pyproject.toml` in de topbalk i.p.v. de live datum; DEMO-modus behoudt het live datum+tijdstempel
+
+---
+
+## [0.8.1] — 26/04/2026
+
+### Toegevoegd
+
+- `tests/test_date_utils.py` — 44 extra tests voor `date_utils.py`:
+  - `dated_output_dir`: aanmaak, formaat, idempotent
+  - `parse_period`: nulpadding, maand 0, negatief, te veel delen, `None`
+  - `period_label`: alle 12 maanden NL + FR via parametrize (24 asserties), onbekende taalcode
+  - `previous_period`: maanden 2–12 + jaarovergang
+  - `filter_period` / `filter_year` / `filter_ytd`: custom `date_col`, grensgevallen (maand 0/1/12/13), kopie-onafhankelijkheid
+  - `today_period`: huidig jaar + YYYY-MM formaat
+  - **Resultaat:** `date_utils.py` → 100% coverage
+- `tests/test_dashboard_app.py` — 10 extra tests:
+  - 5 `AppTest` smoke-tests: 2025-only data, multi-pillar, single ticket, `score=None`, herstart stabiliteit
+  - 5 DataFrame-validatietests (altijd actief, geen Streamlit vereist)
+  - Type hints toegevoegd aan alle helpers en testmethodes
+  - **Resultaat:** 1.197 → 1.247 tests totaal
+
 ## [0.8.0] — 23/04/2026
 
 ### Gewijzigd

@@ -32,7 +32,7 @@ _SRC = Path(__file__).resolve().parent.parent
 if str(_SRC) not in sys.path:
     sys.path.insert(0, str(_SRC))
 
-from csat import __version__  # noqa: E402
+from csat import __release_date__, __version__  # noqa: E402
 from csat.config.pillars import (  # noqa: E402
     FILTER_COLUMN,
     HIGH_CRITICAL_PRIORITIES,
@@ -4328,10 +4328,10 @@ def main() -> None:  # noqa: C901
     inject_css(st, prod_mode=DASHBOARD_PROD_MODE)
 
     # Datum voor topbalk (Belgisch formaat DD/MM/YYYY)
-    # PROD-modus: enkel datum — DEMO-modus: datum + uur
+    # PROD-modus: vaste releasedatum uit pyproject.toml — DEMO-modus: live datum + uur
     today = datetime.now(tz=UTC).date()
     if DASHBOARD_PROD_MODE:
-        today_str = today.strftime("%d/%m/%Y")
+        today_str = __release_date__ if __release_date__ else today.strftime("%d/%m/%Y")
     else:
         now_full = datetime.now(tz=UTC)
         today_str = now_full.strftime("%d/%m/%Y · %H:%M")

@@ -1,0 +1,670 @@
+# CSAT-Compass — CARE ADMIN | Matrice comparative 2026
+
+**Aperçu mensuel de la satisfaction client** | 04/05/2026
+
+---
+
+## 1. Score CSAT moyen par hôpital
+
+| Hôpital | janvier 2026 | février 2026 | mars 2026 | avril 2026 |
+| --- | --- | --- | --- | --- |
+| AALST_OLV | — | — | 5,00 | — |
+| ANTWERPEN_ZNA | 5,00 | 5,00 | 5,00 | — |
+| AZORG | 5,00 | 5,00 | — | — |
+| BORNEM_AZ-RIVIERENLAND | 5,00 | 3,50 | 5,00 | — |
+| BRUGGE_SINT-JAN | 5,00 | — | — | — |
+| BRUGGE_STLUCAS | 5,00 | — | — | — |
+| BRUSSEL_UZ | 5,00 | 4,25 | 4,75 | — |
+| BRUXELLES_CHIREC | 5,00 | 4,00 | 5,00 | — |
+| BRUXELLES_ERASME | 5,00 | 5,00 | 5,00 | — |
+| BRUXELLES_EUROPE | 1,00 | — | — | — |
+| BRUXELLES_ST-LUC | — | 5,00 | 4,00 | — |
+| CHARLEROI_GHDC | 5,00 | — | — | — |
+| DEINZE_STVINCENT | 5,00 | — | — | — |
+| DENDERMONDE_STBLASIUS | 5,00 | 5,00 | — | — |
+| EEKLO_ALMA | 4,50 | — | 4,67 | — |
+| GEEL_STDIMPNA | 5,00 | 4,50 | — | — |
+| GENT_JANPALFIJN | 5,00 | — | 5,00 | — |
+| GENT_MARIAMIDDELARES | 5,00 | — | 5,00 | — |
+| GENT_STLUCAS | 5,00 | 4,50 | — | — |
+| GENT_UZ | 5,00 | 4,83 | 5,00 | — |
+| HALLE_STMARIA | 5,00 | 4,50 | 5,00 | — |
+| HASSELT_JESSA | 4,00 | 4,33 | — | — |
+| HERENTALS_STELISABETH | — | — | 5,00 | — |
+| HEUSDENZOLDER_STFRANCISKUS | 5,00 | 3,67 | 5,00 | — |
+| IEPER_YPERMAN | 4,00 | 4,67 | 5,00 | — |
+| IZEGEM_STJOZEF | 4,50 | — | — | — |
+| LALOUVIERE_JOLIMONT | — | — | 4,00 | — |
+| LALOUVIERE_TIVOLI | 5,00 | 5,00 | — | — |
+| LEUVEN_MCH | 5,00 | — | — | — |
+| LIEGE_CHR-CITADELLE | — | — | 5,00 | — |
+| LIEGE_CHU | 5,00 | — | — | — |
+| LIEGE_NOTRE-DAME-DES-ANGES | 5,00 | 5,00 | 5,00 | — |
+| LIER_HH | 5,00 | — | 5,00 | — |
+| MALLE_AZVOORKEMPEN | 4,50 | 4,33 | 4,00 | — |
+| MALMEDY_REINE-ASTRID | 5,00 | 5,00 | 5,00 | — |
+| MELSBROEK_MSKLINIEK | 4,75 | — | — | — |
+| MOL_HH | 5,00 | 5,00 | 5,00 | — |
+| OOSTENDE_AZ | 5,00 | 4,00 | — | — |
+| OUDENAARDE_AZ | 4,50 | 5,00 | — | — |
+| OVERPELT_MARIA | 5,00 | 5,00 | 4,00 | — |
+| ROESELARE_DELTA | 4,67 | 3,00 | — | — |
+| RONSE_WGLORIEUX | 5,00 | 5,00 | 5,00 | — |
+| SAINT-SERVAIS_BEAU-VALLON | — | 5,00 | 5,00 | — |
+| SINT-NIKLAAS_STLUCIA | 5,00 | — | — | — |
+| SINT-NIKLAAS_VITAZ | 5,00 | 5,00 | 4,50 | — |
+| SINT-TRUIDEN_STTRUDO | 3,00 | 5,00 | 5,00 | — |
+| TONGEREN_VESALIUS | — | — | 5,00 | — |
+| TURNHOUT_AZ | — | 4,00 | — | — |
+| UCCLE_EPSYLON | 5,00 | 5,00 | 5,00 | — |
+| VEURNE_AZ-WEST | 4,33 | 4,67 | 5,00 | — |
+| VILVOORDE_PORTAELS | 4,00 | — | — | — |
+| VZW_EMMAUS | 5,00 | — | — | — |
+| WAREGEM_OLVLOURDES | — | 5,00 | 5,00 | — |
+| WILRIJK-GZA | — | 4,00 | — | — |
+| ZOTTEGEM_ST-ELISABETH | 5,00 | — | 5,00 | — |
+
+## 2. Taux High/Critical par hôpital
+
+| Hôpital | janvier 2026 | février 2026 | mars 2026 | avril 2026 |
+| --- | --- | --- | --- | --- |
+| AALST_OLV | — | — | 0,0% | — |
+| ANTWERPEN_ZNA | 100,0% | 100,0% | 100,0% | — |
+| AZORG | 50,0% | 0,0% | — | — |
+| BORNEM_AZ-RIVIERENLAND | 0,0% | 0,0% | 100,0% | — |
+| BRUGGE_SINT-JAN | 0,0% | — | — | — |
+| BRUGGE_STLUCAS | 0,0% | — | — | — |
+| BRUSSEL_UZ | 100,0% | 75,0% | 25,0% | — |
+| BRUXELLES_CHIREC | 50,0% | 0,0% | 100,0% | — |
+| BRUXELLES_ERASME | 0,0% | 0,0% | 0,0% | — |
+| BRUXELLES_EUROPE | 100,0% | — | — | — |
+| BRUXELLES_ST-LUC | — | 100,0% | 0,0% | — |
+| CHARLEROI_GHDC | 0,0% | — | — | — |
+| DEINZE_STVINCENT | 100,0% | — | — | — |
+| DENDERMONDE_STBLASIUS | 0,0% | 0,0% | — | — |
+| EEKLO_ALMA | 50,0% | — | 66,7% | — |
+| GEEL_STDIMPNA | 0,0% | 0,0% | — | — |
+| GENT_JANPALFIJN | 33,3% | — | 100,0% | — |
+| GENT_MARIAMIDDELARES | 0,0% | — | 0,0% | — |
+| GENT_STLUCAS | 33,3% | 0,0% | — | — |
+| GENT_UZ | 50,0% | 50,0% | 0,0% | — |
+| HALLE_STMARIA | 100,0% | 0,0% | 100,0% | — |
+| HASSELT_JESSA | 0,0% | 66,7% | — | — |
+| HERENTALS_STELISABETH | — | — | 0,0% | — |
+| HEUSDENZOLDER_STFRANCISKUS | 50,0% | 33,3% | 50,0% | — |
+| IEPER_YPERMAN | 0,0% | 33,3% | 0,0% | — |
+| IZEGEM_STJOZEF | 50,0% | — | — | — |
+| LALOUVIERE_JOLIMONT | — | — | 100,0% | — |
+| LALOUVIERE_TIVOLI | 50,0% | 0,0% | — | — |
+| LEUVEN_MCH | 0,0% | — | — | — |
+| LIEGE_CHR-CITADELLE | — | — | 0,0% | — |
+| LIEGE_CHU | 0,0% | — | — | — |
+| LIEGE_NOTRE-DAME-DES-ANGES | 0,0% | 75,0% | 100,0% | — |
+| LIER_HH | 100,0% | — | 100,0% | — |
+| MALLE_AZVOORKEMPEN | 50,0% | 66,7% | 100,0% | — |
+| MALMEDY_REINE-ASTRID | 0,0% | 66,7% | 50,0% | — |
+| MELSBROEK_MSKLINIEK | 0,0% | — | — | — |
+| MOL_HH | 0,0% | 0,0% | 0,0% | — |
+| OOSTENDE_AZ | 100,0% | 100,0% | — | — |
+| OUDENAARDE_AZ | 50,0% | 0,0% | — | — |
+| OVERPELT_MARIA | 0,0% | 0,0% | 100,0% | — |
+| ROESELARE_DELTA | 66,7% | 100,0% | — | — |
+| RONSE_WGLORIEUX | 0,0% | 60,0% | 0,0% | — |
+| SAINT-SERVAIS_BEAU-VALLON | — | 100,0% | 100,0% | — |
+| SINT-NIKLAAS_STLUCIA | 0,0% | — | — | — |
+| SINT-NIKLAAS_VITAZ | 25,0% | 0,0% | 50,0% | — |
+| SINT-TRUIDEN_STTRUDO | 0,0% | 75,0% | 100,0% | — |
+| TONGEREN_VESALIUS | — | — | 0,0% | — |
+| TURNHOUT_AZ | — | 50,0% | — | — |
+| UCCLE_EPSYLON | 20,0% | 25,0% | 50,0% | — |
+| VEURNE_AZ-WEST | 0,0% | 0,0% | 0,0% | — |
+| VILVOORDE_PORTAELS | 100,0% | — | — | — |
+| VZW_EMMAUS | 100,0% | — | — | — |
+| WAREGEM_OLVLOURDES | — | 50,0% | 0,0% | — |
+| WILRIJK-GZA | — | 50,0% | — | — |
+| ZOTTEGEM_ST-ELISABETH | 100,0% | — | 100,0% | — |
+
+## 3. Volume de tickets par hôpital
+
+| Hôpital | janvier 2026 | février 2026 | mars 2026 | avril 2026 |
+| --- | --- | --- | --- | --- |
+| AALST_OLV | — | — | 1 | — |
+| ANTWERPEN_ZNA | 1 | 1 | 2 | — |
+| AZORG | 4 | 1 | — | — |
+| BORNEM_AZ-RIVIERENLAND | 1 | 2 | 1 | — |
+| BRUGGE_SINT-JAN | 1 | — | — | — |
+| BRUGGE_STLUCAS | 1 | — | — | — |
+| BRUSSEL_UZ | 4 | 4 | 4 | — |
+| BRUXELLES_CHIREC | 2 | 1 | 1 | — |
+| BRUXELLES_ERASME | 1 | 2 | 2 | — |
+| BRUXELLES_EUROPE | 1 | — | — | — |
+| BRUXELLES_ST-LUC | — | 1 | 1 | — |
+| CHARLEROI_GHDC | 1 | — | — | — |
+| DEINZE_STVINCENT | 1 | — | — | — |
+| DENDERMONDE_STBLASIUS | 1 | 1 | — | — |
+| EEKLO_ALMA | 4 | — | 3 | — |
+| GEEL_STDIMPNA | 1 | 2 | — | — |
+| GENT_JANPALFIJN | 3 | — | 2 | — |
+| GENT_MARIAMIDDELARES | 1 | — | 1 | — |
+| GENT_STLUCAS | 3 | 2 | — | — |
+| GENT_UZ | 2 | 6 | 1 | — |
+| HALLE_STMARIA | 1 | 2 | 1 | — |
+| HASSELT_JESSA | 1 | 3 | — | — |
+| HERENTALS_STELISABETH | — | — | 1 | — |
+| HEUSDENZOLDER_STFRANCISKUS | 2 | 3 | 2 | — |
+| IEPER_YPERMAN | 6 | 6 | 1 | — |
+| IZEGEM_STJOZEF | 2 | — | — | — |
+| LALOUVIERE_JOLIMONT | — | — | 1 | — |
+| LALOUVIERE_TIVOLI | 4 | 2 | — | — |
+| LEUVEN_MCH | 1 | — | — | — |
+| LIEGE_CHR-CITADELLE | — | — | 2 | — |
+| LIEGE_CHU | 1 | — | — | — |
+| LIEGE_NOTRE-DAME-DES-ANGES | 1 | 4 | 1 | — |
+| LIER_HH | 1 | — | 1 | — |
+| MALLE_AZVOORKEMPEN | 2 | 3 | 1 | — |
+| MALMEDY_REINE-ASTRID | 1 | 3 | 2 | — |
+| MELSBROEK_MSKLINIEK | 4 | — | — | — |
+| MOL_HH | 1 | 1 | 1 | — |
+| OOSTENDE_AZ | 2 | 1 | — | — |
+| OUDENAARDE_AZ | 2 | 1 | — | — |
+| OVERPELT_MARIA | 2 | 1 | 1 | — |
+| ROESELARE_DELTA | 3 | 2 | — | — |
+| RONSE_WGLORIEUX | 1 | 5 | 2 | — |
+| SAINT-SERVAIS_BEAU-VALLON | — | 1 | 1 | — |
+| SINT-NIKLAAS_STLUCIA | 1 | — | — | — |
+| SINT-NIKLAAS_VITAZ | 4 | 4 | 2 | — |
+| SINT-TRUIDEN_STTRUDO | 1 | 4 | 2 | — |
+| TONGEREN_VESALIUS | — | — | 1 | — |
+| TURNHOUT_AZ | — | 2 | — | — |
+| UCCLE_EPSYLON | 5 | 4 | 2 | — |
+| VEURNE_AZ-WEST | 3 | 3 | 1 | — |
+| VILVOORDE_PORTAELS | 1 | — | — | — |
+| VZW_EMMAUS | 1 | — | — | — |
+| WAREGEM_OLVLOURDES | — | 2 | 1 | — |
+| WILRIJK-GZA | — | 2 | — | — |
+| ZOTTEGEM_ST-ELISABETH | 1 | — | 1 | — |
+
+## 4. Meilleures et moins bonnes performances
+
+| Rang | Hôpital | Score moy. (global) |
+| --- | --- | --- |
+| 1 | AALST_OLV | 5,00 |
+| 2 | ANTWERPEN_ZNA | 5,00 |
+| 3 | AZORG | 5,00 |
+| 4 | BRUGGE_SINT-JAN | 5,00 |
+| 5 | BRUGGE_STLUCAS | 5,00 |
+| 6 | BRUXELLES_ERASME | 5,00 |
+| 7 | CHARLEROI_GHDC | 5,00 |
+| 8 | DEINZE_STVINCENT | 5,00 |
+| 9 | DENDERMONDE_STBLASIUS | 5,00 |
+| 10 | GENT_JANPALFIJN | 5,00 |
+| 11 | GENT_MARIAMIDDELARES | 5,00 |
+| 12 | HERENTALS_STELISABETH | 5,00 |
+| 13 | LALOUVIERE_TIVOLI | 5,00 |
+| 14 | LEUVEN_MCH | 5,00 |
+| 15 | LIEGE_CHR-CITADELLE | 5,00 |
+| 16 | LIEGE_CHU | 5,00 |
+| 17 | LIEGE_NOTRE-DAME-DES-ANGES | 5,00 |
+| 18 | LIER_HH | 5,00 |
+| 19 | MALMEDY_REINE-ASTRID | 5,00 |
+| 20 | MOL_HH | 5,00 |
+| 21 | RONSE_WGLORIEUX | 5,00 |
+| 22 | SAINT-SERVAIS_BEAU-VALLON | 5,00 |
+| 23 | SINT-NIKLAAS_STLUCIA | 5,00 |
+| 24 | TONGEREN_VESALIUS | 5,00 |
+| 25 | UCCLE_EPSYLON | 5,00 |
+| 26 | VZW_EMMAUS | 5,00 |
+| 27 | WAREGEM_OLVLOURDES | 5,00 |
+| 28 | ZOTTEGEM_ST-ELISABETH | 5,00 |
+| 29 | GENT_UZ | 4,94 |
+| 30 | HALLE_STMARIA | 4,83 |
+| 31 | SINT-NIKLAAS_VITAZ | 4,83 |
+| 32 | GEEL_STDIMPNA | 4,75 |
+| 33 | GENT_STLUCAS | 4,75 |
+| 34 | MELSBROEK_MSKLINIEK | 4,75 |
+| 35 | OUDENAARDE_AZ | 4,75 |
+| 36 | BRUSSEL_UZ | 4,67 |
+| 37 | BRUXELLES_CHIREC | 4,67 |
+| 38 | OVERPELT_MARIA | 4,67 |
+| 39 | VEURNE_AZ-WEST | 4,67 |
+| 40 | EEKLO_ALMA | 4,58 |
+| 41 | HEUSDENZOLDER_STFRANCISKUS | 4,56 |
+| 42 | IEPER_YPERMAN | 4,56 |
+| 43 | BORNEM_AZ-RIVIERENLAND | 4,50 |
+| 44 | BRUXELLES_ST-LUC | 4,50 |
+| 45 | IZEGEM_STJOZEF | 4,50 |
+| 46 | OOSTENDE_AZ | 4,50 |
+| 47 | SINT-TRUIDEN_STTRUDO | 4,33 |
+| 48 | MALLE_AZVOORKEMPEN | 4,28 |
+| 49 | HASSELT_JESSA | 4,17 |
+| 50 | LALOUVIERE_JOLIMONT | 4,00 |
+| 51 | TURNHOUT_AZ | 4,00 |
+| 52 | VILVOORDE_PORTAELS | 4,00 |
+| 53 | WILRIJK-GZA | 4,00 |
+| 54 | ROESELARE_DELTA | 3,83 |
+| 55 | BRUXELLES_EUROPE | 1,00 |
+
+## 5. Résumé des tendances
+
+| Hôpital | Tendance |
+| --- | --- |
+| AALST_OLV | — N/A |
+| ANTWERPEN_ZNA | → Stable |
+| AZORG | → Stable |
+| BORNEM_AZ-RIVIERENLAND | → Stable |
+| BRUGGE_SINT-JAN | — N/A |
+| BRUGGE_STLUCAS | — N/A |
+| BRUSSEL_UZ | ↓ En baisse |
+| BRUXELLES_CHIREC | → Stable |
+| BRUXELLES_ERASME | → Stable |
+| BRUXELLES_EUROPE | — N/A |
+| BRUXELLES_ST-LUC | ↓ En baisse |
+| CHARLEROI_GHDC | — N/A |
+| DEINZE_STVINCENT | — N/A |
+| DENDERMONDE_STBLASIUS | → Stable |
+| EEKLO_ALMA | ↑ En hausse |
+| GEEL_STDIMPNA | ↓ En baisse |
+| GENT_JANPALFIJN | → Stable |
+| GENT_MARIAMIDDELARES | → Stable |
+| GENT_STLUCAS | ↓ En baisse |
+| GENT_UZ | → Stable |
+| HALLE_STMARIA | → Stable |
+| HASSELT_JESSA | ↑ En hausse |
+| HERENTALS_STELISABETH | — N/A |
+| HEUSDENZOLDER_STFRANCISKUS | → Stable |
+| IEPER_YPERMAN | ↑ En hausse |
+| IZEGEM_STJOZEF | — N/A |
+| LALOUVIERE_JOLIMONT | — N/A |
+| LALOUVIERE_TIVOLI | → Stable |
+| LEUVEN_MCH | — N/A |
+| LIEGE_CHR-CITADELLE | — N/A |
+| LIEGE_CHU | — N/A |
+| LIEGE_NOTRE-DAME-DES-ANGES | → Stable |
+| LIER_HH | → Stable |
+| MALLE_AZVOORKEMPEN | ↓ En baisse |
+| MALMEDY_REINE-ASTRID | → Stable |
+| MELSBROEK_MSKLINIEK | — N/A |
+| MOL_HH | → Stable |
+| OOSTENDE_AZ | ↓ En baisse |
+| OUDENAARDE_AZ | ↑ En hausse |
+| OVERPELT_MARIA | ↓ En baisse |
+| ROESELARE_DELTA | ↓ En baisse |
+| RONSE_WGLORIEUX | → Stable |
+| SAINT-SERVAIS_BEAU-VALLON | → Stable |
+| SINT-NIKLAAS_STLUCIA | — N/A |
+| SINT-NIKLAAS_VITAZ | ↓ En baisse |
+| SINT-TRUIDEN_STTRUDO | ↑ En hausse |
+| TONGEREN_VESALIUS | — N/A |
+| TURNHOUT_AZ | — N/A |
+| UCCLE_EPSYLON | → Stable |
+| VEURNE_AZ-WEST | ↑ En hausse |
+| VILVOORDE_PORTAELS | — N/A |
+| VZW_EMMAUS | — N/A |
+| WAREGEM_OLVLOURDES | → Stable |
+| WILRIJK-GZA | — N/A |
+| ZOTTEGEM_ST-ELISABETH | → Stable |
+
+---
+
+## 6. Score CSAT moyen par trimestre
+
+| Hôpital | Q1 2026 | Q2 2026 |
+| --- | --- | --- |
+| AALST_OLV | 5,00 | — |
+| ANTWERPEN_ZNA | 5,00 | — |
+| AZORG | 5,00 | — |
+| BORNEM_AZ-RIVIERENLAND | 4,25 | — |
+| BRUGGE_SINT-JAN | 5,00 | — |
+| BRUGGE_STLUCAS | 5,00 | — |
+| BRUSSEL_UZ | 4,67 | — |
+| BRUXELLES_CHIREC | 4,75 | — |
+| BRUXELLES_ERASME | 5,00 | — |
+| BRUXELLES_EUROPE | 1,00 | — |
+| BRUXELLES_ST-LUC | 4,50 | — |
+| CHARLEROI_GHDC | 5,00 | — |
+| DEINZE_STVINCENT | 5,00 | — |
+| DENDERMONDE_STBLASIUS | 5,00 | — |
+| EEKLO_ALMA | 4,57 | — |
+| GEEL_STDIMPNA | 4,67 | — |
+| GENT_JANPALFIJN | 5,00 | — |
+| GENT_MARIAMIDDELARES | 5,00 | — |
+| GENT_STLUCAS | 4,80 | — |
+| GENT_UZ | 4,89 | — |
+| HALLE_STMARIA | 4,75 | — |
+| HASSELT_JESSA | 4,25 | — |
+| HERENTALS_STELISABETH | 5,00 | — |
+| HEUSDENZOLDER_STFRANCISKUS | 4,43 | — |
+| IEPER_YPERMAN | 4,39 | — |
+| IZEGEM_STJOZEF | 4,50 | — |
+| LALOUVIERE_JOLIMONT | 4,00 | — |
+| LALOUVIERE_TIVOLI | 5,00 | — |
+| LEUVEN_MCH | 5,00 | — |
+| LIEGE_CHR-CITADELLE | 5,00 | — |
+| LIEGE_CHU | 5,00 | — |
+| LIEGE_NOTRE-DAME-DES-ANGES | 5,00 | — |
+| LIER_HH | 5,00 | — |
+| MALLE_AZVOORKEMPEN | 4,33 | — |
+| MALMEDY_REINE-ASTRID | 5,00 | — |
+| MELSBROEK_MSKLINIEK | 4,75 | — |
+| MOL_HH | 5,00 | — |
+| OOSTENDE_AZ | 4,67 | — |
+| OUDENAARDE_AZ | 4,67 | — |
+| OVERPELT_MARIA | 4,75 | — |
+| ROESELARE_DELTA | 4,00 | — |
+| RONSE_WGLORIEUX | 5,00 | — |
+| SAINT-SERVAIS_BEAU-VALLON | 5,00 | — |
+| SINT-NIKLAAS_STLUCIA | 5,00 | — |
+| SINT-NIKLAAS_VITAZ | 4,90 | — |
+| SINT-TRUIDEN_STTRUDO | 4,71 | — |
+| TONGEREN_VESALIUS | 5,00 | — |
+| TURNHOUT_AZ | 4,00 | — |
+| UCCLE_EPSYLON | 5,00 | — |
+| VEURNE_AZ-WEST | 4,57 | — |
+| VILVOORDE_PORTAELS | 4,00 | — |
+| VZW_EMMAUS | 5,00 | — |
+| WAREGEM_OLVLOURDES | 5,00 | — |
+| WILRIJK-GZA | 4,00 | — |
+| ZOTTEGEM_ST-ELISABETH | 5,00 | — |
+
+## 7. Taux High/Critical par trimestre
+
+| Hôpital | Q1 2026 | Q2 2026 |
+| --- | --- | --- |
+| AALST_OLV | 0,0% | — |
+| ANTWERPEN_ZNA | 100,0% | — |
+| AZORG | 40,0% | — |
+| BORNEM_AZ-RIVIERENLAND | 25,0% | — |
+| BRUGGE_SINT-JAN | 0,0% | — |
+| BRUGGE_STLUCAS | 0,0% | — |
+| BRUSSEL_UZ | 66,7% | — |
+| BRUXELLES_CHIREC | 50,0% | — |
+| BRUXELLES_ERASME | 0,0% | — |
+| BRUXELLES_EUROPE | 100,0% | — |
+| BRUXELLES_ST-LUC | 50,0% | — |
+| CHARLEROI_GHDC | 0,0% | — |
+| DEINZE_STVINCENT | 100,0% | — |
+| DENDERMONDE_STBLASIUS | 0,0% | — |
+| EEKLO_ALMA | 57,1% | — |
+| GEEL_STDIMPNA | 0,0% | — |
+| GENT_JANPALFIJN | 60,0% | — |
+| GENT_MARIAMIDDELARES | 0,0% | — |
+| GENT_STLUCAS | 20,0% | — |
+| GENT_UZ | 44,4% | — |
+| HALLE_STMARIA | 50,0% | — |
+| HASSELT_JESSA | 50,0% | — |
+| HERENTALS_STELISABETH | 0,0% | — |
+| HEUSDENZOLDER_STFRANCISKUS | 42,9% | — |
+| IEPER_YPERMAN | 15,4% | — |
+| IZEGEM_STJOZEF | 50,0% | — |
+| LALOUVIERE_JOLIMONT | 100,0% | — |
+| LALOUVIERE_TIVOLI | 33,3% | — |
+| LEUVEN_MCH | 0,0% | — |
+| LIEGE_CHR-CITADELLE | 0,0% | — |
+| LIEGE_CHU | 0,0% | — |
+| LIEGE_NOTRE-DAME-DES-ANGES | 66,7% | — |
+| LIER_HH | 100,0% | — |
+| MALLE_AZVOORKEMPEN | 66,7% | — |
+| MALMEDY_REINE-ASTRID | 50,0% | — |
+| MELSBROEK_MSKLINIEK | 0,0% | — |
+| MOL_HH | 0,0% | — |
+| OOSTENDE_AZ | 100,0% | — |
+| OUDENAARDE_AZ | 33,3% | — |
+| OVERPELT_MARIA | 25,0% | — |
+| ROESELARE_DELTA | 80,0% | — |
+| RONSE_WGLORIEUX | 37,5% | — |
+| SAINT-SERVAIS_BEAU-VALLON | 100,0% | — |
+| SINT-NIKLAAS_STLUCIA | 0,0% | — |
+| SINT-NIKLAAS_VITAZ | 20,0% | — |
+| SINT-TRUIDEN_STTRUDO | 71,4% | — |
+| TONGEREN_VESALIUS | 0,0% | — |
+| TURNHOUT_AZ | 50,0% | — |
+| UCCLE_EPSYLON | 27,3% | — |
+| VEURNE_AZ-WEST | 0,0% | — |
+| VILVOORDE_PORTAELS | 100,0% | — |
+| VZW_EMMAUS | 100,0% | — |
+| WAREGEM_OLVLOURDES | 33,3% | — |
+| WILRIJK-GZA | 50,0% | — |
+| ZOTTEGEM_ST-ELISABETH | 100,0% | — |
+
+## 8. Volume de tickets par trimestre
+
+| Hôpital | Q1 2026 | Q2 2026 |
+| --- | --- | --- |
+| AALST_OLV | 1 | — |
+| ANTWERPEN_ZNA | 4 | — |
+| AZORG | 5 | — |
+| BORNEM_AZ-RIVIERENLAND | 4 | — |
+| BRUGGE_SINT-JAN | 1 | — |
+| BRUGGE_STLUCAS | 1 | — |
+| BRUSSEL_UZ | 12 | — |
+| BRUXELLES_CHIREC | 4 | — |
+| BRUXELLES_ERASME | 5 | — |
+| BRUXELLES_EUROPE | 1 | — |
+| BRUXELLES_ST-LUC | 2 | — |
+| CHARLEROI_GHDC | 1 | — |
+| DEINZE_STVINCENT | 1 | — |
+| DENDERMONDE_STBLASIUS | 2 | — |
+| EEKLO_ALMA | 7 | — |
+| GEEL_STDIMPNA | 3 | — |
+| GENT_JANPALFIJN | 5 | — |
+| GENT_MARIAMIDDELARES | 2 | — |
+| GENT_STLUCAS | 5 | — |
+| GENT_UZ | 9 | — |
+| HALLE_STMARIA | 4 | — |
+| HASSELT_JESSA | 4 | — |
+| HERENTALS_STELISABETH | 1 | — |
+| HEUSDENZOLDER_STFRANCISKUS | 7 | — |
+| IEPER_YPERMAN | 13 | — |
+| IZEGEM_STJOZEF | 2 | — |
+| LALOUVIERE_JOLIMONT | 1 | — |
+| LALOUVIERE_TIVOLI | 6 | — |
+| LEUVEN_MCH | 1 | — |
+| LIEGE_CHR-CITADELLE | 2 | — |
+| LIEGE_CHU | 1 | — |
+| LIEGE_NOTRE-DAME-DES-ANGES | 6 | — |
+| LIER_HH | 2 | — |
+| MALLE_AZVOORKEMPEN | 6 | — |
+| MALMEDY_REINE-ASTRID | 6 | — |
+| MELSBROEK_MSKLINIEK | 4 | — |
+| MOL_HH | 3 | — |
+| OOSTENDE_AZ | 3 | — |
+| OUDENAARDE_AZ | 3 | — |
+| OVERPELT_MARIA | 4 | — |
+| ROESELARE_DELTA | 5 | — |
+| RONSE_WGLORIEUX | 8 | — |
+| SAINT-SERVAIS_BEAU-VALLON | 2 | — |
+| SINT-NIKLAAS_STLUCIA | 1 | — |
+| SINT-NIKLAAS_VITAZ | 10 | — |
+| SINT-TRUIDEN_STTRUDO | 7 | — |
+| TONGEREN_VESALIUS | 1 | — |
+| TURNHOUT_AZ | 2 | — |
+| UCCLE_EPSYLON | 11 | — |
+| VEURNE_AZ-WEST | 7 | — |
+| VILVOORDE_PORTAELS | 1 | — |
+| VZW_EMMAUS | 1 | — |
+| WAREGEM_OLVLOURDES | 3 | — |
+| WILRIJK-GZA | 2 | — |
+| ZOTTEGEM_ST-ELISABETH | 2 | — |
+
+---
+
+## 9. Score CSAT moyen par an
+
+| Hôpital | 2026 |
+| --- | --- |
+| AALST_OLV | 5,00 |
+| ANTWERPEN_ZNA | 5,00 |
+| AZORG | 5,00 |
+| BORNEM_AZ-RIVIERENLAND | 4,25 |
+| BRUGGE_SINT-JAN | 5,00 |
+| BRUGGE_STLUCAS | 5,00 |
+| BRUSSEL_UZ | 4,67 |
+| BRUXELLES_CHIREC | 4,75 |
+| BRUXELLES_ERASME | 5,00 |
+| BRUXELLES_EUROPE | 1,00 |
+| BRUXELLES_ST-LUC | 4,50 |
+| CHARLEROI_GHDC | 5,00 |
+| DEINZE_STVINCENT | 5,00 |
+| DENDERMONDE_STBLASIUS | 5,00 |
+| EEKLO_ALMA | 4,57 |
+| GEEL_STDIMPNA | 4,67 |
+| GENT_JANPALFIJN | 5,00 |
+| GENT_MARIAMIDDELARES | 5,00 |
+| GENT_STLUCAS | 4,80 |
+| GENT_UZ | 4,89 |
+| HALLE_STMARIA | 4,75 |
+| HASSELT_JESSA | 4,25 |
+| HERENTALS_STELISABETH | 5,00 |
+| HEUSDENZOLDER_STFRANCISKUS | 4,43 |
+| IEPER_YPERMAN | 4,39 |
+| IZEGEM_STJOZEF | 4,50 |
+| LALOUVIERE_JOLIMONT | 4,00 |
+| LALOUVIERE_TIVOLI | 5,00 |
+| LEUVEN_MCH | 5,00 |
+| LIEGE_CHR-CITADELLE | 5,00 |
+| LIEGE_CHU | 5,00 |
+| LIEGE_NOTRE-DAME-DES-ANGES | 5,00 |
+| LIER_HH | 5,00 |
+| MALLE_AZVOORKEMPEN | 4,33 |
+| MALMEDY_REINE-ASTRID | 5,00 |
+| MELSBROEK_MSKLINIEK | 4,75 |
+| MOL_HH | 5,00 |
+| OOSTENDE_AZ | 4,67 |
+| OUDENAARDE_AZ | 4,67 |
+| OVERPELT_MARIA | 4,75 |
+| ROESELARE_DELTA | 4,00 |
+| RONSE_WGLORIEUX | 5,00 |
+| SAINT-SERVAIS_BEAU-VALLON | 5,00 |
+| SINT-NIKLAAS_STLUCIA | 5,00 |
+| SINT-NIKLAAS_VITAZ | 4,90 |
+| SINT-TRUIDEN_STTRUDO | 4,71 |
+| TONGEREN_VESALIUS | 5,00 |
+| TURNHOUT_AZ | 4,00 |
+| UCCLE_EPSYLON | 5,00 |
+| VEURNE_AZ-WEST | 4,57 |
+| VILVOORDE_PORTAELS | 4,00 |
+| VZW_EMMAUS | 5,00 |
+| WAREGEM_OLVLOURDES | 5,00 |
+| WILRIJK-GZA | 4,00 |
+| ZOTTEGEM_ST-ELISABETH | 5,00 |
+
+## 10. Taux High/Critical par an
+
+| Hôpital | 2026 |
+| --- | --- |
+| AALST_OLV | 0,0% |
+| ANTWERPEN_ZNA | 100,0% |
+| AZORG | 40,0% |
+| BORNEM_AZ-RIVIERENLAND | 25,0% |
+| BRUGGE_SINT-JAN | 0,0% |
+| BRUGGE_STLUCAS | 0,0% |
+| BRUSSEL_UZ | 66,7% |
+| BRUXELLES_CHIREC | 50,0% |
+| BRUXELLES_ERASME | 0,0% |
+| BRUXELLES_EUROPE | 100,0% |
+| BRUXELLES_ST-LUC | 50,0% |
+| CHARLEROI_GHDC | 0,0% |
+| DEINZE_STVINCENT | 100,0% |
+| DENDERMONDE_STBLASIUS | 0,0% |
+| EEKLO_ALMA | 57,1% |
+| GEEL_STDIMPNA | 0,0% |
+| GENT_JANPALFIJN | 60,0% |
+| GENT_MARIAMIDDELARES | 0,0% |
+| GENT_STLUCAS | 20,0% |
+| GENT_UZ | 44,4% |
+| HALLE_STMARIA | 50,0% |
+| HASSELT_JESSA | 50,0% |
+| HERENTALS_STELISABETH | 0,0% |
+| HEUSDENZOLDER_STFRANCISKUS | 42,9% |
+| IEPER_YPERMAN | 15,4% |
+| IZEGEM_STJOZEF | 50,0% |
+| LALOUVIERE_JOLIMONT | 100,0% |
+| LALOUVIERE_TIVOLI | 33,3% |
+| LEUVEN_MCH | 0,0% |
+| LIEGE_CHR-CITADELLE | 0,0% |
+| LIEGE_CHU | 0,0% |
+| LIEGE_NOTRE-DAME-DES-ANGES | 66,7% |
+| LIER_HH | 100,0% |
+| MALLE_AZVOORKEMPEN | 66,7% |
+| MALMEDY_REINE-ASTRID | 50,0% |
+| MELSBROEK_MSKLINIEK | 0,0% |
+| MOL_HH | 0,0% |
+| OOSTENDE_AZ | 100,0% |
+| OUDENAARDE_AZ | 33,3% |
+| OVERPELT_MARIA | 25,0% |
+| ROESELARE_DELTA | 80,0% |
+| RONSE_WGLORIEUX | 37,5% |
+| SAINT-SERVAIS_BEAU-VALLON | 100,0% |
+| SINT-NIKLAAS_STLUCIA | 0,0% |
+| SINT-NIKLAAS_VITAZ | 20,0% |
+| SINT-TRUIDEN_STTRUDO | 71,4% |
+| TONGEREN_VESALIUS | 0,0% |
+| TURNHOUT_AZ | 50,0% |
+| UCCLE_EPSYLON | 27,3% |
+| VEURNE_AZ-WEST | 0,0% |
+| VILVOORDE_PORTAELS | 100,0% |
+| VZW_EMMAUS | 100,0% |
+| WAREGEM_OLVLOURDES | 33,3% |
+| WILRIJK-GZA | 50,0% |
+| ZOTTEGEM_ST-ELISABETH | 100,0% |
+
+## 11. Volume de tickets par an
+
+| Hôpital | 2026 |
+| --- | --- |
+| AALST_OLV | 1 |
+| ANTWERPEN_ZNA | 4 |
+| AZORG | 5 |
+| BORNEM_AZ-RIVIERENLAND | 4 |
+| BRUGGE_SINT-JAN | 1 |
+| BRUGGE_STLUCAS | 1 |
+| BRUSSEL_UZ | 12 |
+| BRUXELLES_CHIREC | 4 |
+| BRUXELLES_ERASME | 5 |
+| BRUXELLES_EUROPE | 1 |
+| BRUXELLES_ST-LUC | 2 |
+| CHARLEROI_GHDC | 1 |
+| DEINZE_STVINCENT | 1 |
+| DENDERMONDE_STBLASIUS | 2 |
+| EEKLO_ALMA | 7 |
+| GEEL_STDIMPNA | 3 |
+| GENT_JANPALFIJN | 5 |
+| GENT_MARIAMIDDELARES | 2 |
+| GENT_STLUCAS | 5 |
+| GENT_UZ | 9 |
+| HALLE_STMARIA | 4 |
+| HASSELT_JESSA | 4 |
+| HERENTALS_STELISABETH | 1 |
+| HEUSDENZOLDER_STFRANCISKUS | 7 |
+| IEPER_YPERMAN | 13 |
+| IZEGEM_STJOZEF | 2 |
+| LALOUVIERE_JOLIMONT | 1 |
+| LALOUVIERE_TIVOLI | 6 |
+| LEUVEN_MCH | 1 |
+| LIEGE_CHR-CITADELLE | 2 |
+| LIEGE_CHU | 1 |
+| LIEGE_NOTRE-DAME-DES-ANGES | 6 |
+| LIER_HH | 2 |
+| MALLE_AZVOORKEMPEN | 6 |
+| MALMEDY_REINE-ASTRID | 6 |
+| MELSBROEK_MSKLINIEK | 4 |
+| MOL_HH | 3 |
+| OOSTENDE_AZ | 3 |
+| OUDENAARDE_AZ | 3 |
+| OVERPELT_MARIA | 4 |
+| ROESELARE_DELTA | 5 |
+| RONSE_WGLORIEUX | 8 |
+| SAINT-SERVAIS_BEAU-VALLON | 2 |
+| SINT-NIKLAAS_STLUCIA | 1 |
+| SINT-NIKLAAS_VITAZ | 10 |
+| SINT-TRUIDEN_STTRUDO | 7 |
+| TONGEREN_VESALIUS | 1 |
+| TURNHOUT_AZ | 2 |
+| UCCLE_EPSYLON | 11 |
+| VEURNE_AZ-WEST | 7 |
+| VILVOORDE_PORTAELS | 1 |
+| VZW_EMMAUS | 1 |
+| WAREGEM_OLVLOURDES | 3 |
+| WILRIJK-GZA | 2 |
+| ZOTTEGEM_ST-ELISABETH | 2 |
+

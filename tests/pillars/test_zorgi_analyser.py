@@ -173,6 +173,20 @@ class TestZorgiAnalyserEénPijler:
 class TestZorgiAnalyserGewogenGemiddelde:
     """Correctheid van gewogen gemiddelden op ticketvolume."""
 
+    def test_gewogen_gemiddelde_nul_tickets_geeft_nul(self) -> None:
+        """
+        Alle geldige pijlers hebben current_total=0 → total_weight=0
+        → _weighted_avg_from_results geeft 0.0 terug (lijn 164).
+        """
+        results = {
+            "pharma": _make_evolution_result("pharma", 0, 4.5, 4.2),
+            "care": _make_evolution_result("care", 0, 4.0, 3.8),
+        }
+        analyser = ZorgiAnalyser(results)  # type: ignore[arg-type]
+        result = analyser.aggregate()
+        assert result.org_avg_score == 0.0
+        assert result.org_total_tickets == 0
+
     def test_gewogen_gemiddelde_score(self) -> None:
         """
         Twee pijlers: pharma 100 tickets @ 4,0 en care 100 tickets @ 3,0.
