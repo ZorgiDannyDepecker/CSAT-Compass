@@ -71,4 +71,3 @@ Zie commentaar in `src/dashboard/app.py` bij declaratie van `_zh_pillar_tks`:
 |---|---|
 | `src/dashboard/app.py` | Bouwt `_zh_pillar_tks` op — filter op `current_total > 0` |
 | `src/csat/core/exporters/dashboard_exporter.py` | `hospital_pillar_matrix` veld op `DashboardData` |
-

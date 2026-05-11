@@ -1,4 +1,4 @@
-# 📋 CHANGELOG — CSAT-Compass
+﻿# 📋 CHANGELOG — CSAT-Compass
 
 Alle noemenswaardige wijzigingen aan dit project worden hier gedocumenteerd.
 Formaat gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.0.0/).
@@ -88,8 +88,8 @@ Formaat gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.0.0/).
 
 - `src/dashboard/app.py` — Kritieke crash hersteld: `NameError: name 'main' is not defined`
   - Oorzaak: vorige sessie `insert_edit_into_file` verwijderde alle functies na `_tab_hospitals`
-    (render_kpi_targets, _tab_targets, _build_issue_type_chart, _build_priority_chart,
-    _render_feedback_themas, render_tab_tickets_prioriteit, _render_coming_soon, main)
+    (`render_kpi_targets`, `_tab_targets`, `_build_issue_type_chart`, `_build_priority_chart`,
+    `_render_feedback_themas`, `render_tab_tickets_prioriteit`, `_render_coming_soon`, `main`)
   - Herstelstrategie: hybride samenvoeging — lijnen 1–2870 (huidig, met verbeteringen) +
     git v0.7.25 vanaf `_tab_hospitals` (correcte structuur)
 - `src/dashboard/app.py` — `TypeError: cannot unpack non-iterable int object` opgelost
@@ -123,6 +123,7 @@ Formaat gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.0.0/).
 - `src/dashboard/app.py` — 101 CP437-encoding corrupties hersteld in twee rondes
 
   **Ronde 1 — emoji-corrupties (13 stuks):**
+
   | Corrupt | Correct | Locaties |
   |---|---|---|
   | `≡ƒÄ»` (4 chars) | 🎯 | `_thema_titel_nl/fr` (2×) |
@@ -136,6 +137,7 @@ Formaat gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.0.0/).
   | `≡ƒº¡` (4 chars) | 🧭 | page_icon (1×) |
 
   **Ronde 2 — symbool-corrupties (60 stuks):**
+
   | Corrupt | Correct | Aantal |
   |---|---|---|
   | `Γÿà` | ★ | 6× |
@@ -147,8 +149,6 @@ Formaat gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.0.0/).
   - Oorzaak: UTF-8 bytes van emoji en speciale symbolen (1-4 bytes) waren als CP437
     karakter-codes opgeslagen toen het bestand in een session met verkeerde encoding werd bewerkt
 
-
-
 ### Opgelost
 
 - `src/dashboard/app.py` — 28 corrupte karakters in Franstalige strings hersteld
@@ -158,8 +158,6 @@ Formaat gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.0.0/).
   - Fix: geautomatiseerde global search-replace — 26× `é`, 2× `à` gecorrigeerd
   - Betrokken strings: score-tabel titels, kolom labels `% Négatif` / `Δ Négatif`,
     footnote-teksten `différence par rapport à`, signaal-teksten (`négatifs`, `fréquence`, etc.)
-
-
 
 ### Opgelost
 
@@ -171,8 +169,6 @@ Formaat gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.0.0/).
   - Fix: het volledige duplicate blok verwijderd uit `_tab_hospitals()`; de functie eindigt nu
     correct na het vullen van `data.hospital_top10`
   - De topbar-update en tab-aanmaak vinden uitsluitend plaats in `main()` (lijnen 4624–4705)
-
-
 
 ### Gewijzigd
 
