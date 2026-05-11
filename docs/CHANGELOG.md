@@ -3,6 +3,15 @@
 Alle noemenswaardige wijzigingen aan dit project worden hier gedocumenteerd.
 Formaat gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.0.0/).
 
+## [0.9.0] — 11/05/2026
+
+### Gewijzigd
+
+- `pyproject.toml` — versie verhoogd naar 0.9.0; release-date bijgewerkt naar 11/05/2026
+- Mijlpaal: `run_special.py` volledig operationeel + gedocumenteerd + getest — afgebakend geheel voor volgende iteratie
+
+---
+
 ## [0.8.5] — 11/05/2026
 
 ### Toegevoegd
