@@ -5,10 +5,15 @@ Formaat gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.0.0/).
 
 ## [0.9.0] — 11/05/2026
 
+### Toegevoegd
+
+- `docs/project-journal.md` — nieuwe entry `2026-05-11`: Fase 6 afsluiting + Fase 7 (run_special.py) gedocumenteerd; versie naar 3.1
+- `docs/01-strategisch/projectplan-highlevel.md` — Fase 6 → ✅ Compleet; Fase 7 (run_special.py) toegevoegd als nieuwe rij; versie naar 1.9
+
 ### Gewijzigd
 
 - `pyproject.toml` — versie verhoogd naar 0.9.0; release-date bijgewerkt naar 11/05/2026
-- Mijlpaal: `run_special.py` volledig operationeel + gedocumenteerd + getest — afgebakend geheel voor volgende iteratie
+- Mijlpaal: alle fasen 1–7 afgerond; `run_special.py` volledig operationeel + gedocumenteerd + getest — afgebakend geheel voor volgende iteratie
 
 ---
 

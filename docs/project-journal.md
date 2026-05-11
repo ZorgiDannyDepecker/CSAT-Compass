@@ -1,7 +1,7 @@
 # 📓 CSAT-Compass - Project Journal
 
-**Versie:** 2.9
-**Laatst bijgewerkt:** 23/04/2026
+**Versie:** 3.1
+**Laatst bijgewerkt:** 11/05/2026
 
 **Doel:** Chronologisch logboek van beslissingen, bevindingen en voortgang  
 **Type:** Reference  
@@ -37,6 +37,7 @@
 - [2026-04-20 — Fase 4 afsluiting + Fase 5b/5c dashboard uitbreiding](#2026-04-20--fase-4-afsluiting--fase-5b5c-dashboard-uitbreiding)
 - [2026-04-21 — Output-structuur, matrix-fix, documentatie-afsluiting](#2026-04-21--output-structuur-matrix-fix-documentatie-afsluiting)
 - [2026-04-23 — Crash recovery, encoding cleanup, v0.8.0](#2026-04-23--crash-recovery-encoding-cleanup-v080)
+- [2026-05-11 — Fase 6 afsluiting + Fase 7: run_special.py, v0.9.0](#2026-05-11--fase-6-afsluiting--fase-7-run_specialpy-v090)
 - [Versiehistorie](#versiehistorie)
 
 ---
@@ -705,6 +706,51 @@ functies na `_tab_hospitals` had verwijderd (`render_kpi_targets`, `_tab_targets
 
 ---
 
+## 2026-05-11 — Fase 6 afsluiting + Fase 7: run_special.py, v0.9.0
+
+### Beslissingen
+
+- **Fase 6 formeel afgesloten** — ZORGI was reeds volledig geïntegreerd in `_ACTIVE_PILLARS` en `app.py`; documentatie liep achter en is nu rechtgezet
+- **Fase 7 geïntroduceerd** — `run_special.py` als aparte runner voor analyses met instelbare begindatum
+
+### Wat is er gedaan?
+
+#### Fase 6 — ZORGI overall (afsluiting)
+
+- `_ACTIVE_PILLARS` in `app.py` bevat `"zorgi"` → alle 5 pijlers actief in het dashboard
+- ZORGI-tab volledig operationeel (sidebar, NL/FR toggle, alle secties)
+- `ZorgiAnalyser` actief — analyseert alle sub-pijlers geaggregeerd
+- Volledige maandelijkse run `2026-05-11`: 20 `.md`-bestanden voor alle 5 pijlers
+
+#### Fase 7 — run_special.py (nieuw)
+
+- Nieuw script: `scripts/run_special.py`
+- Instelbare begindatum via `--start YYYY-MM` (standaard: `2025-07`)
+- Baseline = `--start` t/m einde van dat jaar; current = jan lopend jaar t/m vorige maand
+- Begindatum altijd zichtbaar in bestandsnamen: `evolutie-pharma-2025-07-nl_...md`
+- Outputstructuur identiek aan `run_monthly.py`: per pijler aparte submap
+- Ondersteunt `--chart` (PNG), `--force-csv`, `--pillar`, `--month`, `--output`
+- Documentatie: `docs/03-operationeel/tools/run-special.md`
+- Operationeel runbook bijgewerkt: §8 + §10
+
+### Technische details
+
+| Item | Detail |
+|---|---|
+| Versie | v0.9.0 |
+| Tests | 1.248 passed, 1 skipped |
+| Coverage | 100% |
+| Commits | `7220027`, `f0ee0de`, `6aaab6d` |
+| Output | `output/2026-05-11/` — 20 `.md` (standaard) + 30 bestanden special |
+
+### Volgende stappen
+
+- [ ] BACKLOG-002: Maandvenster toevoegen aan dashboard (meest logische vervolgstap)
+- [ ] BACKLOG-006: SLA interne vs externe KPI-drempels
+- [ ] BACKLOG-003: Jira totaal-ticket context in rapporten
+
+---
+
 ## Versiehistorie
 
 | Versie | Datum | Wijzigingen | Auteur               |
@@ -729,6 +775,8 @@ functies na `_tab_hospitals` had verwijderd (`render_kpi_targets`, `_tab_targets
 | 2.7 | 20/04/2026 | Fase 5b/5c verfijning: iframe-hoogte, insight_html, footer_html_raw, scrollbar >15 rijen, sidebar-ordening, hr-spacing | Danny Depecker + GHC |
 | 2.8 | 21/04/2026 | Output-structuur (pijler-submappen), matrix-bestandsnaamfix, run_monthly all-pillar matrix, documentatie-afsluiting Fase 4 | Danny Depecker + GHC |
 | 2.9 | 23/04/2026 | Crash recovery (main() hersteld), 250+ encoding fixes, topbar 1.5cm marges, CI-fix, v0.8.0, WIP gearchiveerd | Danny Depecker + GHC |
+| 3.0 | 11/05/2026 | Fase 6 afsluiting: ZORGI volledig actief in dashboard (_ACTIVE_PILLARS + app.py); run_monthly volledige run alle pijlers | Danny Depecker + GHC |
+| 3.1 | 11/05/2026 | Fase 7: run_special.py operationeel — instelbare begindatum, alle pijlers, identieke outputstructuur, v0.9.0 | Danny Depecker + GHC |
 
 ---
 *ZORGI — Danny Depecker*
