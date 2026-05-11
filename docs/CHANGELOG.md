@@ -3,6 +3,19 @@
 Alle noemenswaardige wijzigingen aan dit project worden hier gedocumenteerd.
 Formaat gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.0.0/).
 
+## [0.8.5] — 11/05/2026
+
+### Toegevoegd
+
+- `scripts/run_special.py` — nieuwe standalone runner voor evolutierapporten én vergelijkingsmatrices met instelbare begindatum (`--start YYYY-MM`, standaard: `2025-07`). De begindatum fungeert als jaarlabel in de bestandsnamen (bv. `evolutie-care-2025-07-nl_...md`), waardoor de bestanden direct te onderscheiden zijn van de standaard output (`evolutie-care-2026-nl_...md`). Genereert NL + FR matrix + evolutierapport voor alle 5 pijlers (of subset via `--pillar`), in de gewone per-pijler mappenstructuur (`output/YYYY-MM-DD/{pijler}/`). Ondersteunt `--chart`, `--no-matrix`, `--force-csv`, `--output`.
+- `docs/03-operationeel/tools/run-special.md` — volledige gebruiksgids voor `run_special.py`: samenvatting, wanneer-gebruiken tabel, alle gebruik-voorbeelden, argumententabel, periodelogica, outputstructuur, probleemoplossing en gerelateerde scripts.
+
+### Gewijzigd
+
+- `docs/03-operationeel/operations-runbook.md` → versie 1.3: §10 Special run toegevoegd (wanneer uitvoeren, volledig commando, uitvoerstructuur, checklist, noodrun); §8 referentie naar `run-special.md` toegevoegd.
+
+---
+
 ## [0.8.4] — 05/05/2026
 
 ### Toegevoegd

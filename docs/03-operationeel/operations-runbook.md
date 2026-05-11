@@ -163,6 +163,7 @@ Lokale lint voor commit:
 | Document | Beschrijving |
 |---|---|
 | `docs/03-operationeel/tools/run-monthly.md` | Gebruiksgids batch-runner |
+| `docs/03-operationeel/tools/run-special.md` | Gebruiksgids special runner (instelbare begindatum) |
 | `docs/03-operationeel/tools/export-data.md` | Gebruiksgids data-export |
 | `docs/03-operationeel/kwaliteitscontrole.md` | Kwaliteitscontroles op output |
 | `docs/02-tactisch/implementatie-gids.md` | Overzicht alle implementatiefasen |
@@ -237,6 +238,59 @@ Dan in Copilot Chat:
 
 ---
 
+## 10. Special run — intern beeld met instelbare begindatum
+
+Naast de standaard maandelijkse run bestaat er een **special runner** voor analyses
+die starten op een andere datum dan januari. Typisch gebruik: intern PHARMA-beeld
+vanaf **juli 2025**.
+
+> Volledig verschil met de standaardrun: zie `docs/03-operationeel/tools/run-special.md`.
+
+### 10.1 — Wanneer uitvoeren
+
+Voer `run_special.py` uit wanneer:
+
+- een intern beeld gewenst is op basis van data **vanaf juli 2025** (of een andere maand)
+- de PHARMA-pijler apart geanalyseerd moet worden t.o.v. het ZORGI-totaalplaatje
+- maandelijks, aanvullend aan `run_monthly.py` — niet ter vervanging
+
+### 10.2 — Volledige run (aanbevolen)
+
+```powershell
+cd C:\Users\danndepe\Documents\AI\CSAT-Compass
+.venv\Scripts\Activate.ps1
+.venv\Scripts\python.exe scripts/run_special.py --start 2025-07 --chart
+```
+
+Verwacht: **30 bestanden** in `output\YYYY-MM-DD\{pijler}\`
+(10 matrices + 10 evolutierapporten + 10 PNG's)
+
+### 10.3 — Uitvoerstructuur
+
+Bestanden staan in **dezelfde mappenstructuur** als de standaard run.
+Het onderscheid is zichtbaar in de bestandsnaam:
+
+| Type | Standaard | Special |
+|---|---|---|
+| Evolutierapport NL | `evolutie-care-2026-nl_...md` | `evolutie-care-2025-07-nl_...md` |
+| Matrix NL | `matrix-care-2026-nl_...md` | `matrix-care-2025-07-nl_...md` |
+
+### 10.4 — Checklist special run
+
+- [ ] Omgeving actief (`Activate.ps1`)
+- [ ] Run uitgevoerd met `--start 2025-07 --chart`
+- [ ] 30 bestanden aanwezig — geen `[FOUT]`-meldingen
+- [ ] Bestandsnamen bevatten `2025-07` als jaarlabel
+- [ ] PDF-conversie indien gewenst (zie §9.3)
+
+### 10.5 — Noodrun (SQL niet beschikbaar)
+
+```powershell
+.venv\Scripts\python.exe scripts/run_special.py --start 2025-07 --chart --force-csv
+```
+
+---
+
 ## Versiehistorie
 
 | Versie | Datum | Wijzigingen | Auteur |
@@ -244,4 +298,4 @@ Dan in Copilot Chat:
 | 1.0 | 26/03/2026 | Initiële versie — fasen 1 t/m 3e operationeel | Danny Depecker + GHC |
 | 1.1 | 21/04/2026 | §8 referenties uitgebreid | Danny Depecker + GHC |
 | 1.2 | 05/05/2026 | §9 Nieuw maand checklist toegevoegd incl. PDF-procedure met PNG-vereiste | Danny Depecker + GHC |
-| 1.2 | 04/05/2026 | §9 Nieuw maand checklist toegevoegd (data run, verificatie, PDF, distributie, dashboard, periodiek onderhoud, statustracking) | Danny Depecker + GHC |
+| 1.3 | 11/05/2026 | §10 Special run toegevoegd; §8 run-special.md toegevoegd aan referenties | Danny Depecker + GHC |
