@@ -1,22 +1,21 @@
-# ZORGI - Productnamen & schrijfwijzen
+# ZORGI - Productnamen & schrijfwijzen  
 
-**Versie:** 1.0
-**Laatst bijgewerkt:** 24/03/2026
+**Versie:** 1.1
+**Laatst bijgewerkt:** 26/05/2026
 
 **Doel:** Verplichte schrijfwijzen voor alle ZORGI productnamen in documenten, code, rapporten en AI-output
 **Type:** Reference
 **Auteur:** Danny Depecker
 **Status:** Approved
-
 **Bestandsnaam:** product-names.md
-**Path:** zorgi/
+**Path:** .github\docs\
 
 > **Golden source:** Dit bestand wordt beheerd in `PHARMA-Conventions\zorgi\`.
 > Bronnen: `CSAT-Compass/copilot-instructions.md` + `zorgi_design_system.md` sectie 8
 
 ---
 
-## 1. Bedrijfsnaam
+## 1. Bedrijfsnaam  
 
 | Schrijfwijze | Status | Toelichting |
 |---|---|---|
@@ -29,7 +28,7 @@
 
 ---
 
-## 2. Productnamen
+## 2. Productnamen  
 
 | Product | Correcte spelling | Fout |
 |---|---|---|
@@ -40,7 +39,7 @@
 
 ---
 
-## 3. Pijlerkleuren
+## 3. Pijlerkleuren  
 
 Elke pijler heeft een vaste kleur voor gebruik in rapportages en visualisaties:
 
@@ -57,7 +56,7 @@ Elke pijler heeft een vaste kleur voor gebruik in rapportages en visualisaties:
 
 ---
 
-## 4. Projectspecifieke afkortingen per team
+## 4. Projectspecifieke afkortingen per team  
 
 | Afkorting | Voluit | Project |
 |---|---|---|
@@ -65,7 +64,7 @@ Elke pijler heeft een vaste kleur voor gebruik in rapportages en visualisaties:
 
 ---
 
-## 5. Gedragsregels voor GHC
+## 5. Gedragsregels voor GHC  
 
 - Gebruik **altijd** de schrijfwijzen uit sectie 2 — geen uitzonderingen
 - Bij twijfel: raadpleeg dit bestand als golden source
@@ -74,8 +73,9 @@ Elke pijler heeft een vaste kleur voor gebruik in rapportages en visualisaties:
 
 ---
 
-## Versiehistorie
+## Versiehistorie  
 
 | Versie | Datum | Wijzigingen | Auteur |
 | ------ | ---------- | ----------- | ------ |
 | 1.0 | 24/03/2026 | Initiële versie — gecentraliseerd vanuit copilot-instructions en design system | Danny Depecker |
+| 1.1 | 26/05/2026 | MD012: dubbele blanco regel verwijderd | Danny Depecker |

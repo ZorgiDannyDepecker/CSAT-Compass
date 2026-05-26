@@ -740,7 +740,7 @@ functies na `_tab_hospitals` had verwijderd (`render_kpi_targets`, `_tab_targets
 | Versie | v0.9.0 |
 | Tests | 1.248 passed, 1 skipped |
 | Coverage | 100% |
-| Commits | `7220027`, `f0ee0de`, `6aaab6d` |
+| Commits | `7220027`, `f0ee0de`, `6aaab6d`, `e1d26cc` |
 | Output | `output/2026-05-11/` — 20 `.md` (standaard) + 30 bestanden special |
 
 ### Volgende stappen

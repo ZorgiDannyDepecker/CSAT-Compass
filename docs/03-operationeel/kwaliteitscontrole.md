@@ -1,7 +1,7 @@
 # CSAT-Compass - Kwaliteitscontrole overzicht
 
 **Versie:** 1.8
-**Laatst bijgewerkt:** 18/04/2026
+**Laatst bijgewerkt:** 11/05/2026
 
 **Doel:** Operationeel runbook — dagelijkse kwaliteitscontroles, commando's en FAQ
 **Type:** Runbook
@@ -57,31 +57,11 @@ Zie `docs/01-strategisch/kwaliteitsborging.md` voor het volledig tool-overzicht 
 - **Hoe:** `.\tools\lint.ps1` in de terminal
 - **Scope:** Alle bestanden in `src/` en `tests/` altijd
 - **Checks:** Ruff lint · Ruff format · MyPy · Bandit · pip-audit (met ZORGI-fallback)
-- **Optie:** `.\tools\lint.ps1 -Fix` → past Ruff-problemen automatisch aan
-
-#### Parameters (v2.0)
-
-| Parameter | Beschrijving | Voorbeeld |
-|-----------|-------------|---------|
-| *(geen)* | Read-only sweep op `src/` en `tests/` | `.\tools\lint.ps1` |
-| `-Fix` | Ruff-issues automatisch herstellen | `.\tools\lint.ps1 -Fix` |
-| `-Verbose` | Ruwe tool-output tonen, ook bij succes | `.\tools\lint.ps1 -Verbose` |
-| `-Skip` | Eén of meerdere tools overslaan | `.\tools\lint.ps1 -Skip Bandit,PipAudit` |
-| `-Target` | Alleen opgegeven map scannen | `.\tools\lint.ps1 -Target src/` |
-
-Geldige waarden voor `-Skip`: `Ruff`, `RuffFormat`, `MyPy`, `Bandit`, `PipAudit`
-
-> 💡 Parameters zijn combineerbaar: `.\tools\lint.ps1 -Fix -Verbose -Target src/`
-
-#### Samenvatting-statussen in de output
-
-| Status | Betekenis |
-|--------|-----------|
-| `[OK]` | Check geslaagd |
-| `[FAIL]` | Check mislukt — actie vereist |
-| `[SKIP]` | Overgeslagen via `-Skip` parameter |
-| `[?]` | Tool niet geïnstalleerd (`pip install <tool>`) |
-| `[PROXY]` | pip-audit geblokkeerd door ZORGI corporate proxy — geen echte fout |
+- **Opties:**
+  - `.\tools\lint.ps1 -Fix` → past Ruff-problemen automatisch aan
+  - `.\tools\lint.ps1 -Verbose` → uitgebreide output per tool
+  - `.\tools\lint.ps1 -Skip Bandit,PipAudit` → specifieke tools overslaan
+  - `.\tools\lint.ps1 -Target src/` → alleen opgegeven map controleren
 
 ### Laag 2 — Automatisch: pre-commit hooks
 
@@ -170,9 +150,9 @@ Copilot toont tabel: Package | Versie | CVE | Ernst | Actie
 |---------|-------|---------|
 | Voor een grote commit | Brede kwaliteitscheck | `.\tools\lint.ps1` |
 | Ruff-issues automatisch fixen | Opmaak herstellen | `.\tools\lint.ps1 -Fix` |
-| Alleen een specifieke map checken | Gerichte sweep | `.\tools\lint.ps1 -Target src/` |
-| Trage tools overslaan | Snellere sweep | `.\tools\lint.ps1 -Skip Bandit,PipAudit` |
-| Uitgebreide diagnose | Volledige tool-output | `.\tools\lint.ps1 -Verbose` |
+| Uitgebreide output nodig | Gedetailleerde rapportage per tool | `.\tools\lint.ps1 -Verbose` |
+| Specifieke tool overslaan | Gedeeltelijke check | `.\tools\lint.ps1 -Skip Bandit,PipAudit` |
+| Enkel één map controleren | Gerichte check | `.\tools\lint.ps1 -Target src/` |
 | Periodiek (maandelijks) | CVE-scan packages | `/cve` in Copilot Chat |
 | Bij nieuwe packages | CVE-scan na `pip install` | `/cve` in Copilot Chat |
 | Wanneer je wil committen | Git-workflow starten | `/git` in Copilot Chat |
@@ -183,7 +163,7 @@ Copilot toont tabel: Package | Versie | CVE | Ernst | Actie
 
 | Wat | Bestand | Wat erin staat |
 |-----|---------|---------------|
-| Ruff-regels | `pyproject.toml` → `[tool.ruff]` | Regellengte 100, geselecteerde regels |
+| Ruff-regels | `pyproject.toml` → `[tool.ruff]` | Regellengte 100, geselecteerde regels (incl. T20, DTZ) |
 | MyPy-config | `pyproject.toml` → `[tool.mypy]` | Strictheid, uitzonderingen per map |
 | Bandit-config | `pyproject.toml` → `[tool.bandit]` | Uitgesloten mappen |
 | Pre-commit hooks | `.pre-commit-config.yaml` | Welke checks, op welke bestanden |
@@ -218,10 +198,6 @@ ignore_missing_imports = true
 **pip-audit geeft SSL-fout op kantoor?**
 Normaal — ZORGI corporate proxy. Gebruik `/cve` in Copilot Chat als alternatief.
 
-**Een tool geeft `[?]` in de samenvatting — wat nu?**
-De tool is niet geïnstalleerd in de actieve virtual environment.
-Activeer `.venv` en voer uit: `pip install <toolnaam>` (zie de melding in de output voor de exacte naam).
-
 **Tests lopen elke keer in een andere volgorde — is dat normaal?**
 Ja, dit is bewust. Het project gebruikt `pytest-randomly` om bij elke run de testvolgorde
 te shuffelen. Doel: volgorde-afhankelijke tests opsporen (een test die slaagt omdat een
@@ -247,4 +223,4 @@ andere test eerst zijn state heeft klaargezet).
 | 1.5 | 31/03/2026 | Opgemaakt conform md-style-guide | GHC |
 | 1.6 | 31/03/2026 | §2 (tool-beschrijvingen) verwijderd — verplaatst naar kwaliteitsborging.md; secties hernummerd | GHC |
 | 1.7 | 02/04/2026 | §5 testvolgorde-rij toegevoegd; FAQ pytest-randomly uitleg + seed-reproductie | Danny Depecker + GHC |
-| 1.8 | 18/04/2026 | lint.ps1 v2.0 parameters gedocumenteerd (-Fix/-Verbose/-Skip/-Target); statustabel toegevoegd; §5 manuele tabel uitgebreid; FAQ [?]-status toegevoegd | Danny Depecker + Claude |
+| 1.8 | 11/05/2026 | §2 lint.ps1-opties uitgebreid (-Verbose, -Skip, -Target); §5 manuele tabel aangevuld; §6 Ruff-rij bijgewerkt (T20, DTZ) | Danny Depecker + Claude |

@@ -91,7 +91,8 @@ class MatrixExporter:
         """
         Render de matrix en schrijf naar de outputmap.
 
-        Bestandsnaamconventie: matrix-{pillar}-YYYY-{lang}.md
+        Bestandsnaamconventie: matrix-{pillar}-YYYY-{lang}.md  (NL)
+                               matrice-{pillar}-YYYY-{lang}.md (FR)
         Aanmaakpad wordt aangemaakt als het nog niet bestaat.
 
         Args:
@@ -103,7 +104,9 @@ class MatrixExporter:
         """
         year = results[0].period[:4]
         content = self.render(results)
-        output_file = self._output_path / f"matrix-{pillar_key}-{year}-{self._lang}.md"
+        # Taalafhankelijk bestandsprefix: NL = matrix, FR = matrice
+        prefix = "matrice" if self._lang == "fr" else "matrix"
+        output_file = self._output_path / f"{prefix}-{pillar_key}-{year}-{self._lang}.md"
         output_file.parent.mkdir(parents=True, exist_ok=True)
         output_file.write_text(content, encoding="utf-8")
         logger.info(f"[MatrixExporter:{self._lang}] Matrix geschreven → {output_file}")

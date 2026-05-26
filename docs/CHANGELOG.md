@@ -3,6 +3,36 @@
 Alle noemenswaardige wijzigingen aan dit project worden hier gedocumenteerd.
 Formaat gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.0.0/).
 
+## [0.9.2] — 12/05/2026
+
+### Gewijzigd
+
+- `src/csat/core/exporters/evolution_exporter.py` — `export()`: bestandsprefix taalafhankelijk:
+  NL = `evolutie-{pillar}-{jaar}-nl.md`, FR = `evolution-{pillar}-{year}-fr.md`
+- `src/csat/core/exporters/evolution_visualiser.py` — `export()`: PNG-prefix taalafhankelijk:
+  NL = `evolutie-{pillar}-{jaar}-nl.png`, FR = `evolution-{pillar}-{year}-fr.png`
+- `src/csat/core/exporters/matrix_exporter.py` — `export()`: bestandsprefix taalafhankelijk:
+  NL = `matrix-{pillar}-YYYY-nl.md`, FR = `matrice-{pillar}-YYYY-fr.md`
+- `scripts/run_special.py` — hernoemlogica matrix bijgewerkt: NL = `matrix-`, FR = `matrice-`
+- Docstrings bijgewerkt in `evolution_exporter.py` en `matrix_exporter.py` met NL/FR naamconventie
+
+---
+
+## [0.9.1] — 12/05/2026
+
+### Toegevoegd
+
+- `src/csat/core/analysers/evolution_analyser.py` — `THEME_ACTION_HINTS_FR` dict toegevoegd:
+  Franstalige vertalingen van alle 5 actiehints (responstijd, onvolledig, communicatie, urgentie, automatisering)
+
+### Opgelost
+
+- `src/csat/core/insights/insights_generator.py` — `_generate_feedback_themes()`:
+  Feedbackthema-beschrijvingen toonden altijd Nederlandse actiehint-tekst, ook bij FR-taalinstelling;
+  `THEME_ACTION_HINTS_FR` geïmporteerd en gebruikt als `actie_fr` in de Franstalige beschrijving
+
+---
+
 ## [0.9.0] — 11/05/2026
 
 ### Toegevoegd

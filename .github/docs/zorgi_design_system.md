@@ -1,7 +1,7 @@
-# ZORGI Design System & Branding Reference
+# ZORGI Design System & Branding Reference  
 
-> **Golden source:** Dit bestand wordt beheerd in `PHARMA-Conventions\zorgi\`.  
-> **Versie overgenomen van:** `CSAT-Compass/docs/01-strategisch/zorgi_design_system.md`  
+> **Golden source:** Dit bestand wordt beheerd in `PHARMA-Conventions\zorgi\`.
+> **Versie overgenomen van:** `CSAT-Compass/docs/01-strategisch/zorgi_design_system.md`
 > **Overgedragen op:** 24/03/2026
 
 ---
@@ -10,17 +10,18 @@
 
 ---
 
-## 0. Available Brand Assets
+## 0. Available Brand Assets  
 
 | Asset                        | Filename                              | Description                          |
 |------------------------------|---------------------------------------|--------------------------------------|
 | Heartbeat Icon (White, PNG)  | `Logo-icoon_144_x_144_px_wit.png`     | 144×144px, white on transparent, for dark backgrounds |
+| ZORGI Logo (White, PNG)      | `Zorgi_wit.png`                       | Full wordmark, white — used in app topbar (`assets/img/`) |
 
 > Place brand asset files in the same directory as this reference. When creating tools or artifacts, use relative paths to reference them.
 
 ---
 
-## 1. Brand Identity
+## 1. Brand Identity  
 
 - **Company Name:** ZORGI (always written in CAPITALS as a company name)
 - **Tagline:** smarter care
@@ -30,9 +31,9 @@
 
 ---
 
-## 2. Color Palette
+## 2. Color Palette  
 
-### Primary Colors
+### Primary Colors  
 
 | Color Name      | HEX       | RGB             | CMYK           | Usage                                      |
 |-----------------|-----------|-----------------|----------------|---------------------------------------------|
@@ -40,7 +41,7 @@
 | Red             | `#dc2b26` | 220, 43, 38     | 5, 93, 91, 1   | Accent, logo gradient, highlights           |
 | Purple          | `#7f4267` | 127, 66, 103    | 42, 76, 23, 31 | Logo gradient mid-tone, title bars          |
 
-### Secondary Colors
+### Secondary Colors  
 
 | Color Name      | HEX       | RGB             | CMYK           | Usage                                      |
 |-----------------|-----------|-----------------|----------------|---------------------------------------------|
@@ -48,7 +49,7 @@
 | Light Blue      | `#609fce` | 96, 159, 206    | 63, 25, 5, 2   | Headings (Kop 3, 5), accents               |
 | Ultra Light Blue| `#d7e7f3` | 215, 231, 243   | 12, 5, 0, 5    | Backgrounds, cards, containers              |
 
-### Gradient
+### Gradient  
 
 - **Direction:** Left to right (or as overlay on images)
 - **Stops:** Dark Blue (`#003a70`) → Purple (`#7f4267`) → Red (`#dc2b26`)
@@ -63,22 +64,30 @@
 - Red is used sparingly for emphasis and accents
 - Ultra Light Blue is the preferred light background color
 
+### Derived Pillar Colors
+
+Pillar-specific colors not in the core palette are derived via mixing and documented here:
+
+| Pillar     | Color Name   | HEX       | Derivation                                      |
+|------------|--------------|-----------|------------------------------------------------|
+| CARE ADMIN | Light Purple | `#a06b8a` | 60% mix: Purple `#7f4267` → Ultra Light Blue `#d7e7f3` |
+
 ---
 
-## 3. Typography
+## 3. Typography  
 
-### Primary Font: Poppins (Google Font)
+### Primary Font: Poppins (Google Font)  
 
 | Style         | Weight      | Usage                                |
 |---------------|-------------|--------------------------------------|
 | ExtraBold     | 800         | Titles, headings, quotes, intros     |
 | Light         | 300         | Body text, paragraphs               |
 
-### Fallback Font: Verdana
+### Fallback Font: Verdana  
 
 Use Verdana when Poppins is not available.
 
-### Font Sizes (Word Documents)
+### Font Sizes (Word Documents)  
 
 | Level       | Size    | Color          | Weight         |
 |-------------|---------|----------------|----------------|
@@ -89,7 +98,7 @@ Use Verdana when Poppins is not available.
 | Heading 5   | 10.5pt  | Light Blue     | Poppins ExtraBold |
 | Body Text   | 10.5pt  | Black          | Poppins Light     |
 
-### Web/App Equivalents (recommended)
+### Web/App Equivalents (recommended)  
 
 | Level       | Size     | Color          | Font                  |
 |-------------|----------|----------------|-----------------------|
@@ -100,7 +109,7 @@ Use Verdana when Poppins is not available.
 | H5          | 1.125rem | `#609fce`      | Poppins 800           |
 | Body        | 1rem     | `#1a1a1a`      | Poppins 300           |
 
-### Loading Poppins (Web)
+### Loading Poppins (Web)  
 
 ```html
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;800&display=swap" rel="stylesheet">
@@ -112,9 +121,9 @@ font-family: 'Poppins', 'Verdana', sans-serif;
 
 ---
 
-## 4. Logo
+## 4. Logo  
 
-### Logo Asset — Heartbeat Icon (White)
+### Logo Asset — Heartbeat Icon (White)  
 
 - **File:** `Logo-icoon_144_x_144_px_wit.png`
 - **Size:** 144 × 144 px
@@ -126,12 +135,12 @@ font-family: 'Poppins', 'Verdana', sans-serif;
 <img src="Logo-icoon_144_x_144_px_wit.png" alt="ZORGI" width="36" height="36" />
 ```
 
-### Structure
+### Structure  
 
 - The logo consists of a **heartbeat icon** (gradient bars) + **"ZORGI"** wordmark + **"smarter care"** baseline
 - The heartbeat icon symbolizes: progress, future-orientation, partnership, growth, and care
 
-### Usage Rules
+### Usage Rules  
 
 | Context                              | What to Use                          |
 |--------------------------------------|--------------------------------------|
@@ -141,34 +150,34 @@ font-family: 'Poppins', 'Verdana', sans-serif;
 | Dark/busy backgrounds                | White logo                           |
 | Only when required by partners       | Black logo                           |
 
-### Minimum Sizes
+### Minimum Sizes  
 
 - Full logo: **40mm** minimum width
 - Heartbeat icon alone: **10mm** minimum width
 
-### Logo Don'ts
+### Logo Don'ts  
 
 - Never use the color logo on dark or busy backgrounds
 - Never distort or modify the logo
 
 ---
 
-## 5. Graphic Elements
+## 5. Graphic Elements  
 
-### Dot Pattern
+### Dot Pattern  
 
 - A distinctive **dot grid pattern** is used throughout communications
 - Available in: **Dark Blue** and **White** only
 - **Allowed modifications:** Cropping, scaling up/down
 - **Not allowed:** Color changes, distortion, reshaping
 
-### Shape Language
+### Shape Language  
 
 - All graphic elements and image frames use **rounded corners** or are **fully rounded**
 - Title bars use rounded/pill shapes (typically in Purple or Light Blue)
 - Use **icons** to support visual flows and schemas
 
-### Rounded Corners CSS Reference
+### Rounded Corners CSS Reference  
 
 ```css
 /* Standard rounded corners */
@@ -186,7 +195,7 @@ border-radius: 0 40px 0 0;
 
 ---
 
-## 6. Photography Style
+## 6. Photography Style  
 
 - **Focus:** People and innovation
 - **Style:** Colorful, vibrant, dynamic, high-contrast
@@ -195,13 +204,13 @@ border-radius: 0 40px 0 0;
 
 ---
 
-## 7. Tone of Voice
+## 7. Tone of Voice  
 
-### Core Principle: Client-Centric
+### Core Principle: Client-Centric  
 
 Always put the recipient at the center, whether they are a client, partner, or colleague.
 
-### Tone Characteristics
+### Tone Characteristics  
 
 | Characteristic                        | Example                                                     |
 |---------------------------------------|-------------------------------------------------------------|
@@ -211,12 +220,12 @@ Always put the recipient at the center, whether they are a client, partner, or c
 | Personal & tailored                   | "Dear [Name], we have a proposal that fits your needs..."   |
 | Consistently professional, accessible | "We're here for you if you have questions..."               |
 
-### Formality Rules
+### Formality Rules  
 
 - **External communication:** Use formal "u" (you-formal in Dutch)
 - **Internal communication:** Use informal "je" (you-informal in Dutch)
 
-### Writing Tips — Prefer Simple Language
+### Writing Tips — Prefer Simple Language  
 
 | Don't say                        | Say instead  |
 |----------------------------------|--------------|
@@ -228,7 +237,7 @@ Always put the recipient at the center, whether they are a client, partner, or c
 
 ---
 
-## 8. Product Name Spelling
+## 8. Product Name Spelling  
 
 Always use these exact capitalizations:
 
@@ -244,7 +253,7 @@ Always use these exact capitalizations:
 
 ---
 
-## 9. Presentation Principles
+## 9. Presentation Principles  
 
 Six principles for good slides:
 
@@ -257,7 +266,7 @@ Six principles for good slides:
 
 ---
 
-## 10. Quick Reference — CSS Variables
+## 10. Quick Reference — CSS Variables  
 
 ```css
 :root {
@@ -303,7 +312,7 @@ Six principles for good slides:
 
 ---
 
-## 11. Quick Reference — Tailwind Utility Classes
+## 11. Quick Reference — Tailwind Utility Classes  
 
 ```text
 Dark Blue:        text-[#003a70]  bg-[#003a70]  border-[#003a70]
@@ -319,7 +328,7 @@ Font:            font-light (body) | font-extrabold (headings)
 
 ---
 
-## 12. Design Checklist
+## 12. Design Checklist  
 
 Before delivering any branded output, verify:
 
@@ -341,8 +350,9 @@ Before delivering any branded output, verify:
 
 ---
 
-## Versiehistorie
+## Versiehistorie  
 
 | Versie | Datum | Wijzigingen | Auteur                                   |
 | ------ | ---------- | ----------- |------------------------------------------|
 | 1.0 | 24/03/2026 | Overgenomen van CSAT-Compass — golden source gecentraliseerd in PHARMA-Conventions | Marcom + Thijs Mestdagh + Danny Depecker |
+| 1.1 | 18/04/2026 | Zorgi_wit.png toegevoegd aan asset-tabel; afgeleide pillar-kleur CARE ADMIN gedocumenteerd | CD |

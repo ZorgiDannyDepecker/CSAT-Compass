@@ -1,23 +1,21 @@
-# Documentatie Style Guide
+# Documentatie Style Guide  
 
 **Versie:** 4.4
-**Laatst bijgewerkt:** 30/03/2026
-**Overgedragen naar PHARMA-Conventions:** 24/03/2026
+**Laatst bijgewerkt:** 26/05/2026
 
 **Doel:** Consistente opmaak en stijl voor alle projectdocumentatie
 **Type:** Reference
 **Auteur:** Danny Depecker + Claude
 **Status:** Approved
-
 **Bestandsnaam:** md-style-guide.md
-**Path:** pharma/
+**Path:** .github\instructions\
 
 > **Golden source:** Dit bestand wordt beheerd in `PHARMA-Conventions\pharma\`.
 > Overgenomen van: `CSAT-Compass/.github/docs/md-style-guide.md` v4.0
 
 ---
 
-## Inhoudsopgave
+## Inhoudsopgave  
 
 1. [Document Header Structuur](#1-document-header-structuur)
 2. [Algemene Richtlijnen](#2-algemene-richtlijnen)
@@ -35,9 +33,9 @@
 
 ---
 
-## 1. Document Header Structuur
+## 1. Document Header Structuur  
 
-### 1.1 Verplichte Header Template
+### 1.1 Verplichte Header Template  
 
 Elk markdown document begint met deze gestandaardiseerde header:
 
@@ -51,14 +49,13 @@ Elk markdown document begint met deze gestandaardiseerde header:
 **Type:** [Document type]
 **Auteur:** [Naam auteur]
 **Status:** [Huidige status]
-
 **Bestandsnaam:** [filename.md]
 **Path:** [relatief/pad/naar/bestand]
 
 ---
 ```
 
-### 1.2 Verplichte Velden
+### 1.2 Verplichte Velden  
 
 | Veld                  | Formaat                 | Beschrijving                                     |
 | --------------------- | ----------------------- | ------------------------------------------------ |
@@ -72,7 +69,7 @@ Elk markdown document begint met deze gestandaardiseerde header:
 | **Bestandsnaam**      | `filename.md`           | Exacte bestandsnaam (lowercase, hyphens)         |
 | **Path**              | `relatief/pad/`         | Relatief pad vanaf project root                  |
 
-#### 1.2a Auteur Veld
+#### 1.2a Auteur Veld  
 
 | Situatie                 | Waarde                 |
 | ------------------------ | ---------------------- |
@@ -83,7 +80,7 @@ Elk markdown document begint met deze gestandaardiseerde header:
 | Samenwerking mens + AI   | `Danny Depecker + GHC` |
 | Samenwerking meerdere AI | `GHC + Claude`         |
 
-### 1.3 Type Waarden
+### 1.3 Type Waarden  
 
 | Type            | Gebruik Voor                               |
 | --------------- | ------------------------------------------ |
@@ -96,7 +93,7 @@ Elk markdown document begint met deze gestandaardiseerde header:
 | `Retrospective` | Lessons learned, post-mortems              |
 | `Convention`    | Project-specifieke afspraken en conventies |
 
-### 1.4 Status Waarden
+### 1.4 Status Waarden  
 
 | Status        | Beschrijving                        |
 | ------------- | ----------------------------------- |
@@ -111,36 +108,37 @@ Elk markdown document begint met deze gestandaardiseerde header:
 
 ---
 
-## 2. Algemene Richtlijnen
+## 2. Algemene Richtlijnen  
 
-### 2.1 Taal
+### 2.1 Taal  
 
 - Alle markdown documentatie in **Nederlands**
 - Code comments in **Nederlands**
 - Variabele/functie namen in **Engels**
 - Technische termen in Engels waar Nederlands onnatuurlijk klinkt
 
-### 2.2 Datumnotatie
+### 2.2 Datumnotatie  
 
 - **In tekst:** `DD/MM/YYYY` — ✅ `10/02/2026`
 - **In bestandsnamen:** `YYYY-MM-DD` — ✅ `2026-02-10-meeting-notes.md`
 
-### 2.3 Regellengte
+### 2.3 Regellengte  
 
 Aanbevolen: 80-100 karakters per regel.
 
 ---
 
-## 3. Koppen Hiërarchie
+## 3. Koppen Hiërarchie  
 
 - **H1:** Alleen voor document titel
 - **H2:** Hoofdsecties
 - **H3:** Subsecties
 - Geen levels overslaan: H1 → H2 → H3
+- **Trailing spaties:** Eindig elke koplijn met exact **twee spaties** — dit voorkomt dat koppen aaneengeplakt worden bij PDF-export
 
 ---
 
-## 4. Tekstopmaak
+## 4. Tekstopmaak  
 
 - **Italic:** `*tekst*` — lichte nadruk
 - **Bold:** `**tekst**` — sterke nadruk
@@ -172,13 +170,11 @@ De score steeg van 3,48 naar 4,37.
 De score steeg van 3,48 naar 4,37.
 
 *Causale factor: Score-evolutie over analyseperiode*
-
-### Volgende sectie
 ```
 
 ### 4.2 Zinnen op een nieuwe regel (verplicht)
 
-> ⚠️ **Leesbaarheidsregel:** Elke zin krijgt een eigen regel. Gebruik **2 spaties + newline** (Markdown line break) na elke punt aan het einde van een zin.
+> ⚠️ **Leesbaarheidsregel:** Elke zin krijgt een eigen regel. Gebruik **twee spaties gevolgd door een newline** (Markdown line break) na elke punt aan het einde van een zin.
 
 **Regel:** Na elke zin (eindpunt gevolgd door een nieuwe zin) twee spaties toevoegen vóór de regelafstand.
 
@@ -199,41 +195,19 @@ Van de 46 responses scoort 65,2% een volle 5★.
 Responstijd en score zijn gecorreleerd.
 ```
 
-**In broncode (Python generators):** gebruik `".\n\n"` als separator tussen zinnen in gegenereerde tekst.
+**In broncode (Python generators):** gebruik `".  \n"` als separator tussen zinnen in gegenereerde tekst.
 
 ```python
 # ❌ Fout
 f"Eerste zin. Tweede zin."
 
 # ✅ Correct
-f"Eerste zin.\n\nTweede zin."
-```
-
-### 4.3 Meta-labels als blockquote (PDF-vereiste)
-
-> ⚠️ **PDF-renderer regel:** Inline italic zoals `*label: waarde*` op een nieuwe regel wordt in PDF-renderers samengetrokken met de vorige paragraaf. Gebruik altijd een **blockquote** (`>`) voor meta-labels die visueel gescheiden moeten zijn.
-
-| Situatie | ❌ Fout | ✅ Correct |
-| --- | --- | --- |
-| Causale factor | `*Causale factor: ...*` | `> 🔍 *Causale factor: ...*` |
-| Noot / opmerking | `*Noot: ...*` | `> ℹ️ *Noot: ...*` |
-| Bron / referentie | `*Bron: ...*` | `> 📎 *Bron: ...*` |
-
-**In Jinja2-templates:**
-
-```jinja
-{# ❌ Fout — kleeft aan vorige paragraaf in PDF #}
-{% if f.causal_factor %}*Causale factor: {{ f.causal_factor }}*{% endif %}
-
-{# ✅ Correct — altijd block-level, eigen regel in elke renderer #}
-{% if f.causal_factor %}
-> 🔍 *Causale factor: {{ f.causal_factor }}*
-{% endif %}
+f"Eerste zin.  \nTweede zin."
 ```
 
 ---
 
-## 5. Lijsten
+## 5. Lijsten  
 
 - Ongeordende lijsten: `-` als bullet (geen `*` of `+`)
 - Geordende lijsten: nummering start bij `1`
@@ -242,9 +216,9 @@ f"Eerste zin.\n\nTweede zin."
 
 ---
 
-## 6. Code Blokken
+## 6. Code Blokken  
 
-### 6.1 Taalspecificatie
+### 6.1 Taalspecificatie  
 
 Altijd taal specificeren:
 
@@ -257,7 +231,7 @@ Altijd taal specificeren:
 | Mermaid      | `mermaid`    |
 | Tekst/Output | `text`       |
 
-### 6.2 Mermaid Diagrammen
+### 6.2 Mermaid Diagrammen  
 
 | Type             | Tag                     | Gebruik Voor                  |
 | ---------------- | ----------------------- | ----------------------------- |
@@ -270,21 +244,21 @@ Altijd taal specificeren:
 
 ---
 
-## 7. Links en Referenties
+## 7. Links en Referenties  
 
 - Gebruik **relatieve paden** voor interne links
 - Gebruik beschrijvende linkteksten
 
 ---
 
-## 8. Tabellen
+## 8. Tabellen  
 
 - Consistente spatiëring voor leesbaarheid
 - Alignment: `:---` links, `:---:` center, `---:` rechts
 
 ---
 
-## 9. Afbeeldingen
+## 9. Afbeeldingen  
 
 - Altijd alt text voor toegankelijkheid
 - Aanbevolen locatie: `docs/images/`
@@ -292,9 +266,9 @@ Altijd taal specificeren:
 
 ---
 
-## 10. Speciale Elementen
+## 10. Speciale Elementen  
 
-### 10.1 Admonitions
+### 10.1 Admonitions  
 
 ```markdown
 ⚠️ **BELANGRIJK:** Kritieke informatie.
@@ -302,7 +276,7 @@ Altijd taal specificeren:
 ❌ **FOUT:** Veelgemaakte fout.
 ```
 
-### 10.2 Collapse Sections
+### 10.2 Collapse Sections  
 
 ```markdown
 <details>
@@ -311,7 +285,7 @@ Verborgen content hier.
 </details>
 ```
 
-### 10.3 Keyboard Keys
+### 10.3 Keyboard Keys  
 
 ```markdown
 Druk <kbd>Ctrl</kbd>+<kbd>C</kbd> om te kopiëren.
@@ -319,7 +293,7 @@ Druk <kbd>Ctrl</kbd>+<kbd>C</kbd> om te kopiëren.
 
 ---
 
-## 11. Bestandsnamen
+## 11. Bestandsnamen  
 
 - Lowercase, hyphens, beschrijvend
 - Meta-bestanden in UPPERCASE: `README.md`, `CHANGELOG.md`
@@ -327,15 +301,15 @@ Druk <kbd>Ctrl</kbd>+<kbd>C</kbd> om te kopiëren.
 
 ---
 
-## 12. Git Commit Messages
+## 12. Git Commit Messages  
 
-### 12.1 Structuur
+### 12.1 Structuur  
 
 ```text
 <type>: <korte beschrijving> (max 50 chars)
 ```
 
-### 12.2 Type Prefixes
+### 12.2 Type Prefixes  
 
 | Type        | Gebruik                                  |
 | ----------- | ---------------------------------------- |
@@ -349,17 +323,17 @@ Druk <kbd>Ctrl</kbd>+<kbd>C</kbd> om te kopiëren.
 
 ---
 
-## 13. YAML Frontmatter
+## 13. YAML Frontmatter  
 
-### 13.1 Wanneer gebruiken
+### 13.1 Wanneer gebruiken  
 
-| Situatie                               | Gebruik Frontmatter   |
-| -------------------------------------- | --------------------- |
+| Situatie                               | Gebruik Frontmatter      |
+| -------------------------------------- | ------------------------ |
 | `.instructions.md` voor GitHub Copilot | ✅ Verplicht (`applyTo`) |
-| Standaard projectdocumentatie          | ❌ Niet nodig          |
-| README.md bestanden                    | ❌ Niet aanbevolen     |
+| Standaard projectdocumentatie          | ❌ Niet nodig            |
+| README.md bestanden                    | ❌ Niet aanbevolen       |
 
-### 13.2 applyTo waarden
+### 13.2 applyTo waarden  
 
 ```yaml
 ---
@@ -371,15 +345,15 @@ applyTo: '**/*.py,**/*.ps1'  # Python én PowerShell
 
 ---
 
-## Versiehistorie
+## Versiehistorie  
 
-| Versie | Datum | Wijzigingen | Auteur |
-| ------ | ---------- | ----------- | ------ |
-| 1.0 | 03/02/2026 | Initial release | Danny Depecker |
-| 2.0 | 10/02/2026 | Complete herziening | Danny Depecker |
-| 3.0 | 02/03/2026 | Gegeneraliseerde template structuur | Danny Depecker + Claude |
-| 4.0 | 17/03/2026 | Generiek gemaakt; auteur-veld uitgebreid; Mermaid + YAML secties toegevoegd | Danny Depecker + Claude |
-| 4.1 | 24/03/2026 | Gecentraliseerd in PHARMA-Conventions | Danny Depecker |
-| 4.2 | 30/03/2026 | Sectie 4.1 toegevoegd: alinea-scheiding met lege regels verplicht | Danny Depecker + GHC |
-| 4.3 | 30/03/2026 | Sectie 4.2 toegevoegd: elke zin op nieuwe regel; Python generator-conventie gedocumenteerd | Danny Depecker + GHC |
-| 4.4 | 30/03/2026 | Sectie 4.3 toegevoegd: meta-labels als blockquote voor PDF-compatibiliteit; Jinja2-voorbeeld toegevoegd | Danny Depecker + GHC |
+| Versie | Datum      | Wijzigingen                                                                                                     | Auteur                  |
+| ------ | ---------- | --------------------------------------------------------------------------------------------------------------- | ----------------------- |
+| 1.0    | 03/02/2026 | Initial release                                                                                                 | Danny Depecker          |
+| 2.0    | 10/02/2026 | Complete herziening                                                                                             | Danny Depecker          |
+| 3.0    | 02/03/2026 | Gegeneraliseerde template structuur                                                                             | Danny Depecker + Claude |
+| 4.0    | 17/03/2026 | Generiek gemaakt; auteur-veld uitgebreid; Mermaid + YAML secties toegevoegd                                     | Danny Depecker + Claude |
+| 4.1    | 24/03/2026 | Gecentraliseerd in PHARMA-Conventions                                                                           | Danny Depecker          |
+| 4.2    | 26/03/2026 | Trailing spaties op koppen toegevoegd (sectie 3); alle koppen in alle bestanden bijgewerkt                      | Danny Depecker + Claude |
+| 4.3    | 30/03/2026 | Hoofdstukken toegevoegd: 4.1 Alinea-scheiding & 4.2 Zinnen op een nieuwe regel                                 | Danny Depecker          |
+| 4.4    | 26/05/2026 | MD038: code span met spatie in §4.2 gefixed; MD031/MD022: blanco regel voor §4.2 kop toegevoegd; MD047: newline | Danny Depecker          |

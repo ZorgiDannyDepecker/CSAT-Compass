@@ -231,8 +231,10 @@ def main() -> None:  # noqa: C901
                     mx = MatrixExporter(lang=lang, output_path=output_dir)
                     pad = mx.export(matrix_results, pillar_key=pillar)
                     # Hernoem: vervang automatisch jaarlabel door begindatum + timestamp
-                    # matrix-{pillar}-2025-nl.md → matrix-{pillar}-2025-07-nl_...md
-                    nieuw_pad = output_dir / f"matrix-{pillar}-{args.start}-{lang}{ts_suffix}.md"
+                    # matrix-{pillar}-2025-nl.md  → matrix-{pillar}-2025-07-nl_...md
+                    # matrice-{pillar}-2025-fr.md → matrice-{pillar}-2025-07-fr_...md
+                    prefix = "matrice" if lang == "fr" else "matrix"
+                    nieuw_pad = output_dir / f"{prefix}-{pillar}-{args.start}-{lang}{ts_suffix}.md"
                     pad.rename(nieuw_pad)
                     totaal += 1
                     print(f"  [OK] [MTX-{lang.upper()}] {pillar:<10} -> {nieuw_pad.name}")

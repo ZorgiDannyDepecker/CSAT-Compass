@@ -1,4 +1,4 @@
-# ZORGI - Tone of voice & schrijfstijl
+# ZORGI - Tone of voice & schrijfstijl  
 
 **Versie:** 1.0
 **Laatst bijgewerkt:** 24/03/2026
@@ -7,23 +7,22 @@
 **Type:** Reference
 **Auteur:** Danny Depecker
 **Status:** Approved
-
 **Bestandsnaam:** tone-of-voice.md
-**Path:** zorgi/
+**Path:** .github\docs\
 
 > **Golden source:** Dit bestand wordt beheerd in `PHARMA-Conventions\zorgi\`.
 > Bronnen: `zorgi_design_system.md § 7` + `CSAT-Compass/copilot-instructions.md § Branding`
 
 ---
 
-## 1. Kernprincipe
+## 1. Kernprincipe  
 
 **Klantgericht communiceren** — de ontvanger staat altijd centraal,
 of het nu een klant, partner of collega is.
 
 ---
 
-## 2. Toonkenmerken
+## 2. Toonkenmerken  
 
 | Kenmerk | Voorbeeld |
 |---|---|
@@ -35,7 +34,7 @@ of het nu een klant, partner of collega is.
 
 ---
 
-## 3. Formaliteitsregels
+## 3. Formaliteitsregels  
 
 | Context | Aanspreekvorm | Toelichting |
 |---|---|---|
@@ -45,7 +44,7 @@ of het nu een klant, partner of collega is.
 
 ---
 
-## 4. Tweetaligheid NL/FR
+## 4. Tweetaligheid NL/FR  
 
 ZORGI is een tweetalige organisatie. Volgende regels gelden voor alle communicatie:
 
@@ -60,7 +59,7 @@ ZORGI is een tweetalige organisatie. Volgende regels gelden voor alle communicat
 
 ---
 
-## 5. Schrijftips — eenvoudige taal
+## 5. Schrijftips — eenvoudige taal  
 
 Vermijd formeel-bureaucratisch taalgebruik. Gebruik directe, heldere taal:
 
@@ -78,7 +77,7 @@ Vermijd formeel-bureaucratisch taalgebruik. Gebruik directe, heldere taal:
 
 ---
 
-## 6. Design checklist voor GHC
+## 6. Design checklist voor GHC  
 
 Bij elke branded output (rapport, dashboard, visualisatie) verifiëren:
 
@@ -91,7 +90,7 @@ Bij elke branded output (rapport, dashboard, visualisatie) verifiëren:
 
 ---
 
-## Versiehistorie
+## Versiehistorie  
 
 | Versie | Datum | Wijzigingen | Auteur                  |
 | ------ | ---------- | ----------- |-------------------------|

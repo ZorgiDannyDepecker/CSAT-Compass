@@ -1469,7 +1469,11 @@ class InsightsGenerator:
         """
         import re
 
-        from csat.core.analysers.evolution_analyser import THEME_ACTION_HINTS, THEME_KEYWORDS
+        from csat.core.analysers.evolution_analyser import (
+            THEME_ACTION_HINTS,
+            THEME_ACTION_HINTS_FR,
+            THEME_KEYWORDS,
+        )
 
         # Themanamen per taal
         _theme_labels_nl = {
@@ -1501,16 +1505,15 @@ class InsightsGenerator:
             hits = neg["comment"].fillna("").str.lower().str.contains(pattern, regex=True)
             pct = round(hits.sum() / n * 100, 1)
             if pct > 0:  # Toon alle thema's met minstens 1 hit; display toont 1 decimaal
-                labels_nl = _theme_labels_nl
-                labels_fr = _theme_labels_fr
                 naam = self._ls(
-                    labels_nl.get(theme_key, theme_key),
-                    labels_fr.get(theme_key, theme_key),
+                    _theme_labels_nl.get(theme_key, theme_key),
+                    _theme_labels_fr.get(theme_key, theme_key),
                 )
-                actie = THEME_ACTION_HINTS.get(theme_key, "")
+                actie_nl = THEME_ACTION_HINTS.get(theme_key, "")
+                actie_fr = THEME_ACTION_HINTS_FR.get(theme_key, actie_nl)
                 beschrijving = self._ls(
-                    f"{pct:.1f}% van negatieve tickets — {actie}",
-                    f"{pct:.1f}% des tickets négatifs — {actie}",
+                    f"{pct:.1f}% van negatieve tickets — {actie_nl}",
+                    f"{pct:.1f}% des tickets négatifs — {actie_fr}",
                 )
                 results.append({"naam": naam, "beschrijving": beschrijving, "pct": pct})
 

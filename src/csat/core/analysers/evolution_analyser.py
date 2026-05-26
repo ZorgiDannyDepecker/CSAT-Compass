@@ -124,6 +124,29 @@ THEME_ACTION_HINTS: dict[str, str] = {
         "om repetitieve manuele stappen te elimineren."
     ),
 }
+
+THEME_ACTION_HINTS_FR: dict[str, str] = {
+    "responstijd": (
+        "Vérifiez la conformité SLA et envisagez des alertes de délai de réponse "
+        "pour les tickets ouverts depuis plus de 5 jours ouvrables."
+    ),
+    "onvolledig": (
+        "Mettez en place une confirmation de résolution lors de la clôture des tickets : "
+        "accord du client requis avant fermeture."
+    ),
+    "communicatie": (
+        "Activez des mises à jour de statut proactives pour les tickets de longue durée (> 5 jours ouvrables) : "
+        "notification automatique lors de tout changement de statut."
+    ),
+    "urgentie": (
+        "Révisez la politique d'escalade : assurez un contact client direct "
+        "pour les tickets haute priorité dans un délai d'1 jour ouvrable."
+    ),
+    "automatisering": (
+        "Évaluez les opportunités d'automatisation dans le flux de traitement des tickets "
+        "afin d'éliminer les étapes manuelles répétitives."
+    ),
+}
 # Hulpfunctie: commentaarsanitisering (beslissing 3 — privacy ZORGI-medewerkers)
 # ---------------------------------------------------------------------------
 

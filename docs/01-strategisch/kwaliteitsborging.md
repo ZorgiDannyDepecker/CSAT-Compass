@@ -1,7 +1,7 @@
 # CSAT-Compass - Kwaliteitsborging - Q²
 
-**Versie:** 2.1
-**Laatst bijgewerkt:** 02/04/2026
+**Versie:** 2.2
+**Laatst bijgewerkt:** 11/05/2026
 
 **Doel:** Strategisch overzicht van de kwaliteitsarchitectuur — welke tools, welke lagen, waarom
 **Type:** Reference
@@ -51,7 +51,7 @@ Draait automatisch bij elke `git commit`. Scope: alleen de gewijzigde bestanden.
 
 | Tool | Rol | Blokkeert bij |
 |---|---|---|
-| **Ruff lint** | Stijl, imports, complexiteit, pandas best practices | lint-fouten |
+| **Ruff lint** | Stijl, imports, complexiteit, pandas best practices, print()-detectie (T20), timezone-controle (DTZ) | lint-fouten |
 | **Ruff format** | Uniforme opmaak (Black-stijl), regellengte 100 | opmaakafwijking |
 | **MyPy** | Statische typecontrole op `src/` | type-fouten |
 | **Bandit** | Beveiligingsscan: secrets, onveilige functies, SQL-injectie | beveiligingsrisico |
@@ -90,7 +90,7 @@ worden bewust uitgesloten — die vragen manuele evaluatie.
 
 | Tool | Laag | Trigger | Doel |
 |---|---|---|---|
-| Ruff lint + format | Lokaal | git commit | Stijl, opmaak |
+| Ruff lint + format | Lokaal | git commit | Stijl, opmaak, print()-detectie (T20), timezone (DTZ) |
 | MyPy | Lokaal | git commit | Typeconformiteit |
 | Bandit | Lokaal | git commit | Beveiliging |
 | AST syntax check | Lokaal | git commit | Syntaxvalidatie |
@@ -114,3 +114,4 @@ worden bewust uitgesloten — die vragen manuele evaluatie.
 | 1.1 | 31/03/2026 | Opgemaakt conform md-style-guide | GHC |
 | 2.0 | 31/03/2026 | Herschreven als strategisch document — operationele details verplaatst naar kwaliteitscontrole.md | GHC |
 | 2.1 | 02/04/2026 | §4: pytest-randomly en pip-audit toegevoegd aan tool-overzicht | Danny Depecker + GHC |
+| 2.2 | 11/05/2026 | §2 Ruff-rij uitgebreid met T20 en DTZ; §4 Ruff-rij idem bijgewerkt | Danny Depecker + Claude |

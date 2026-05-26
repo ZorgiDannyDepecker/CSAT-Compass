@@ -358,7 +358,9 @@ class EvolutionVisualiser:
 
         output_path = Path(output_path)
         output_path.mkdir(parents=True, exist_ok=True)
-        pad = output_path / f"evolutie-{self._result.pillar}-{jaar_safe}-{self._lang}{ts}.png"
+        # Taalafhankelijk bestandsprefix: NL = evolutie, FR = evolution
+        prefix = "evolution" if self._lang == "fr" else "evolutie"
+        pad = output_path / f"{prefix}-{self._result.pillar}-{jaar_safe}-{self._lang}{ts}.png"
 
         fig.savefig(pad, dpi=_DPI_SCREEN, bbox_inches="tight", facecolor=fig.get_facecolor())
         plt.close(fig)

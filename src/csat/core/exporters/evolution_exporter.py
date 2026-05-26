@@ -156,7 +156,8 @@ class EvolutionExporter:
         """
         Render het rapport en schrijf het naar de outputmap.
 
-        Bestandsnaamconventie: evolutie-{pillar}-{jaar}-{lang}[{ts_suffix}].md
+        Bestandsnaamconventie: evolutie-{pillar}-{jaar}-{lang}[{ts_suffix}].md (NL)
+                               evolution-{pillar}-{year}-{lang}[{ts_suffix}].md (FR)
         De bijbehorende PNG krijgt dezelfde ts_suffix — zo blijft de referentie altijd correct.
 
         Args:
@@ -170,7 +171,9 @@ class EvolutionExporter:
         """
         jaar = year or result.current_label or str(datetime.now(tz=UTC).year)
         jaar_safe = jaar.replace(" ", "-").replace("/", "-")
-        stem = f"evolutie-{result.pillar}-{jaar_safe}-{self._lang}"
+        # Taalafhankelijk bestandsprefix: NL = evolutie, FR = evolution
+        prefix = "evolution" if self._lang == "fr" else "evolutie"
+        stem = f"{prefix}-{result.pillar}-{jaar_safe}-{self._lang}"
         output_file = self._output_path / f"{stem}{ts_suffix}.md"
         chart_filename = f"{stem}{ts_suffix}.png"
 
