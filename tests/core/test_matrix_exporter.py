@@ -347,7 +347,7 @@ class TestMatrixExporterExport:
     ) -> None:
         exporter = MatrixExporter(lang="fr", templates_path=templates_path, output_path=tmp_path)
         output_file = exporter.export(drie_periodes)
-        assert output_file.name == "matrix-pharma-2026-fr.md"
+        assert output_file.name == "matrice-pharma-2026-fr.md"
 
     def test_export_inhoud_leesbaar(
         self,

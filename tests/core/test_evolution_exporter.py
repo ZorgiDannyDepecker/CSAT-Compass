@@ -439,7 +439,7 @@ class TestExport:
         evolution_result: EvolutionResult,
     ) -> None:
         pad = exporter_fr.export(evolution_result, year="2026")
-        assert pad.name == "evolutie-pharma-2026-fr.md"
+        assert pad.name == "evolution-pharma-2026-fr.md"
 
     def test_export_bestandsnaam_zonder_year(
         self,
