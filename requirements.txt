@@ -21,7 +21,7 @@ seaborn>=0.12.0
 plotly>=5.20.0
 
 # --- Fase 5: Dashboard ---
-streamlit>=1.32.0
+streamlit>=1.57.0
 streamlit-js-eval>=1.0.0
 
 # --- Utilities ---

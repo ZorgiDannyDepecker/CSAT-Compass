@@ -17,7 +17,7 @@ pyodbc>=5.0.0         # vereist: sudo apt-get install -y unixodbc-dev
 matplotlib>=3.7.0
 
 # --- Dashboard (streamlit + plotly — geen system-deps op Ubuntu) ---
-streamlit>=1.32.0
+streamlit>=1.57.0
 plotly>=5.20.0
 
 # --- Utilities ---
