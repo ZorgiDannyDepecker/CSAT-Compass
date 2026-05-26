@@ -12,7 +12,7 @@ pyodbc>=5.0.0
 # --- Fase 2: Rapportage + templates (NL/FR) ---
 jinja2>=3.1.0
 markdown>=3.4.0
-babel>=2.14.0
+babel>=2.18.0
 weasyprint>=60.0
 
 # --- Fase 3-4: Visualisatie ---
