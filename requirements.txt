@@ -34,4 +34,4 @@ pillow>=12.2.0    # CVE-2026-40192: decompression bomb in FITS decoder — fix i
 
 # --- Testing ---
 pytest>=9.0.3
-pytest-cov>=4.1.0
+pytest-cov>=7.1.0
