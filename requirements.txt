@@ -33,5 +33,5 @@ pygments>=2.20.0  # CVE-2026-4539: ReDoS in AdlLexer — fix in 2.20.0
 pillow>=12.2.0    # CVE-2026-40192: decompression bomb in FITS decoder — fix in 12.2.0
 
 # --- Testing ---
-pytest>=9.0.3
-pytest-cov>=4.1.0
+pytest>=9.1.0
+pytest-cov>=7.1.0
