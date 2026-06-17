@@ -5,7 +5,7 @@
 
 # --- Fase 1: Data laden (SQL + CSV) ---
 pandas>=2.3.0
-openpyxl>=3.1.0
+openpyxl>=3.1.5
 sqlalchemy>=2.0.0
 pyodbc>=5.0.0
 
