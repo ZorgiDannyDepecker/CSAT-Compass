@@ -69,7 +69,7 @@ echo Klaar. Resultaat in output\%VANDAAG%\ en _run_log.txt
 > ✅ **Al geverifieerd:** `.venv\Scripts\python.exe` bevat zowel `weasyprint`
 > als `pywin32` — dezelfde omgeving als je handmatige conversie. Geen apart
 > python-pad nodig.
-
+>
 > ✅ **Handmatig getest op 25/08/2026 door Danny** — geslaagd, geen fouten in
 > `_run_log.txt`, PDF's correct naast de bestaande .md/.png-bestanden.
 

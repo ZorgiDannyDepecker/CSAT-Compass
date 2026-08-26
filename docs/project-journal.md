@@ -1,6 +1,6 @@
 # 📓 CSAT-Compass - Project Journal
 
-**Versie:** 3.10
+**Versie:** 3.11
 **Laatst bijgewerkt:** 26/08/2026
 
 **Doel:** Chronologisch logboek van beslissingen, bevindingen en voortgang  
@@ -44,6 +44,7 @@
 - [2026-08-26 (3) — Cowork-scheduling: geen Monthly-optie, Weekly-risico ontdekt, Daily + datumcontrole gekozen](#2026-08-26-3--cowork-scheduling-geen-monthly-optie-weekly-risico-ontdekt-daily--datumcontrole-gekozen)
 - [2026-08-26 (4) — Deel C gebouwd en getest: mail_maandelijks.py](#2026-08-26-4--deel-c-gebouwd-en-getest-mail_maandelijkspy)
 - [2026-08-26 (5) — Sessie-afsluiting: Fase 7 volledig live, twee restpunten definitief besloten](#2026-08-26-5--sessie-afsluiting-fase-7-volledig-live-twee-restpunten-definitief-besloten)
+- [2026-08-26 (6) — WIP-opkuis: csat_stack.md verplaatst naar docs/01-strategisch/](#2026-08-26-6--wip-opkuis-csat_stackmd-verplaatst-naar-docs01-strategisch)
 - [Versiehistorie](#versiehistorie)
 
 ---
@@ -1089,6 +1090,24 @@ systeemdatum te forceren.
 
 ---
 
+## 2026-08-26 (6) — WIP-opkuis: csat_stack.md verplaatst naar docs/01-strategisch/  
+
+Bij nazicht van de projectstructuur bleek `WIP/csat_stack.md` (opgesteld tijdens Fase 5a,
+21/04/2026) nooit gearchiveerd te zijn zoals andere afgeronde-fase-WIP-bestanden dat wel
+kregen. Inhoud bleek nog grotendeels accuraat (Streamlit, pandas, SQLAlchemy, WeasyPrint,
+i18n-aanpak, ZORGI-kleuren, `branding.py`) en functioneert als blijvend nuttige
+architectuurreferentie, niet als eenmalig hand-over-document — daarom bewust **niet**
+gearchiveerd, maar verplaatst naar `docs/01-strategisch/tech-stack.md` (hernoemd conform
+de conventie van die map) en aangevuld met een nieuwe §9 (Fase 6 ZORGI-aggregatie +
+Fase 7 distributie-automatisering).  
+
+### Volgende stappen
+
+- [ ] Meenemen in de volgende git-commit (nieuw bestand `docs/01-strategisch/tech-stack.md`,
+      verwijderd bestand `WIP/csat_stack.md`)
+
+---
+
 ## Versiehistorie
 
 | Versie | Datum | Wijzigingen | Auteur               |
@@ -1124,6 +1143,7 @@ systeemdatum te forceren.
 | 3.8 | 26/08/2026 | Fase 7B (Deel C) opgestart en afgerond: `mail_maandelijks.py` gebouwd, bugfix (absolute paden voor Outlook-COM), dry-run-veiligheidslaag, door Danny verfijnd (HTML-body, persoonlijke ondertekening, DD/MM/YYYY-weergave) en succesvol getest | Danny Depecker + Claude |
 | 3.9 | 26/08/2026 | Taakplanner-taak voor Deel C aangemaakt en gevalideerd onder de Taakplanner-context (tijdelijke --dry-run-test); Deel A, B en C nu allemaal volledig ingesteld en getest — Fase 7A + 7B inhoudelijk afgerond, wacht op eerste live cyclus 02/09/2026 | Danny Depecker + Claude |
 | 3.10 | 26/08/2026 | Sessie-afsluiting: md_to_pdf.py-encodingissue en BACKLOG-007 definitief besloten (beide bewust niet actief opgevolgd) — Fase 7 (A+B+C) volledig live, wacht op eerste automatische cyclus 02/09/2026 | Danny Depecker + Claude |
+| 3.11 | 26/08/2026 | WIP-opkuis: csat_stack.md verplaatst naar docs/01-strategisch/tech-stack.md, aangevuld met Fase 6/7 | Danny Depecker + Claude |
 
 ---
 *ZORGI — Danny Depecker*

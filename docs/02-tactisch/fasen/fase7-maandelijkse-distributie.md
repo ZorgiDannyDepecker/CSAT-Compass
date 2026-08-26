@@ -23,7 +23,7 @@
 5. [Stappenplan Fase 7A (A+B)](#5-stappenplan-fase-7a-deel-ab---doel-02092026)
 6. [Rolverdeling](#6-rolverdeling)
 7. [Risico's en mitigatie](#7-risicos-en-mitigatie)
-8. [Fase 7B — Deel C (later, apart te bekijken)](#8-fase-7b--deel-c-later-apart-te-bekijken)
+8. [Fase 7B — Deel C (opgestart 26/08/2026)](#8-fase-7b--deel-c-opgestart-26082026)
 
 ---
 
