@@ -24,6 +24,11 @@ logs/
 archive/
 WIP/
 
+# Maandelijkse output — klantdata (ticketscores, ziekenhuisnamen, comments), nooit committen
+# Toegevoegd 26/08/2026 na start van de geautomatiseerde maandelijkse run (Fase 7)
+output/*/
+_run_log.txt
+
 # Mypy / Ruff / Pytest cache
 .mypy_cache/
 .ruff_cache/

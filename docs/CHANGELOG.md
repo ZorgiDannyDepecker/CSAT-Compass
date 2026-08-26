@@ -3,6 +3,149 @@
 Alle noemenswaardige wijzigingen aan dit project worden hier gedocumenteerd.
 Formaat gebaseerd op [Keep a Changelog](https://keepachangelog.com/nl/1.0.0/).
 
+## [0.9.8] — 26/08/2026
+
+### Toegevoegd
+
+- `scripts/mail_maandelijks.py` — Deel C (Fase 7B): zoekt de nieuwste outputmap, converteert
+  `onepager-<periode>-nl.md` en `tendens-<periode>-nl.md` naar PDF via `md_to_pdf.py`, en
+  verstuurt ze via Outlook (`win32com`) naar Tom De Laere, Thomas Wyckstandt en Erwin Casier,
+  met Danny in CC. Volautomatisch `.Send()` (geen `.Display()`-tussenstap), met `--dry-run`
+  als testoptie. Zie `docs/02-tactisch/fasen/fase7-maandelijkse-distributie.md` §8 voor de
+  volledige besluitvorming (ontvangers, taal, verzendmodus).
+- `src/csat/config/settings.py`: `MAIL_TO`, `MAIL_CC`, `MAIL_SUBJECT_PREFIX` toegevoegd,
+  geladen uit `.env` (`CSAT_MAIL_TO`, `CSAT_MAIL_CC`, `CSAT_MAIL_SUBJECT_PREFIX`).
+- `requirements.txt`: `pywin32>=306` toegevoegd (was al aanwezig in de gedeelde `.venv`
+  via Q&A-Lab, nu ook expliciet gedeclareerd als CSAT-Compass-afhankelijkheid).
+- `.env` / `.env.example`: mail-configuratie toegevoegd.
+- **Veiligheidsaanvulling (na dry-run-vraag Danny):** bij `--dry-run` gaan Aan/CC bewust
+  enkel naar `MAIL_CC` (Danny) i.p.v. de echte ontvangers, met `[DRY-RUN]` in het onderwerp —
+  voorkomt dat een per ongeluk verstuurd testconcept bij Tom, Thomas of Erwin terechtkomt.
+
+### Gefixt
+
+- **Bugfix na eerste dry-run-test (26/08/2026):** `mail.Attachments.Add()` faalde met
+  "Het pad bestaat niet" omdat `CSAT_OUTPUT_PATH=output/` relatief is in `.env`. De PDF-
+  conversie zelf werkte toevallig (script gestart vanuit de projectroot), maar Outlook's
+  COM-interface lost relatieve paden niet op dezelfde manier op. `nieuwste_output_map()` en
+  `converteer_naar_pdf()` geven nu altijd een `.resolve()`d absoluut pad terug — ook relevant
+  voor toekomstige Taakplanner-runs vanuit een andere working directory.
+
+### Gewijzigd (Danny, na geslaagde dry-run-test)
+
+- `mail.Body` (platte tekst) → `mail.HTMLBody` (HTML-opmaak) voor de mailinhoud.
+- Aanhef "Beste," → "Collega's,"; ondertekening "CSAT-Compass (geautomatiseerde
+  rapportage)" → "Danny <em><small>(geautomatiseerde rapportage)</small></em>" — mail
+  wordt nu persoonlijk ondertekend door Danny, met een kleine, cursieve vermelding dat
+  het om geautomatiseerde rapportage gaat.
+- Nieuwe `periode_display`-variabele in `main()`: zet de mapnaam (`YYYY-MM-DD`) om naar
+  een leesbaar `DD/MM/YYYY`-formaat voor gebruik in onderwerp en bericht van de mail
+  (de originele `periode`-waarde blijft intern gebruikt voor bestandspaden).
+
+---
+
+## [0.9.7] — 26/08/2026
+
+### Gewijzigd
+
+- `docs/03-operationeel/cowork-onepager.md` §B.3: `<periode>`-formaat expliciet vastgelegd
+  als JJJJ-MM (bv. `2026-08`), voor zowel de onepager als het tendens-rapport, met de
+  instructie om in beide bestanden exact dezelfde periode-waarde te gebruiken. Voorheen
+  koos Cowork zelf een formaat (afwisselend `2026` en `2026-08` gezien in twee
+  opeenvolgende runs), wat handmatig hernoemen nodig maakte. Aanleiding: hernoeming van
+  `onepager-2026-nl.md`/`tendens-2026-nl.md` naar `...-2026-08-...` op 26/08/2026.
+
+---
+
+## [0.9.6] — 26/08/2026
+
+### Gefixt
+
+- **Vervolg op [0.9.5]:** bij het verifiëren van de vorige fix bleek de omgekeerde-richting-fout
+  systematischer dan gedacht — dezelfde fout stond gespiegeld in de `r > 0.1`-tak (positieve
+  correlatie) en in de i18n-sjablonen, die de Executive Summary voeden.
+- `src/csat/core/insights/insights_generator.py`, `_build_critical_findings`, `r > 0.1`-tak
+  (fallback-tekst zonder concrete dagen): "snellere afhandeling gaat samen met hogere scores"
+  → "langere responstijden gaan samen met hogere scores" (NL + FR). Bij een positieve
+  correlatie bewegen responstijd en score samén — dus juist langere tijden bij hogere scores.
+- `src/csat/i18n/nl.json` en `src/csat/i18n/fr.json`, `insights.correlation.positive` en
+  `.negative` (2 varianten per taal per richting, 8 strings totaal): alle 4 hadden dezelfde
+  omgekeerde-richting-fout, consistent verkeerd. Gecorrigeerd naar: positief → langere
+  responstijden bij hogere scores; negatief → kortere responstijden bij hogere scores.
+  Dit voedt rechtstreeks de responstijd-zin in de Executive Summary van elk evolutierapport.
+- **Gecontroleerd, geen wijziging nodig:** de "Correlatie-ommekeer"-panelteksten in het
+  Streamlit-dashboard (`dashboard.corr_2025_body`, `dashboard.corr_q1_body`) bleken al
+  correct geformuleerd.
+- Zie `docs/project-journal.md`, entry "2026-08-26 — Fase 7: kwaliteitsfixes na eerste
+  Cowork dry-run" voor de volledige herkomst.
+
+---
+
+## [0.9.5] — 26/08/2026
+
+### Gefixt
+
+- `src/csat/core/insights/insights_generator.py`, methode `_build_critical_findings`
+  (`elif r < -0.1:`-tak, "Bevinding 2: Responstijd-correlatie"): foute interpretatie van
+  een negatieve correlatie tussen responstijd en score gecorrigeerd. De tekst stelde
+  voorheen dat "langere responstijden samengaan met hogere scores" bij een negatieve r —
+  wiskundig het omgekeerde van wat een negatieve correlatie betekent, en intern
+  inconsistent met `_build_response_time_narrative` in hetzelfde bestand (die de
+  richting al wel correct beschreef). Nu consistent: "kortere responstijden gaan samen
+  met hogere scores", met concrete gem. responstijd bij positieve/negatieve scores waar
+  beschikbaar (zelfde patroon als de `r > 0.1`-tak). Severity verhoogd van "medium" naar
+  "hoog" en causal_factor bijgewerkt naar de correcte richting.
+  Gevonden via Cowork dry-run-review (25/08/2026) — zie `docs/project-journal.md`,
+  entry "2026-08-26 — Fase 7: kwaliteitsfixes na eerste Cowork dry-run" voor de
+  volledige herkomst. **Impact:** treft alle 5 pijlers, elke maandelijkse evolutie-
+  rapportage sinds fase3g. Reeds gegenereerde/verstuurde rapporten (o.a. de
+  juli-PDF's naar Tom/Thomas/Erwin) zijn niet met terugwerkende kracht gecorrigeerd.
+
+---
+
+## [0.9.4] — 26/08/2026
+
+### Gewijzigd
+
+- `docs/03-operationeel/cowork-onepager.md` §B.3 — taakprompt herzien na inhoudelijke review
+  van de eerste Cowork dry-run (25/08/2026): twee verplichte kwaliteitsregels toegevoegd
+  (minimum-n=5 bij hospital-rankings; correlatie-richting verifiëren vóór formulering),
+  beide ook verplicht zichtbaar te vermelden in de output zelf. FR-onepager geschrapt,
+  consistent gemaakt met de reeds NL-only tendens. Volledige toelichting en herkomst:
+  `docs/project-journal.md`, entry "2026-08-26 — Fase 7: kwaliteitsfixes na eerste
+  Cowork dry-run".
+
+---
+
+## [0.9.3] — 24/08/2026
+
+### Toegevoegd
+
+- `_run_maandelijks.bat` — nieuw batch-bestand voor Deel A van Fase 7 (maandelijkse distributie-automatisering):
+  combineert `run_monthly.py` (matrix + evolutie, met SQL-fallback retry) en `md_to_pdf.py` (PDF-conversie)
+  in één run, output naar `_run_log.txt`. Handmatig getest, en via Windows Taakplanner
+  (geforceerde Uitvoeren-test, 25/08/2026) bevestigd: alle 5 pijlers NL+FR gegenereerd,
+  20/20 bestanden succesvol naar PDF geconverteerd.
+- Taakplanner-taak "CSAT-Compass maandelijks" aangemaakt: maandelijks, dag 2, 07:00, met
+  "zo snel mogelijk na gemiste activering" en "computer uit slaapstand halen" aangevinkt,
+  en de netstroom-vereiste bewust uitgevinkt (laptop staat nooit aan de lader 's nachts).
+- `docs/02-tactisch/fasen/fase7-maandelijkse-distributie.md` — plan van aanpak voor geautomatiseerde
+  maandelijkse generatie + distributie (PHARMA), gesplitst in Fase 7A (Deel A+B, doel 02/09/2026)
+  en Fase 7B (Deel C — mail, later apart te bekijken)
+
+### Gewijzigd
+
+- `docs/03-operationeel/cowork-onepager.md` — Deel B uitgebreid met een derde output
+  `tendens-<periode>-nl.md` (narratieve stijl, hergebruikt bestaande `insights_generator.py`-output);
+  trigger-dag overal aangepast van dag 1 naar dag 2; checklist bijgewerkt naar actuele status
+
+### Hernoemd
+
+- `_run_monthly.bat` → `_run_monthly_no_pdf.bat` — verduidelijkt dat dit het lichtgewicht dev-tool is
+  (enkel matrix + evolutie, geen PDF-conversie), ter onderscheid van het nieuwe `_run_maandelijks.bat`
+
+---
+
 ## [0.9.2] — 12/05/2026
 
 ### Gewijzigd

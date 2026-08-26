@@ -416,7 +416,7 @@ class InsightsGenerator:
                     if rti.avg_positive_days is not None and rti.avg_negative_days is not None
                     else (
                         f"Er is een positieve correlatie (r={_fmt_nl(r, 3)}) tussen "
-                        f"responstijd en klanttevredenheid: snellere afhandeling gaat samen met hogere scores."
+                        f"responstijd en klanttevredenheid: langere responstijden gaan samen met hogere scores."
                     ),
                     (
                         f"Il existe une corrélation positive (r={_fmt_nl(r, 3)}) entre le délai de réponse "
@@ -426,7 +426,7 @@ class InsightsGenerator:
                     if rti.avg_positive_days is not None and rti.avg_negative_days is not None
                     else (
                         f"Il existe une corrélation positive (r={_fmt_nl(r, 3)}) entre le délai de réponse "
-                        f"et la satisfaction : traiter plus vite conduit à de meilleures notes."
+                        f"et la satisfaction : des délais plus longs s'accompagnent de meilleures notes."
                     ),
                 )
                 findings.append(
@@ -444,26 +444,41 @@ class InsightsGenerator:
                     )
                 )
             elif r < -0.1:
+                du = self._day_unit
+                has_days = rti.avg_positive_days is not None and rti.avg_negative_days is not None
+                desc = self._ls(
+                    (
+                        f"Kortere responstijden gaan samen met hogere scores (r={_fmt_nl(r, 3)}).  \nPositieve scores: "
+                        f"gem. {_fmt_nl(rti.avg_positive_days or 0, 1)} {du} | "
+                        f"Negatieve scores: gem. {_fmt_nl(rti.avg_negative_days or 0, 1)} {du}."
+                    )
+                    if has_days
+                    else (
+                        f"Kortere responstijden gaan samen met hogere scores (r={_fmt_nl(r, 3)}): "
+                        f"trage afhandeling gaat samen met lagere klanttevredenheid."
+                    ),
+                    (
+                        f"Des délais plus courts s'accompagnent de meilleures notes (r={_fmt_nl(r, 3)}).  \nScores positifs : "
+                        f"moy. {_fmt_nl(rti.avg_positive_days or 0, 1)} {du} | "
+                        f"Scores négatifs : moy. {_fmt_nl(rti.avg_negative_days or 0, 1)} {du}."
+                    )
+                    if has_days
+                    else (
+                        f"Des délais plus courts s'accompagnent de meilleures notes (r={_fmt_nl(r, 3)}) : "
+                        f"un traitement lent s'accompagne d'une satisfaction client plus faible."
+                    ),
+                )
                 findings.append(
                     CriticalFinding(
                         title=self._ls(
                             f"⏱️ Negatieve correlatie responstijd ↔ score (r={_fmt_nl(r, 3)})",
                             f"⏱️ Corrélation négative délai ↔ score (r={_fmt_nl(r, 3)})",
                         ),
-                        description=self._ls(
-                            (
-                                f"Langere responstijden gaan samen met hogere scores (r={_fmt_nl(r, 3)}).  \n"
-                                f"Mogelijke verklaring: complexere tickets vragen meer tijd maar worden positiever beoordeeld."
-                            ),
-                            (
-                                f"Des délais plus longs s'accompagnent de meilleures notes (r={_fmt_nl(r, 3)}).  \n"
-                                f"Explication possible : les tickets complexes demandent plus de temps mais sont mieux évalués."
-                            ),
-                        ),
-                        severity="medium",
+                        description=desc,
+                        severity="hoog",
                         causal_factor=self._ls(
-                            "Complexe tickets correleren met hogere scores",
-                            "Les tickets complexes sont corrélés à de meilleures notes",
+                            "Trage afhandeling is aantoonbaar gelinkt aan lagere CSAT-score",
+                            "Un traitement lent est clairement lié à un score CSAT plus faible",
                         ),
                     )
                 )

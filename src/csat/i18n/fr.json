@@ -424,12 +424,12 @@
     },
     "correlation": {
       "positive": [
-        "L'analyse révèle une corrélation positive (r={r}) entre le délai de réponse et la satisfaction : traiter plus vite conduit à de meilleures notes.",
-        "Délai et score sont corrélés (r={r}) : des délais plus courts s'accompagnent de meilleures évaluations."
+        "L'analyse révèle une corrélation positive (r={r}) entre le délai de réponse et la satisfaction : des délais plus longs s'accompagnent de meilleures notes.",
+        "Délai et score sont corrélés (r={r}) : des délais plus longs s'accompagnent de meilleures évaluations."
       ],
       "negative": [
-        "Fait notable : la corrélation entre délai et score est négative (r={r}). Les tickets plus longs sont mieux notés en moyenne.",
-        "La corrélation délai/score est négative (r={r}), ce qui peut indiquer des tickets complexes chez les clients les plus engagés."
+        "Fait notable : la corrélation entre délai et score est négative (r={r}). Les tickets plus courts sont mieux notés en moyenne.",
+        "La corrélation délai/score est négative (r={r}), ce qui indique que des délais plus courts s'accompagnent d'une meilleure satisfaction client."
       ],
       "neutral": [
         "La corrélation entre délai et satisfaction est négligeable (r={r}).",

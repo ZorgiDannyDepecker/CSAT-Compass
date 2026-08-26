@@ -1,7 +1,7 @@
 # 📓 CSAT-Compass - Project Journal
 
-**Versie:** 3.1
-**Laatst bijgewerkt:** 11/05/2026
+**Versie:** 3.10
+**Laatst bijgewerkt:** 26/08/2026
 
 **Doel:** Chronologisch logboek van beslissingen, bevindingen en voortgang  
 **Type:** Reference  
@@ -38,6 +38,12 @@
 - [2026-04-21 — Output-structuur, matrix-fix, documentatie-afsluiting](#2026-04-21--output-structuur-matrix-fix-documentatie-afsluiting)
 - [2026-04-23 — Crash recovery, encoding cleanup, v0.8.0](#2026-04-23--crash-recovery-encoding-cleanup-v080)
 - [2026-05-11 — Fase 6 afsluiting + Fase 7: run_special.py, v0.9.0](#2026-05-11--fase-6-afsluiting--fase-7-run_specialpy-v090)
+- [2026-08-24 — Fase 7: maandelijkse distributie-automatisering opgestart (Deel A/B)](#2026-08-24--fase-7-maandelijkse-distributie-automatisering-opgestart-deel-ab)
+- [2026-08-26 — Fase 7: kwaliteitsfixes na eerste Cowork dry-run](#2026-08-26--fase-7-kwaliteitsfixes-na-eerste-cowork-dry-run)
+- [2026-08-26 (2) — Tweede Cowork-run: kwaliteit bevestigd, periode-naamgeving nog niet opgelost](#2026-08-26-2--tweede-cowork-run-kwaliteit-bevestigd-periode-naamgeving-nog-niet-opgelost)
+- [2026-08-26 (3) — Cowork-scheduling: geen Monthly-optie, Weekly-risico ontdekt, Daily + datumcontrole gekozen](#2026-08-26-3--cowork-scheduling-geen-monthly-optie-weekly-risico-ontdekt-daily--datumcontrole-gekozen)
+- [2026-08-26 (4) — Deel C gebouwd en getest: mail_maandelijks.py](#2026-08-26-4--deel-c-gebouwd-en-getest-mail_maandelijkspy)
+- [2026-08-26 (5) — Sessie-afsluiting: Fase 7 volledig live, twee restpunten definitief besloten](#2026-08-26-5--sessie-afsluiting-fase-7-volledig-live-twee-restpunten-definitief-besloten)
 - [Versiehistorie](#versiehistorie)
 
 ---
@@ -751,6 +757,338 @@ functies na `_tab_hospitals` had verwijderd (`render_kpi_targets`, `_tab_targets
 
 ---
 
+## 2026-08-24 — Fase 7: maandelijkse distributie-automatisering opgestart (Deel A/B)  
+
+Geautomatiseerde maandelijkse generatie en distributie van CSAT-rapporten aan de PHARMA-collega's
+(Tom De Laere, Thomas Wyckstandt, Erwin Casier) opgestart, met deadline 02/09/2026 voor Deel A+B.  
+Tom's akkoord kwam binnen op basis van de feedback van Thomas (voorkeur onepager) en Erwin
+(voorkeur "tendens"-stijl rapport) op de proefmail van 01/07/2026.  
+
+Project vooraf geïnspecteerd via de Filesystem-koppeling: bleek dat een ontwerp voor Deel A/B
+(Windows Taakplanner + Claude Cowork) al bestond in `docs/03-operationeel/cowork-onepager.md`,
+maar nog niet geactiveerd was. Dit traject bouwt daarop verder in plaats van opnieuw te ontwerpen.  
+
+**Scope gesplitst:**
+
+- Fase 7A — Deel A (generatie + PDF) + Deel B (Cowork: onepager + tendens-samenvatting), doel 02/09/2026
+- Fase 7B — Deel C (e-maildistributie), bewust apart gehouden tot Fase 7A stabiel draait
+
+**Deel A — voltooid en getest:**
+
+- Nieuw `_run_maandelijks.bat`: combineert `run_monthly.py` (met SQL-fallback retry) en
+  `md_to_pdf.py` (PDF-conversie) in één run
+- Bestaand `_run_monthly.bat` hernoemd naar `_run_monthly_no_pdf.bat` ter onderscheid
+  (blijft bestaan als lichtgewicht dev-tool zonder PDF-stap)
+- Handmatige testrun geslaagd — geen fouten in `_run_log.txt`, PDF's correct aangemaakt
+- Taakplanner-taak aangemaakt (maandelijks, dag 2, 07:00) en via geforceerde Uitvoeren-test
+  bevestigd: alle 5 pijlers NL+FR gegenereerd, 20/20 bestanden succesvol naar PDF
+- Voorwaarden afgestemd op de praktijksituatie (laptop, nooit aan de lader 's nachts,
+  altijd in slaapstand): "computer uit slaapstand halen" aangevinkt, netstroom-vereiste
+  uitgevinkt, "zo snel mogelijk na gemiste activering" aangevinkt als extra vangnet
+
+**Deel B — in voorbereiding:**
+
+- `cowork-onepager.md` §B.1/§B.3 uitgebreid met een derde output naast de twee onepagers:
+  `tendens-<periode>-nl.md`, in de verhalende stijl die Erwin waardeerde
+- Bouwt bewust voort op de al aanwezige narratieve secties uit `insights_generator.py`
+  (executive_summary, critical_findings, positive_developments, recommendations,
+  follow_up_actions, turning_point_analysis, type/priority-narratieven, response_time_narrative)
+  in plaats van from-scratch heranalyse — activatie en test volgt
+
+**Documentatie:**
+
+- Nieuw: `docs/02-tactisch/fasen/fase7-maandelijkse-distributie.md` — volledig plan van aanpak
+- Bijgewerkt: `docs/03-operationeel/cowork-onepager.md` — Deel A als voltooid gemarkeerd,
+  Deel B uitgebreid, trigger-dag overal consistent naar dag 2
+
+### Volgende stappen
+
+- [x] Taakplanner-taak aangemaakt en via geforceerde run geverifieerd (25/08/2026)
+- [ ] Deel B activeren in Cowork (projectinstructies + nieuwe taak, Ask-modus, dry-run juli-data)
+- [ ] Ketentest Deel A → Deel B op juli-data
+- [ ] Generale repetitie vóór 02/09
+- [ ] Fase 7B (Deel C — mail) pas opstarten na stabiele Fase 7A-cyclus
+
+---
+
+## 2026-08-26 — Fase 7: kwaliteitsfixes na eerste Cowork dry-run  
+
+Op 25/08/2026 werd de eerste Manual-test van de nieuwe Cowork-taak
+`csat-onepager-maandelijks` uitgevoerd (Ask-modus), op de dan-nieuwste
+outputmap `output\2026-08-25\`. Resultaat: 3 bestanden correct aangemaakt —
+`onepager-2026-08-nl.md`, `onepager-2026-08-fr.md`, `tendens-2026-08-nl.md`.
+Het proces zelf (Taakplanner naar Cowork naar juiste map, juiste bestandsnamen)
+werkte end-to-end zonder problemen.  
+
+Inhoudelijke review van de output bracht twee kwaliteitsproblemen aan het licht.  
+
+**1. Ontbrekende minimum-steekproefgrootte bij hospital-rankings.**
+De onepager toonde ziekenhuizen in de top-3-onderpresteerders-ranking met
+slechts 1-3 tickets (bv. OUDENAARDE_AZ met n=1), waardoor één toevallige
+slechte score het beeld sterk kan vertekenen. Dit was al een gekend
+aandachtspunt uit eerdere CSAT-analyses in dit project (waar steevast een
+minimum van 5 responses werd gehanteerd), maar stond niet expliciet in de
+Cowork-taakprompt (§B.3) — vandaar de omissie.  
+
+**2. Tegenstrijdige interpretatie van de responstijd-correlatie.**
+Het tendens-rapport bevatte een interne tegenspraak: Executive Summary en
+Kritieke Bevindingen stelden dat langere doorlooptijden samengaan met
+hógere scores, bij een geciteerde correlatie van r=-0,214 (ZORGI) —
+wiskundig het omgekeerde van wat een negatieve correlatie betekent. De
+Responstijd Analyse-sectie verderop in hetzelfde rapport toonde wél het
+correcte, intuïtieve beeld (positieve tickets: 14,4 dagen gemiddeld;
+negatieve tickets: 58,4 dagen) — consistent met de negatieve r-waarde.
+De fout stond dus op de meest zichtbare plek van het rapport (tweemaal,
+in Executive Summary én Kritieke Bevindingen) terwijl de correcte
+interpretatie er verderop wél in stond.  
+
+### Genomen maatregelen  
+
+`docs/03-operationeel/cowork-onepager.md` §B.3 is herzien met twee nieuwe,
+verplichte kwaliteitsregels (6a en 6b), die bovendien zichtbaar in de
+output zelf vermeld moeten worden (niet enkel stilzwijgend toegepast) —
+op uitdrukkelijke vraag van Danny, zodat de toepassing ervan controleerbaar
+blijft voor wie het rapport leest:  
+
+- **6a — Minimum-n=5:** ziekenhuizen met minder dan 5 tickets mogen niet
+  meetellen in een ranking; een expliciete regel onderaan elke betrokken
+  tabel/lijst meldt dit ("Ziekenhuizen met minder dan 5 tickets zijn
+  uitgesloten van deze ranking").
+- **6b — Correlatie-richting verifiëren:** vóór elke correlatie-uitspraak
+  moet het teken van r getoetst worden aan de concrete onderliggende
+  cijfers; bij een tegenspraak gaat de tekst uit van de concrete cijfers
+  en meldt dit expliciet, in plaats van de tegenspraak stilzwijgend op
+  te lossen.  
+
+Daarnaast, in een apart gesprek dat hierop aansloot: Danny stelde de vraag
+waarom de onepager nog een FR-versie kreeg terwijl het tendens-rapport al
+bewust NL-only was (zie journal-entry 2026-08-24). Bij nazicht bleek dit een
+overname van de generieke, projectbrede NL/FR-conventie te zijn, zonder dat
+ooit een concrete FR-behoefte bij Tom, Thomas of Erwin was vastgesteld voor
+deze specifieke distributie. Beslissing: FR-onepager geschrapt, taak
+maakt voortaan enkel nog `onepager-<periode>-nl.md` aan — consistent met de
+NL-only tendens.  
+
+### Volgende stappen
+
+- [x] De 3 testbestanden van 25/08/2026 verwijderen uit `output\2026-08-25\`
+- [x] Herziene taakprompt opnieuw draaien (Manual, Ask-modus) — minimum-n en correlatie-
+      richting correct toegepast, FR-onepager geschrapt zoals afgesproken
+- [x] **Bronfix in `insights_generator.py`:** bij het controleren van de herziene run
+      bevestigde Cowork zelf dat de oorspronkelijke fout niet enkel in zijn eigen output
+      zat, maar al aanwezig was in de brondata (`evolutie-zorgi-2026-nl...md`,
+      sectie 2 "Kritieke bevindingen") — gegenereerd door
+      `InsightsGenerator._build_critical_findings`. Geverifieerd door het bronbestand
+      rechtstreeks te lezen: sectie 2 zei "langere responstijden gaan samen met hogere
+      scores" bij r=-0,214, terwijl sectie 7 van hetzelfde bestand ("Responstijd per
+      score-niveau") het net correct omschreef. Op vraag van Danny rechtstreeks gefixt
+      via de Filesystem-koppeling (i.p.v. via een GHC/Claude Code-surgical-prompt —
+      bewuste afwijking van de gebruikelijke advisory/implementatie-scheiding, gezien de
+      zeer kleine en scherp afgebakende omvang van de wijziging). Zie CHANGELOG.md
+      [0.9.5] voor de volledige technische beschrijving.
+- [x] **Vervolgronde na verificatie:** herziene run gecontroleerd — sectie 2 en sectie 7
+      nu consistent. Bij die controle bleek de omgekeerde-richting-fout ook gespiegeld
+      aanwezig in de `r > 0.1`-tak (nooit getriggerd in deze dataset, dus niet eerder
+      opgemerkt) én in alle 4 varianten van `insights.correlation.positive`/`.negative`
+      in `nl.json`/`fr.json` — die voeden rechtstreeks de responstijd-zin in de Executive
+      Summary. Op vraag van Danny ook deze rechtstreeks gefixt (zelfde patroon: positief
+      → langere responstijd bij hogere score, negatief → kortere responstijd bij hogere
+      score). De vergelijkbare teksten in het Streamlit-dashboard ("Correlatie-ommekeer"-
+      paneel) zijn gecontroleerd en bleken al correct. Zie CHANGELOG.md [0.9.6].
+- [ ] Bij een geslaagde herziene run: Frequency op Monthly, ketentest Deel A naar Deel B
+- [x] **Eindverificatie (18:44-run, 25/08/2026):** ZORGI en PHARMA NL-evolutierapporten beide
+      gecontroleerd — sectie 1 (Executive Summary), sectie 2 (Kritieke bevindingen) en
+      sectie 7 (Responstijd Analyse) zijn nu volledig consistent in alle 3 secties, beide
+      pijlers. Kwaliteitsronde afgesloten.
+- [x] **Bestandsnaamgeving periode:** de Cowork-taak koos zelf een periode-formaat voor
+      `<periode>` in de bestandsnamen, met wisselend resultaat tussen twee opeenvolgende
+      runs (`onepager-2026-nl.md` vs. `onepager-2026-08-nl.md`). Op 26/08/2026 handmatig
+      hernoemd naar het JJJJ-MM-formaat, en `cowork-onepager.md` §B.3 aangescherpt met een
+      expliciete instructie zodat dit voortaan consistent JJJJ-MM is, in één keer voor
+      zowel onepager als tendens-rapport. Zie CHANGELOG.md [0.9.7].
+- [ ] Vermelden bij de eerstvolgende reguliere distributie dat de juli-PDF's een
+      inmiddels gecorrigeerde interpretatiefout bevatten — **geen aparte correctiemail**,
+      beslissing Danny 26/08/2026
+
+---
+
+## 2026-08-26 (2) — Tweede Cowork-run: kwaliteit bevestigd, periode-naamgeving nog niet opgelost  
+
+Een tweede, onafhankelijke Cowork-run (Manual, output\2026-08-26\) werd door Danny
+aangeleverd ter controle. Resultaat inhoudelijk zeer sterk bevestigd:  
+
+- **Minimum-n=5 correct toegepast** in zowel onepager als tendens-rapport, met expliciete
+  voetnoten en per-ziekenhuis ticketaantallen bij kanttekeningen (ZORGI én PHARMA).
+- **Correlatie-richting correct en consistent**, inclusief een genuanceerde, expliciet
+  benoemde tegenspraak bij PHARMA (1★-tickets met kortste responstijd vs. 2★-tickets met
+  langste) — precies het gedrag dat regel 6b beoogde.
+- Tendens-rapport bevat nu ook een eigen **"Kwaliteitsverantwoording"-sectie** die expliciet
+  toelicht hoe 6a/6b zijn toegepast — een eigen toevoeging van Cowork, niet letterlijk
+  gevraagd, maar in lijn met de geest van de instructie.
+
+**Terugkerend probleem: periode-naamgeving.** Voor de **tweede keer op rij** koos Cowork
+`<periode>` = `2026` in plaats van `2026-08`, ondanks de JJJJ-MM-instructie die op 26/08
+al in `cowork-onepager.md` §B.3 was toegevoegd. Verificatie bevestigde dat **het brondocument
+zelf correct is** — de instructie staat er letterlijk in. De meest waarschijnlijke verklaring:
+de bijgewerkte §B.3-tekst is niet (opnieuw) in de live Cowork-taakinstructies geplakt vóór
+deze run. Niet met zekerheid vastgesteld — Danny kon dit niet bevestigen of ontkennen.  
+Handmatig gecorrigeerd: `onepager-2026-nl.md` → `onepager-2026-08-nl.md`,
+`tendens-2026-nl.md` → `tendens-2026-08-nl.md` (enkel .md aanwezig, geen PDF's — dit was
+een Deel B-only run zonder voorafgaande Deel A-PDF-conversie).  
+
+### Volgende stappen
+
+- [ ] Vóór de volgende Cowork-run: expliciet bevestigen dat de live taakinstructies in
+      Cowork zelf (niet enkel het brondocument) de actuele §B.3-tekst bevatten
+      (rechtstreeks kopiëren uit `cowork-onepager.md`, niet uit een oudere chatweergave)
+- [x] **Opgelost (26/08/2026, derde run):** na herbevestiging van de §B.3-instructies in de
+      live Cowork-taak maakte een nieuwe run (`output\2026-08-26\`, bron-timestamp 0808)
+      de bestanden meteen correct aan als `onepager-2026-08-nl.md` / `tendens-2026-08-nl.md`,
+      met "Periode 2026-08" letterlijk in de koptekst. Periode-naamgevingsprobleem definitief
+      bevestigd opgelost — geen vervolgactie (parameteriseren via taak-context) meer nodig.
+      Inhoudelijke kwaliteit van deze run bevestigt bovendien beide kwaliteitsregels (6a/6b)
+      correct en consistent, inclusief een genuanceerde paradox bij PHARMA (1★-tickets met
+      kortste responstijd) die expliciet als zodanig benoemd wordt i.p.v. weggemoffeld.
+- [ ] Bij aanhoudend probleem na herbevestiging: overwegen om de periode-waarde niet aan
+      Cowork over te laten, maar vooraf te berekenen en als vaste parameter in de
+      taak-context mee te geven (bv. via de taaknaam of een apart contextbestand)
+
+---
+
+## 2026-08-26 (3) — Cowork-scheduling: geen Monthly-optie, Weekly-risico ontdekt, Daily + datumcontrole gekozen  
+
+Bij het instellen van Frequency op de Cowork-taak bleek de scheduler geen Monthly-optie
+te bevatten (enkel Manual, Hourly, Daily, Weekdays, Weekly — bevestigd via screenshot,
+dropdown eindigt effectief bij Weekly).  
+
+**Weekly overwogen en verworpen.** Weekly vereist een vaste weekdag (bv. "elke maandag").
+Bij analyse bleek dit een structureel synchronisatierisico met Deel A (Taakplanner, vaste
+kalenderdag 2) op te leveren: als een kalendermaand start op dezelfde weekdag als de
+gekozen Cowork-trigger, valt die trigger op dag 1 — vóór Deel A's dag-2-run. Cowork zou
+dan de vorige-maand-data lezen en een foutief, gedateerd onepager-/tendens-rapport
+schrijven, zonder duidelijke foutmelding. Dit geldt voor elke vaste weekdag, niet enkel
+één specifieke keuze — een fundamentele mismatch tussen kalenderdag-triggers (Taakplanner)
+en weekdag-triggers (Cowork).  
+
+**Daily + datumcontrole gekozen (voorstel Danny).** In plaats daarvan: Frequency op Daily,
+09:00, met een nieuwe stap 0 vooraan in de taakprompt (§B.3) die eerst de datum van vandaag
+controleert en enkel doorgaat als het dag 2 van de kalendermaand is — anders meldt de taak
+dit kort en stopt onmiddellijk, zonder bestanden te lezen of te schrijven. Dag 2 valt per
+definitie altijd binnen elke 7-dagen-cyclus, dus dit sluit het Weekly-synchronisatierisico
+volledig uit. Kost: de taak "vuurt" 30×/maand, waarvan 29× meteen stopt na de datumcheck —
+verwaarloosbaar tegenover de gewonnen betrouwbaarheid.  
+
+`docs/03-operationeel/cowork-onepager.md` §B.2 en §B.3 bijgewerkt met deze beslissing en
+de volledige onderbouwing.  
+
+### Volgende stappen
+
+- [x] Cowork-taak: Frequency op Daily, 09:00 ingesteld
+- [x] Bijgewerkte §B.3-tekst (met stap 0) in de live taakinstructies geplakt
+- [x] **Niet-dag-2-test bevestigd (26/08/2026, 11:15):** handmatige Run now op dag 26 gaf
+      exact de verwachte meldtekst ("Vandaag is dag 26 van de maand, geen actie nodig
+      (enkel dag 2 triggert de volledige taak).") en raakte geen bestanden aan.
+      Datumcontrole (§B.3, stap 0) werkt correct — Deel B-scheduling volledig afgerond.
+
+---
+
+## 2026-08-26 (4) — Deel C gebouwd en getest: mail_maandelijks.py  
+
+Met Fase 7A volledig stabiel (Deel A + Deel B, inclusief scheduling) werd Fase 7B
+(Deel C — e-maildistributie) opgestart. Voorafgaand aan de bouw zijn drie openstaande
+beslissingen uit `fase7-maandelijkse-distributie.md` §8 expliciet bevestigd:  
+
+- **Bijlagen:** enkel onepager + tendens (geen data-driven PDF's)
+- **Taal:** enkel NL
+- **Verzendmodus:** volautomatisch `.Send()` vanaf de eerste live cyclus, met Danny in
+  CC als mitigatie (geen `.Display()`-tussenstap, ondanks het aanvankelijke voorzichtige
+  voorstel — bewuste, geïnformeerde keuze van Danny na expliciete risicoafweging)
+
+**Gebouwd:** `scripts/mail_maandelijks.py` (rechtstreeks via Filesystem-toegang, zelfde
+werkwijze als de `insights_generator.py`-fix eerder deze dag). Converteert onepager +
+tendens naar PDF via `md_to_pdf.py`, stelt een Outlook-mail samen via `win32com`, en
+verstuurt naar Tom/Thomas/Erwin met Danny in CC. Nieuwe configuratie (`MAIL_TO`, `MAIL_CC`,
+`MAIL_SUBJECT_PREFIX`) toegevoegd aan `settings.py`, `.env` en `.env.example`; `pywin32`
+expliciet aan `requirements.txt` toegevoegd.  
+
+**Extra veiligheidslaag op vraag van Danny:** bij `--dry-run` gaan Aan/CC bewust enkel
+naar Danny's eigen adres i.p.v. de echte ontvangers, met `[DRY-RUN]` in het onderwerp —
+voorkomt dat een per ongeluk verstuurd testconcept alsnog bij Tom, Thomas of Erwin
+terechtkomt.  
+
+**Bug gevonden en gefixt tijdens de eerste test:** `mail.Attachments.Add()` faalde met
+"Het pad bestaat niet", omdat `CSAT_OUTPUT_PATH=output/` relatief is en Outlook's
+COM-interface relatieve paden niet oplost zoals Python dat doet. Opgelost door alle
+relevante paden expliciet te `.resolve()`en naar absolute paden.  
+
+**Verfijningen door Danny na een geslaagde test:** `mail.Body` → `mail.HTMLBody` voor
+rijkere opmaak; aanhef en ondertekening persoonlijker gemaakt ("Collega's," / mail
+ondertekend door Danny zelf, met een kleine vermelding dat het om geautomatiseerde
+rapportage gaat); een `periode_display`-variabele toegevoegd die de mapnaam (YYYY-MM-DD)
+omzet naar een leesbaar DD/MM/YYYY-formaat voor onderwerp en berichttekst.  
+
+**Resultaat:** dry-run-test volledig geslaagd, door Danny zelf bevestigd ("getest en
+alles is ok zo"). Zie `docs/CHANGELOG.md` [0.9.8] voor de volledige technische
+beschrijving.  
+
+### Volgende stappen
+
+- [x] **Taakplanner-taak voor Deel C aangemaakt en getest (26/08/2026):** dag 2, 09:30.
+      Danny voegde tijdelijk `--dry-run` toe aan de parameters om de taak zelf (niet enkel
+      de commandolijn) te valideren onder de Taakplanner-context — geslaagd, nadien
+      `--dry-run` weer verwijderd. Taak staat nu klaar voor de volautomatische `.Send()`-
+      modus. **Let op** blijft gelden: vereist een interactieve, aangemelde sessie
+      (Outlook-COM-automatisering werkt niet met "uitvoeren ongeacht aanmelding").
+- [ ] Eerste volautomatische live cyclus afwachten op 02/09/2026
+- [ ] Eventueel `BACKLOG-007-maandelijkse-mail-distributie.md` aanmaken (nog open, zie §8)
+
+---
+
+## 2026-08-26 (5) — Sessie-afsluiting: Fase 7 volledig live, twee restpunten definitief besloten  
+
+Bij het afsluiten van deze uitgebreide sessie (24/08 t.e.m. 26/08/2026) werden de twee
+laatste openstaande, niet-blokkerende punten expliciet en definitief besloten door Danny —
+op basis van de aanbevelingen uit deze conversatie:  
+
+**1. `md_to_pdf.py`-encodingissue (§8.1): blijvend genegeerd, geen actieve opvolging.**
+Na afweging (treft enkel één decoratieve emoji in een intern logbestand, geen impact op
+de output naar Tom/Thomas/Erwin, geen oplopend risico) is besloten dit nooit actief te
+fixen — enkel opportunistisch mee te nemen als `md_to_pdf.py` om een andere reden ooit
+bewerkt wordt, of als collega's er zelf een opmerking over zouden maken.  
+
+**2. BACKLOG-007: bewust niet aangemaakt als formeel bestand.** De drie mogelijke
+vervolgpunten (pijleruitbreiding CARE/CARE ADMIN/ERP4HC, data-driven PDF's alsnog als
+bijlage, meldingsmechanisme bij mislukte run door niet-aangemelde sessie) blijven als
+informele notitie staan in `fase7-maandelijkse-distributie.md` §8 en hier — geen van
+drieën is dringend genoeg om nu een apart backlog-document voor te openen.  
+
+**Eindstatus Fase 7 (A + B + C):** volledig ingesteld en getest.  
+
+| Onderdeel | Trigger | Status |
+|---|---|---|
+| Deel A — generatie + PDF | Taakplanner, dag 2, 07:00 | ✅ Getest onder Taakplanner-context |
+| Deel B — onepager + tendens | Cowork, Daily 09:00 + datumcontrole | ✅ Getest, incl. niet-dag-2-scenario |
+| Deel C — mail-distributie | Taakplanner, dag 2, 09:30 | ✅ Getest onder Taakplanner-context (dry-run) |
+
+**Kanttekening bij de Taakplanner-Status-kolom:** tijdens deze sessie toonde "CSAT-Compass
+maandelijks" kortstondig "Actief" i.p.v. "Gereed" in het Taakplanner-overzicht, ook na een
+volledig afgeronde cyclus (bevestigd via Geschiedenis: "Taak voltooid"). Na een
+handmatige F5-verversing van de Taakplanner-console verscheen de correcte status —
+een gekende weergave-eigenaardigheid van Taakplanner zelf, geen functioneel probleem.  
+
+**Enige resterende stap:** de eerste échte, volautomatische cyclus op **02/09/2026**.
+Dat is de definitieve validatie en kan niet vooraf gesimuleerd worden zonder de
+systeemdatum te forceren.  
+
+### Volgende stappen
+
+- [ ] 02/09/2026: bevestigen dat alle 3 delen automatisch en correct doorliepen
+- [ ] Indien alles goed loopt: geen verdere actie nodig, Fase 7 kan dan als volledig
+      afgesloten beschouwd worden
+- [ ] Indien er iets misloopt: terugkoppelen voor gerichte troubleshooting
+
+---
+
 ## Versiehistorie
 
 | Versie | Datum | Wijzigingen | Auteur               |
@@ -777,6 +1115,15 @@ functies na `_tab_hospitals` had verwijderd (`render_kpi_targets`, `_tab_targets
 | 2.9 | 23/04/2026 | Crash recovery (main() hersteld), 250+ encoding fixes, topbar 1.5cm marges, CI-fix, v0.8.0, WIP gearchiveerd | Danny Depecker + GHC |
 | 3.0 | 11/05/2026 | Fase 6 afsluiting: ZORGI volledig actief in dashboard (_ACTIVE_PILLARS + app.py); run_monthly volledige run alle pijlers | Danny Depecker + GHC |
 | 3.1 | 11/05/2026 | Fase 7: run_special.py operationeel — instelbare begindatum, alle pijlers, identieke outputstructuur, v0.9.0 | Danny Depecker + GHC |
+| 3.2 | 24/08/2026 | Fase 7 (maandelijkse distributie-automatisering) opgestart: Deel A voltooid en getest (_run_maandelijks.bat, Taakplanner dag 2), Deel B uitgebreid met tendens-formaat, scope gesplitst 7A/7B | Danny Depecker + Claude |
+| 3.3 | 26/08/2026 | Eerste Cowork dry-run (25/08) beoordeeld: 2 kwaliteitsproblemen gevonden en gefixt in §B.3 (minimum-n=5, correlatie-richting verifiëren, beide verplicht zichtbaar in output), FR-onepager geschrapt (consistent met NL-only tendens) | Danny Depecker + Claude |
+| 3.4 | 26/08/2026 | Herziene Cowork-run bevestigd correct; correlatie-fout bleek ook in de bron te zitten (`insights_generator.py`) en rechtstreeks gefixt via Filesystem-toegang — zie CHANGELOG.md [0.9.5] | Danny Depecker + Claude |
+| 3.5 | 26/08/2026 | Verificatie legde bloot dat de correlatie-richtingfout gespiegeld ook in de `r>0,1`-tak en in 8 i18n-strings (nl.json/fr.json) zat; alle rechtstreeks gefixt — zie CHANGELOG.md [0.9.6] | Danny Depecker + Claude |
+| 3.6 | 26/08/2026 | Tweede Cowork-run bevestigt kwaliteit (min-n, correlatie-richting correct); periode-naamgeving (JJJJ-MM) nog steeds niet consistent ondanks bijgewerkt brondocument — vermoedelijk niet herplakt in live taakinstructies | Danny Depecker + Claude |
+| 3.7 | 26/08/2026 | Periode-naamgeving definitief bevestigd opgelost (derde run); Cowork-scheduler blijkt geen Monthly-optie te hebben, Weekly-synchronisatierisico ontdekt en verworpen, Daily + datumcontrole (stap 0) gekozen als oplossing | Danny Depecker + Claude |
+| 3.8 | 26/08/2026 | Fase 7B (Deel C) opgestart en afgerond: `mail_maandelijks.py` gebouwd, bugfix (absolute paden voor Outlook-COM), dry-run-veiligheidslaag, door Danny verfijnd (HTML-body, persoonlijke ondertekening, DD/MM/YYYY-weergave) en succesvol getest | Danny Depecker + Claude |
+| 3.9 | 26/08/2026 | Taakplanner-taak voor Deel C aangemaakt en gevalideerd onder de Taakplanner-context (tijdelijke --dry-run-test); Deel A, B en C nu allemaal volledig ingesteld en getest — Fase 7A + 7B inhoudelijk afgerond, wacht op eerste live cyclus 02/09/2026 | Danny Depecker + Claude |
+| 3.10 | 26/08/2026 | Sessie-afsluiting: md_to_pdf.py-encodingissue en BACKLOG-007 definitief besloten (beide bewust niet actief opgevolgd) — Fase 7 (A+B+C) volledig live, wacht op eerste automatische cyclus 02/09/2026 | Danny Depecker + Claude |
 
 ---
 *ZORGI — Danny Depecker*

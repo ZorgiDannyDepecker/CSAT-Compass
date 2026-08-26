@@ -78,3 +78,9 @@ def db_available() -> bool:
 # Standaard = "prod"; overschrijf met env-var CSAT_DASHBOARD_MODE=demo voor dev
 DASHBOARD_MODE: str = os.getenv("CSAT_DASHBOARD_MODE", "prod").lower()
 DASHBOARD_PROD_MODE: bool = DASHBOARD_MODE == "prod"
+
+# --- Fase 7B: Maandelijkse mail-distributie (Deel C) ---
+# Beslissing Danny Depecker 26/08/2026 — zie fase7-maandelijkse-distributie.md §8.
+MAIL_TO: str = os.getenv("CSAT_MAIL_TO", "")
+MAIL_CC: str = os.getenv("CSAT_MAIL_CC", "")
+MAIL_SUBJECT_PREFIX: str = os.getenv("CSAT_MAIL_SUBJECT_PREFIX", "CSAT-Compass")

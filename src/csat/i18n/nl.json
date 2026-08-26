@@ -424,12 +424,12 @@
     },
     "correlation": {
       "positive": [
-        "De analyse toont een positieve correlatie (r={r}) tussen responstijd en klanttevredenheid: sneller afhandelen leidt aantoonbaar tot hogere scores.",
-        "Responstijd en score zijn gecorreleerd (r={r}): kortere wachttijden gaan samen met betere beoordelingen."
+        "De analyse toont een positieve correlatie (r={r}) tussen responstijd en klanttevredenheid: langere responstijden gaan aantoonbaar samen met hogere scores.",
+        "Responstijd en score zijn gecorreleerd (r={r}): langere wachttijden gaan samen met betere beoordelingen."
       ],
       "negative": [
-        "Opvallend: er is een negatieve correlatie (r={r}) tussen responstijd en score. Langere tickets scoren gemiddeld hoger.",
-        "De correlatie tussen responstijd en score is negatief (r={r}), wat kan wijzen op complexere tickets bij de meest betrokken klanten."
+        "Opvallend: er is een negatieve correlatie (r={r}) tussen responstijd en score. Kortere tickets scoren gemiddeld hoger.",
+        "De correlatie tussen responstijd en score is negatief (r={r}), wat erop wijst dat kortere responstijden samengaan met hogere klanttevredenheid."
       ],
       "neutral": [
         "De correlatie tussen responstijd en klanttevredenheid is verwaarloosbaar (r={r}).",
